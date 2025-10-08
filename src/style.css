@@ -1,60 +1,50 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #ebebeb;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@font-face {
+  font-family: "Avengero";
+  src: url("/public/fonts/avengero.ttf");
 }
 
-#app {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.header-container img {
+/* titles */
+.quote-text {
+  font-family: Helvetica;
+  font-size: 40px;
+  font-weight: 700;
+  font-style: italic;
+  text-align: center;
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  pointer-events: none;
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
 }
 
-.card {
-  margin: 29px;
-  width: 332px;
-  height: 447px;
-  flex-shrink: 0;
-  border-radius: 7px;
-  background: #fff;
-}
-
-.card-title {
-  padding-left: 23px;
-  padding-top: 15px;
-  color: #000;
-  font-family: "Segoe UI", "Helvetica Neue";
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: normal;
+.avengers-text {
+  font-family: "Avengero";
+  font-size: 56px;
+  font-weight: normal;
+  text-align: center;
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
 }
 
-.title-line {
-  margin: 7px 15px;
-  width: 299px;
-  height: 1.5px;
-  background: rgba(0, 0, 0, 0.75);
+.dashed-line {
+  width: 28%;
+  border: none;
+  border-top: 4px dashed black;
+}
+
+/* image buttons */
+.image-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin-top: 45px;
+}
+
+.image-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-button img {
+  display: block;
+  width: 190px;
+  border: 5px solid black;
+  border-radius: 20px;
 }
