@@ -1,0 +1,28 @@
+@font-face {
+  font-family: "Avengero";
+  src: url("/public/avengers.svg");
+}
+
+/* titles */
+.quote-text {
+  font-family: Helvetica;
+  font-size: 40px;
+  font-weight: 700;
+  font-style: italic;
+  text-align: center;
+  user-select: none;
+}
+
+.avengers-text {
+  font-family: "Avengero";
+  font-size: 56px;
+  font-weight: normal;
+  text-align: center;
+  user-select: none;
+}
+
+.dashed-line {
+  width: 40%;
+  border: none;
+  border-top: 4px dashed black;
+}

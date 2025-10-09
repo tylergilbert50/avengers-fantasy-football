@@ -1,0 +1,101 @@
+.standings-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.standings {
+  width: 909px;
+  height: 968px;
+  background-color: #e5e5e5;
+  border: 6px solid black;
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.standings-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.standings-title {
+  width: 843px;
+  height: 71px;
+  background-color: #282626;
+  border-radius: 25px 25px 10px 10px;
+  font-family: "Helvetica";
+  font-weight: bold;
+  font-size: 42px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.standings-header {
+  width: 843px;
+  display: grid;
+  grid-template-columns: 55px 2.5fr 1.7fr 1.1fr 1.2fr;
+  column-gap: 25px;
+  align-items: center;
+  padding: 0 20px;
+  font-family: "Helvetica";
+  font-weight: 300;
+  font-size: 20px;
+  margin: 10px;
+  margin-top: 20px;
+  color: black;
+}
+
+.standings-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.standings-card {
+  width: 843px;
+  height: 71px;
+  margin: 7px;
+  background-color: white;
+  border-radius: 300px;
+  display: grid;
+  grid-template-columns: 30px 3fr 1.5fr 1.2fr 1.2fr;
+  column-gap: 25px;
+  align-items: center;
+  font-family: "Helvetica";
+  font-size: 21px;
+  color: black;
+  font-weight: bold;
+  padding: 0 20px;
+}
+
+.standings-rank {
+  width: 40px;
+  height: 40px;
+  background-color: #949494;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Helvetica";
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+  justify-self: center;
+  text-align: center;
+}
+
+.standings-rank.top-5 {
+  background-color: black;
+}
+
+.standings-rank.wildcard {
+  background-color: black;
+}

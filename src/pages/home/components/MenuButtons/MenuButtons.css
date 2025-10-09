@@ -1,0 +1,30 @@
+.image-button-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  max-width: 900px;
+  margin: 45px auto;
+  box-sizing: border-box;
+}
+
+.image-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-button img {
+  display: block;
+  width: 190px;
+  border: 5px solid black;
+  border-radius: 20px;
+  user-select: none;
+}
+
+.image-button:nth-child(9) {
+  grid-column: 2;
+}
+
+.image-button:nth-child(10) {
+  grid-column: 3;
+}
