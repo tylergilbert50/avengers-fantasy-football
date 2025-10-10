@@ -2,7 +2,7 @@ import "./ManagerButtons.css";
 
 function ManagerButtons() {
   return (
-    <div className="manager-container">
+    <div className="manager-buttons-wrapper">
       <div className="manager-item">
         <img src="/images/managers/andrew.avif" />
         <a href="/andrew" className="manager-button">

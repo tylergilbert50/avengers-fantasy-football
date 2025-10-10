@@ -1,11 +1,12 @@
-import ManagerButtons from "./components/Manager Buttons/ManagerButtons";
 import MenuButtons from "./components/MenuButtons/MenuButtons";
+import ManagerButtons from "./components/ManagerButtons/ManagerButtons";
 import Standings from "./components/Standings/standings";
+import TopTeam from "./components/TopTeam/TopTeam";
 import "./home.css";
 
 function Home() {
   return (
-    <div className="main-container">
+    <div className="container">
       <h2 className="quote-text">"There was an idea..."</h2>
       <h1 className="avengers-text">
         AVENGERS FANTASY <br />
@@ -22,6 +23,7 @@ function Home() {
 
       <ManagerButtons />
       <Standings />
+      <TopTeam />
     </div>
   );
 }

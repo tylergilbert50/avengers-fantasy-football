@@ -1,28 +1,72 @@
 @font-face {
   font-family: "Avengero";
-  src: url("/public/avengers.svg");
+  src: url("/fonts/avengero.ttf");
 }
 
-/* titles */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .quote-text {
-  font-family: Helvetica;
-  font-size: 40px;
-  font-weight: 700;
-  font-style: italic;
   text-align: center;
+  font-family: Helvetica;
+  font-style: italic;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-weight: 700;
   user-select: none;
+  margin-bottom: 0px;
 }
 
 .avengers-text {
-  font-family: "Avengero";
-  font-size: 56px;
-  font-weight: normal;
   text-align: center;
+  font-family: "Avengero";
+  font-weight: normal;
+  font-size: clamp(2rem, 7vw, 3.5rem);
   user-select: none;
+  margin-bottom: 25px;
 }
 
 .dashed-line {
+  border-top: 5px dashed black;
+  border-bottom: none;
   width: 40%;
-  border: none;
-  border-top: 4px dashed black;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .quote-text {
+    font-size: 1.75rem;
+  }
+
+  .avengers-text {
+    font-size: 2.5rem;
+  }
+
+  .dashed-line {
+    width: 40%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .quote-text {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .avengers-text {
+    font-size: 1.8rem;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dashed-line {
+    width: 80%;
+  }
+
+  .dashed-line {
+    margin-bottom: 25px;
+  }
 }

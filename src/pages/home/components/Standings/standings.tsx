@@ -15,7 +15,7 @@ function Standings() {
       : null;
 
   return (
-    <div className="standings-container">
+    <div className="standings-wrapper">
       <div className="standings">
         <div className="standings-content">
           <div className="standings-title">{year} STANDINGS</div>

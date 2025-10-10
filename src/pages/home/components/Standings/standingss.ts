@@ -42,7 +42,9 @@ export const useCurrentSeason = (leagueId: string): SeasonInfo => {
 export const useStandings = (leagueId: string, year: number): Team[] => {
   const [teams, setTeams] = useState<Team[]>([]);
 
-  const teamManagerMap: { [key: string]: string } = {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const teamManagerMapRaw: { [teamName: string]: string } = {
     "Terribly Well-Balanced": "Stuart Iverson",
     "Fat Hammered Thor": "Jeremy Stojakovich",
     "Genius, Plaiboi, Champion": "Connor Boswer",
@@ -55,6 +57,11 @@ export const useStandings = (leagueId: string, year: number): Team[] => {
     "I Can Do This All Day": "Daniel Dixon",
   };
 
+  const teamManagerMap: { [normalizedTeamName: string]: string } =
+    Object.fromEntries(
+      Object.entries(teamManagerMapRaw).map(([k, v]) => [normalize(k), v])
+    );
+
   useEffect(() => {
     const fetchStandings = async () => {
       const response = await fetch(
@@ -64,7 +71,7 @@ export const useStandings = (leagueId: string, year: number): Team[] => {
 
       const teamData: Team[] = data.teams.map((team: any) => {
         const teamName = team.name || `Team ${team.id}`;
-        const managerName = teamManagerMap[teamName] || teamName;
+        const managerName = teamManagerMap[normalize(teamName)] || teamName;
 
         return {
           id: team.id,
