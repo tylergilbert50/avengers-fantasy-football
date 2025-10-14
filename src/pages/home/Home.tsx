@@ -1,7 +1,7 @@
 import MenuButtons from "./components/MenuButtons/MenuButtons";
 import ManagerButtons from "./components/ManagerButtons/ManagerButtons";
 import Standings from "./components/Standings/standings";
-import TopTeam from "./components/TopTeam/TopTeam";
+import TopTeam from "./components/TopTeam/TopTeam.tsx";
 import "./home.css";
 
 function Home() {

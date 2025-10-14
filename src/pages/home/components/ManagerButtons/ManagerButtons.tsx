@@ -1,67 +1,68 @@
 import "./ManagerButtons.css";
+import { Link } from "react-router-dom";
 
 function ManagerButtons() {
   return (
     <div className="manager-buttons-wrapper">
       <div className="manager-item">
         <img src="/images/managers/andrew.avif" />
-        <a href="/andrew" className="manager-button">
+        <Link to="/andrew" className="manager-button">
           ANDREW
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/brett.avif" />
-        <a href="/brett" className="manager-button">
+        <Link to="/brett" className="manager-button">
           BRETT
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/connor.avif" />
-        <a href="/connor" className="manager-button">
+        <Link to="/connor" className="manager-button">
           CONNOR
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/daniel.avif" />
-        <a href="/daniel" className="manager-button">
+        <Link to="/daniel" className="manager-button">
           DANIEL
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/danny.avif" />
-        <a href="/danny" className="manager-button">
+        <Link to="/danny" className="manager-button">
           DANNY
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/demarco.avif" />
-        <a href="/demarco" className="manager-button">
+        <Link to="/demarco" className="manager-button">
           DEMARCO
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/jeremy.avif" />
-        <a href="/jeremy" className="manager-button">
+        <Link to="/jeremy" className="manager-button">
           JEREMY
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/josh.avif" />
-        <a href="/josh" className="manager-button">
+        <Link to="/josh" className="manager-button">
           JOSH
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/stuart.avif" />
-        <a href="/stuart" className="manager-button">
+        <Link to="/stuart" className="manager-button">
           STUART
-        </a>
+        </Link>
       </div>
       <div className="manager-item">
         <img src="/images/managers/tyler.avif" />
-        <a href="/tyler" className="manager-button">
+        <Link to="/tyler" className="manager-button">
           TYLER
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -1,0 +1,947 @@
+@media (max-width: 600px) {
+  .career-finishes-graph {
+    padding: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden !important;
+  }
+}
+@font-face {
+  font-family: "VarelaRound";
+  src: url("/fonts/VarelaRound.ttf");
+}
+
+.profile-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 100vw;
+  padding: 0 20px;
+  overflow-x: hidden;
+}
+
+.profile {
+  width: 100%;
+  max-width: 909px;
+  min-height: auto;
+  padding: 20px;
+  background-color: #e5e5e5;
+  border: 6px solid black;
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  margin-bottom: 25px;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  gap: 30px;
+}
+
+.profile-image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-image {
+  width: 219px;
+  height: 221px;
+  overflow: hidden;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.manager-name {
+  font-family: "Helvetica";
+  font-size: 20px;
+  font-weight: 700;
+  text-align: left;
+  color: black;
+  letter-spacing: 1px;
+}
+
+.profile-text-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.profile-title {
+  font-family: "VarelaRound";
+  font-size: 38px;
+  text-align: start;
+}
+
+.profile-top-dashed-line {
+  border-top: 3px dashed black;
+  border-bottom: none;
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-dashed-line {
+  width: 100%;
+  margin-top: 50px;
+  margin-bottom: 20px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1px;
+}
+
+.profile-dashed-line::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 3px dashed black;
+  z-index: 0;
+}
+
+.dashed-line-text {
+  font-family: "Lobster", cursive;
+  font-size: 28px;
+  background-color: #e5e5e5;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background-color: white;
+  border: 6px solid #ffde5f;
+  border-radius: 20px;
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 175px;
+  height: 175px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.stat-label {
+  font-family: "Lobster", cursive;
+  font-size: 21px;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.2;
+}
+
+.stat-value {
+  font-family: "helvetica";
+  font-size: 73px;
+  font-weight: bold;
+  text-align: center;
+  color: black;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 1;
+  line-height: 1;
+  padding-bottom: 10px;
+}
+
+.career-stats-section {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  margin-top: 30px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.career-stats-cards {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+.career-stat-card {
+  background-color: white;
+  border: 6px solid black;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+  min-width: 180px;
+}
+
+.career-stat-header {
+  font-family: "VarelaRound";
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  background-color: black;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.career-stat-value {
+  font-family: "Lobster", cursive;
+  font-size: 48px;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1;
+}
+
+.rank-text {
+  font-family: "VarelaRound";
+  font-size: 16px;
+  color: #666;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.football-stats {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.football-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.football-label {
+  font-family: "VarelaRound";
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.football-icon {
+  position: relative;
+  width: 175px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.football-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.football-number {
+  position: absolute;
+  font-family: "VarelaRound";
+  font-size: 52px;
+  font-weight: bold;
+  color: black;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.yearly-stats-section {
+  width: 100%;
+  margin-top: 30px;
+}
+
+.yearly-stats-table {
+  width: 100%;
+  background-color: white;
+  border: 6px solid black;
+  border-radius: 20px;
+  padding: 15px;
+}
+
+.yearly-stats-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 15px;
+  padding-bottom: 12px;
+  border-bottom: 3px dashed black;
+  margin-bottom: 12px;
+}
+
+.yearly-stats-header-item {
+  font-family: "VarelaRound";
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.yearly-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 15px;
+  padding: 12px 0;
+  align-items: center;
+  border-bottom: 2px solid #cccccc;
+}
+
+.yearly-stats-row:last-child {
+  border-bottom: none;
+}
+
+.year-badge {
+  background-color: #e5e5e5;
+  border-radius: 25px;
+  padding: 8px 15px;
+  font-family: "VarelaRound";
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.record-value {
+  font-family: reklamescriptw00-medium, cursive;
+  font-size: 36px;
+  font-weight: 900;
+  text-align: center;
+  -webkit-text-stroke: 1.5px black;
+  text-stroke: 1.5px black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.playoff-badge {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "VarelaRound";
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.playoff-badge.yes {
+  background-color: #8cedc3;
+  color: black;
+}
+
+.playoff-badge.no {
+  background-color: #e5e5e5;
+  color: black;
+}
+
+.stats-value {
+  font-family: "VarelaRound";
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.career-finishes-section {
+  width: 100%;
+  margin-top: 30px;
+}
+
+.career-finishes-header {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1px;
+  margin-bottom: 30px;
+}
+
+.career-finishes-header::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 3px dashed black;
+  z-index: 0;
+}
+
+.career-finishes-title {
+  font-family: "Lobster", cursive;
+  font-size: 28px;
+  background-color: #e5e5e5;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.career-finishes-graph {
+  width: 100%;
+  background-color: white;
+  border: 6px solid black;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.graph-years {
+  display: grid;
+  grid-template-columns: 60px repeat(10, 1fr);
+  gap: 0;
+  margin-bottom: 20px;
+}
+
+.year-label {
+  font-family: reklamescriptw00-medium, cursive;
+  font-size: 24px;
+  font-weight: 900;
+  text-align: center;
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+}
+
+.graph-container {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 0;
+}
+
+.position-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.position-label {
+  font-family: reklamescriptw00-medium, cursive;
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+}
+
+.graph-grid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.grid-line {
+  height: 90px;
+  border-bottom: 2px solid #cccccc;
+  position: relative;
+}
+
+.grid-line:last-child {
+  border-bottom: none;
+}
+
+.graph-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.data-points {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.data-point {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "VarelaRound";
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.data-point.black {
+  background-color: black;
+}
+
+.data-point.bronze {
+  background-color: #cd7f32;
+}
+
+.data-point.silver {
+  background-color: #c0c0c0;
+}
+
+.data-point.gold {
+  background-color: #ffd700;
+  color: black;
+}
+
+/* Add these styles to your ManagerProfile.css - replace the existing career-finishes styles */
+
+.career-finishes-section {
+  width: 100%;
+  margin-top: 30px;
+}
+
+.career-finishes-header {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1px;
+  margin-bottom: 30px;
+}
+
+.career-finishes-header::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 3px dashed black;
+  z-index: 0;
+}
+
+.career-finishes-title {
+  font-family: "Lobster", cursive;
+  font-size: 28px;
+  background-color: #e5e5e5;
+  padding: 0 22px;
+  position: relative;
+  z-index: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.career-finishes-graph {
+  width: 100%;
+  background-color: white;
+  border: 6px solid black;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.graph-years {
+  display: grid;
+  grid-template-columns: 50px repeat(10, 1fr);
+  gap: 0;
+  margin-bottom: 15px;
+}
+
+.year-label {
+  font-family: reklamescriptw00-medium, cursive;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+}
+
+.graph-container {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 0;
+}
+
+.position-labels {
+  display: grid;
+  grid-template-rows: repeat(10, 60px);
+  gap: 0;
+  padding-top: 30px;
+}
+
+.position-label {
+  font-family: reklamescriptw00-medium, cursive;
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+}
+
+.graph-grid {
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(10, 60px);
+  gap: 0;
+}
+
+.grid-line {
+  border-bottom: 2px solid #cccccc;
+  position: relative;
+}
+
+.grid-line:first-child {
+  border-top: 2px solid #cccccc;
+}
+
+.grid-line:last-child {
+  border-bottom: 2px solid #cccccc;
+}
+
+.graph-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.data-points {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.data-point {
+  position: absolute;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "VarelaRound";
+  font-size: 34px;
+  font-weight: bold;
+  color: white;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.data-point.black {
+  background-color: black;
+}
+
+.data-point.bronze {
+  background-color: #cd7f32;
+}
+
+.data-point.silver {
+  background-color: #c0c0c0;
+}
+
+.data-point.gold {
+  background-color: #ffd700;
+  color: black;
+}
+
+/* Responsive styles for mobile and tablet */
+@media (max-width: 1024px) {
+  /* Tablet adjustments */
+  .profile {
+    max-width: 100%;
+    padding: 15px;
+  }
+
+  .career-finishes-graph {
+    padding: 15px;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile adjustments */
+  .profile-wrapper {
+    padding: 0 10px;
+  }
+
+  .profile {
+    padding: 10px;
+    border-radius: 30px;
+  }
+
+  .profile-content {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .profile-image-section {
+    width: 100%;
+    align-items: center;
+  }
+
+  .profile-image {
+    width: 180px;
+    height: 180px;
+  }
+
+  .manager-name {
+    font-size: 24px;
+  }
+
+  .profile-text-section {
+    width: 100%;
+    align-items: center;
+  }
+
+  .profile-title {
+    font-size: 32px;
+    text-align: center;
+  }
+
+  .career-stats-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .career-stats-cards {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .career-stat-card {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .football-stats {
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .football-stat {
+    width: 100%;
+  }
+
+  /* Tablet adjustments for graph grid and related elements */
+  @media (max-width: 1024px) {
+    .career-finishes-graph {
+      padding: 8px 10px;
+      height: clamp(360px, 75vw, 560px);
+    }
+    .graph-years {
+      grid-template-columns: 40px repeat(10, 1fr);
+      margin-bottom: 6px;
+    }
+    .year-label {
+      font-size: 14px;
+    }
+    .graph-container {
+      grid-template-columns: 40px 1fr;
+    }
+    .position-labels {
+      display: grid;
+      grid-template-rows: repeat(10, 1fr);
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .position-label {
+      font-size: 20px;
+      align-items: center;
+    }
+    .graph-grid {
+      display: grid;
+      grid-template-rows: repeat(10, 1fr);
+    }
+    .grid-line {
+      border-bottom: 1.5px solid #ccc;
+    }
+    .grid-line:first-child {
+      border-top: 1.5px solid #ccc;
+    }
+    .grid-line:last-child {
+      border-bottom: 1.5px solid #ccc;
+    }
+    .data-point {
+      width: clamp(36px, 8vw, 60px);
+      height: clamp(36px, 8vw, 60px);
+      font-size: clamp(18px, 4vw, 28px);
+    }
+  }
+
+  /* Small phones: even tighter gutters so the plot almost touches the edges */
+  @media (max-width: 480px) {
+    .career-finishes-graph {
+      padding: 6px 8px;
+      height: clamp(340px, 80vw, 520px);
+    }
+    .graph-years {
+      grid-template-columns: 34px repeat(10, 1fr);
+    }
+    .graph-container {
+      grid-template-columns: 34px 1fr;
+    }
+    .year-label {
+      font-size: 12px;
+    }
+    .position-label {
+      font-size: 18px;
+    }
+    /* No grid-line change here now, but add if you want lighter lines on tiny screens */
+    /* .grid-line { border-bottom: 1px solid #ddd; } */
+  }
+}
+
+.yearly-stats-table {
+  overflow-x: auto;
+  padding: 10px;
+}
+
+.yearly-stats-header {
+  font-size: 12px;
+  gap: 8px;
+}
+
+.yearly-stats-row {
+  gap: 8px;
+}
+
+.year-badge {
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.record-value {
+  font-size: 24px;
+}
+
+.playoff-badge {
+  height: 35px;
+  font-size: 20px;
+}
+
+.stats-value {
+  font-size: 16px;
+}
+
+@media (max-width: 480px) {
+  /* Small mobile adjustments */
+  .profile {
+    border-radius: 35px;
+    margin-top: 20px;
+  }
+
+  .profile-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .manager-name {
+    font-size: 20px;
+  }
+
+  .profile-title {
+    font-size: 28px;
+  }
+
+  .career-finishes-graph {
+    padding: 0px !important;
+    height: 400px !important;
+  }
+
+  .yearly-stats-table {
+    flex-direction: column;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+
+  .yearly-stats-table {
+    padding: 8px;
+  }
+
+  .yearly-stats-header {
+    font-size: 10px;
+    gap: 5px;
+  }
+
+  .yearly-stats-row {
+    gap: 5px;
+    padding: 10px 0;
+  }
+
+  .year-badge {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .record-value {
+    font-size: 20px;
+    -webkit-text-stroke: 1px black;
+  }
+
+  .playoff-badge {
+    height: 30px;
+    font-size: 18px;
+  }
+
+  .stats-value {
+    font-size: 14px;
+  }
+}
