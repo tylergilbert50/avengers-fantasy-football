@@ -60,12 +60,12 @@ const POINTS_MAP: { [key: string]: number } = {
 
 const WEEK_5_RANKINGS: { [managerName: string]: number } = {
   "Stuart Iverson": 1,
-  "Andrew Casazza": 2,
-  "Jeremy Stojakovich": 3,
-  "Connor Bowser": 4,
-  "Brett Gilbert": 5,
-  "Demarco Moore": 6,
-  "Josh Hartless": 7,
+  "Andrew Casazza": 4,
+  "Jeremy Stojakovich": 2,
+  "Connor Bowser": 3,
+  "Brett Gilbert": 6,
+  "Demarco Moore": 7,
+  "Josh Hartless": 5,
   "Tyler Gilbert": 8,
   "Danny Stiles": 9,
   "Daniel Dixon": 10,

@@ -40,6 +40,7 @@ function ManagerPoll() {
     managers,
     handleVote,
     handleSubmit,
+    clearMyVote,
   } = usePollData(userId, currentWeek, teams);
 
   const isManagerSelected = (managerId: string, position: string) =>
@@ -235,13 +236,13 @@ function ManagerPoll() {
           >
             {hasSubmitted ? "ALREADY SUBMITTED" : "SUBMIT"}
           </button>
-          {/*<button
+          <button
             style={{ marginTop: "16px", background: "#f44336", color: "white", fontWeight: "bold" }}
             onClick={clearMyVote}
             disabled={!hasSubmitted}
           > 
             Clear My Vote (TEMP)
-          </button>*/}
+          </button>
         </div>
       </div>
     </div>
