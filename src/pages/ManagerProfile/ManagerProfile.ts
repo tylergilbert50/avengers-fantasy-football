@@ -178,7 +178,7 @@ export const useManagerCareer = (
               return mapped && managerEq(mapped, managerDisplayName);
             });
           }
-          if (!my) continue; // manager not present this season
+          if (!my) continue;
 
           const rec = my?.record?.overall ?? {};
           const w = rec.wins ?? 0;
@@ -197,9 +197,12 @@ export const useManagerCareer = (
           pW += pw;
           pL += pl;
 
-          const madePO = pw + pl > 0 || !!my?.playoffSeed || !!my?.rankPlayoffs;
+          const madePO =
+            pw + pl > 0 ||
+            (my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= 6) ||
+            (my?.rankPlayoffs && my.rankPlayoffs > 0) ||
+            my?.record?.overall?.wins >= 7;
 
-          // Final rank; if missing (live season), compute by wins then PF
           const finalRank =
             my?.rankCalculatedFinal ??
             my?.rankFinal ??
@@ -220,15 +223,12 @@ export const useManagerCareer = (
 
           if (position === 1 && pw + pl > 0) champ += 1;
 
-          // Weekly extremes
           try {
             const mu = await seasonMatchups(leagueId, year);
             const { top, bottom } = countWeeklyExtremes(mu, my.id);
             n1 += top;
             n10 += bottom;
-          } catch {
-            // ignore if matchup view not available
-          }
+          } catch {}
 
           yearly.push({
             year,
