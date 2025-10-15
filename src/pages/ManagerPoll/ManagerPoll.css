@@ -70,7 +70,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Helvetica";
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: clamp(24px, 5vw, 42px);
   font-weight: bold;
   color: white;
@@ -85,14 +85,14 @@ body {
   align-items: center;
   padding: 0 var(--poll-padding);
   margin: 20px 0 10px;
-  font-family: "Helvetica";
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: var(--font-size-header);
   font-weight: 300;
   color: black;
 }
 
 .poll-header {
-  grid-template-columns: 2fr repeat(10, 0.5fr);
+  grid-template-columns: 0.9fr 1fr 1fr repeat(10, 0.5fr);
 }
 
 .results-header {
@@ -131,14 +131,36 @@ body {
   display: grid;
   column-gap: var(--gap-base);
   align-items: center;
-  font-family: "Helvetica";
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: var(--font-size-base);
   font-weight: bold;
   color: black;
 }
 
 .poll-card {
-  grid-template-columns: 2fr repeat(10, 0.5fr);
+  grid-template-columns: 2fr 1fr 1fr repeat(10, 0.5fr);
+  column-gap: 13px;
+}
+
+.avgpfpa-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.avgpfpa-label {
+  font-size: 18px;
+  font-weight: normal;
+  color: black;
+  letter-spacing: 0.5px;
+}
+
+.avgpfpa-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
 }
 
 .poll-card.not-selected {
@@ -227,7 +249,7 @@ body {
   align-items: center;
   justify-content: center;
   justify-self: center;
-  font-family: "Helvetica";
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: 20px;
   font-weight: bold;
   color: white;
@@ -246,7 +268,7 @@ body {
   color: black;
   border: 3px solid #949494;
   border-radius: var(--border-radius-card);
-  font-family: "Helvetica";
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
@@ -324,99 +346,166 @@ body {
 
 @media (max-width: 480px) {
   :root {
-    --poll-padding: 10px;
-    --card-width: calc(100% - 20px);
-    --card-height: 48px;
+    --poll-padding: 8px;
+    --card-width: calc(100% - 16px);
+    --card-height: 52px;
     --border-radius-lg: 20px;
     --border-radius-card: 120px;
-    --font-size-base: 12px;
-    --font-size-header: 9px;
-    --gap-base: 3px;
+    --font-size-base: 11px;
+    --font-size-header: 10px;
+    --gap-base: 2px;
   }
 
   .poll-wrapper {
-    padding: 0 5px;
-    margin-bottom: 50px;
+    padding: 0 8px;
+    margin-bottom: 30px;
   }
 
   .poll {
     border-width: 3px;
+    padding: 12px 8px;
+    margin-top: 15px;
     max-width: 100%;
   }
 
   .poll-title,
   .results-title {
-    height: 40px;
+    height: 48px;
     border-radius: 12px 12px 6px 6px;
-    font-size: 18px;
+    font-size: clamp(16px, 4vw, 20px);
+    padding: 0 8px;
   }
 
-  .poll-header {
-    grid-template-columns: 1.8fr repeat(10, 0.22fr);
-    padding: 0 5px;
-    margin: 10px 0 5px;
-    transform: translateX(-10px);
-  }
-
+  .poll-header,
   .poll-card {
-    grid-template-columns: 1.8fr repeat(10, 0.22fr);
-    padding: 0 5px;
-    margin: 4px 0;
-  }
-
-  .results-header {
-    grid-template-columns: 26px 1.8fr 0.9fr 0.7fr 0.7fr;
-    column-gap: 6px;
-    padding: 0 8px;
-    font-size: 12px;
-    margin: 12px 0 6px;
-  }
-
-  .results-title {
-    width: calc(100% - 16px);
-    height: 45px;
-    border-radius: 15px 15px 8px 8px;
-  }
-
-  .result-card {
-    width: calc(100% - 16px);
-    height: 50px;
-    grid-template-columns: 26px 1.8fr 0.9fr 0.7fr 0.7fr;
-    column-gap: 6px;
-    padding: 0 8px;
-    font-size: 14px;
-    border-radius: 150px;
+    grid-template-columns: 0.9fr 1fr 1fr repeat(10, 0.5fr);
+    column-gap: 0px;
   }
 
   .manager-poll-name {
-    font-size: 11 px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding-left: 15px;
-    padding-right: 2px;
+    font-size: 10px;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    line-height: 1.2;
+    padding-right: 0;
+  }
+
+  .custom-col {
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .avgpfpa-col {
+    gap: 2px;
+  }
+
+  .avgpfpa-label {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  .avgpfpa-value {
+    font-size: 9px;
   }
 
   .vote-button {
     padding: 2px;
-    margin-left: -20px;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    min-height: 20px;
   }
 
   .vote-circle {
-    width: 10px;
-    height: 10px;
-    border-width: 1px;
+    width: clamp(14px, 3.5vw, 20px);
+    height: clamp(14px, 3.5vw, 20px);
+    border-width: 2px;
+  }
+
+  .results-header {
+    grid-template-columns: 26px minmax(90px, 1.8fr) 0.9fr 0.7fr 0.8fr;
+    column-gap: 6px;
+    padding: 0 8px;
+    font-size: 10px;
+    margin: 12px 0 8px;
+  }
+
+  .result-card {
+    width: var(--card-width);
+    height: 52px;
+    grid-template-columns: 26px minmax(90px, 1.8fr) 0.9fr 0.7fr 0.8fr;
+    column-gap: 6px;
+    padding: 0 8px;
+    font-size: 11px;
+    border-radius: 150px;
+    margin: 4px 0;
   }
 
   .rank-circle {
     width: 28px;
     height: 28px;
-    font-size: 14px;
+    font-size: 13px;
+    flex-shrink: 0;
   }
 
   .submit-button {
-    height: 45px;
-    font-size: 16px;
+    height: 48px;
+    font-size: 15px;
     margin-top: 15px;
+    width: var(--card-width);
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --poll-padding: 6px;
+    --card-width: calc(100% - 12px);
+    --gap-base: 1px;
+  }
+
+  .poll-wrapper {
+    padding: 0 6px;
+  }
+
+  .poll {
+    padding: 10px 6px;
+  }
+
+  .poll-header {
+    grid-template-columns: minmax(70px, 1fr) 0.6fr 0.7fr repeat(
+        10,
+        minmax(18px, 0.45fr)
+      );
+    padding: 0 6px;
+    font-size: 8px;
+  }
+
+  .poll-card {
+    grid-template-columns: minmax(70px, 1fr) 0.6fr 0.7fr repeat(
+        10,
+        minmax(18px, 0.45fr)
+      );
+    padding: 0 6px;
+    height: 46px;
+  }
+
+  .manager-poll-name {
+    font-size: 9px;
+  }
+
+  .custom-col {
+    font-size: 9px;
+  }
+
+  .avgpfpa-value {
+    font-size: 8px;
+  }
+
+  .vote-circle {
+    width: clamp(12px, 3vw, 16px);
+    height: clamp(12px, 3vw, 16px);
+    border-width: 1.5px;
   }
 }

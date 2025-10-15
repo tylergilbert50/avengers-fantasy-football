@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useCurrentSeason,
   useStandings,
@@ -40,6 +40,7 @@ function ManagerPoll() {
     managers,
     handleVote,
     handleSubmit,
+    clearMyVote,
   } = usePollData(userId, currentWeek, teams);
 
   const isManagerSelected = (managerId: string, position: string) =>
@@ -119,6 +120,39 @@ function ManagerPoll() {
     );
   }
 
+  // Build stats lookup from standings
+  const teamStatsByManager = useMemo(() => {
+    const get = (t: any, ...keys: string[]) =>
+      keys.reduce((v, k) => (v ??= t?.[k]), undefined);
+    const map = new Map<
+      string,
+      { record: string; avgPf: string; avgPa: string }
+    >();
+    (teams ?? []).forEach((t: any) => {
+      const wins = get(t, "wins", "w") ?? 0;
+      const losses = get(t, "losses", "l") ?? 0;
+      const gp = Math.max(Number(wins) + Number(losses), 1);
+      const pfTotal = get(t, "points_for", "pf", "pointsFor", "fpts") ?? 0;
+      const paTotal =
+        get(t, "points_against", "pa", "pointsAgainst", "fpts_against") ?? 0;
+      const avgPf = (Number(pfTotal) / gp).toFixed(1);
+      const avgPa = (Number(paTotal) / gp).toFixed(1);
+      const owner =
+        get(t, "owner", "owner_id", "user", "owner.display_name") ??
+        get(t, "display_name", "team_name", "name") ??
+        "";
+      const norm = (s: string) => String(s).trim().toLowerCase();
+      [owner, get(t, "display_name"), get(t, "team_name"), get(t, "name")]
+        .filter((s): s is string => typeof s === "string" && !!s)
+        .map((s) => norm(s))
+        .forEach((k: string) => {
+          if (!map.has(k))
+            map.set(k, { record: `${wins}-${losses}`, avgPf, avgPa });
+        });
+    });
+    return map;
+  }, [teams]);
+
   return (
     <div className="poll-wrapper">
       <div className="poll">
@@ -126,36 +160,59 @@ function ManagerPoll() {
           <div className="poll-title">WEEK {currentWeek}</div>
           <div className="poll-header">
             <span></span>
+            <span className="custom-col-header">RECORD</span>
+            <span className="custom-col-header avgpfpa-col">
+              <span className="avgpfpa-label">AVG PF</span>
+              <span className="avgpfpa-label">AVG PA</span>
+            </span>
             {POSITIONS.map((position) => (
               <span key={position}>{position}</span>
             ))}
           </div>
           <div className="poll-card-content">
-            {managers.map((manager) => (
-              <div key={manager.id} className="poll-card">
-                <span className="manager-poll-name">{manager.name}</span>
-                {POSITIONS.map((position) => (
-                  <div key={`${manager.id}-${position}`} className="vote-cell">
-                    <button
-                      className={`vote-button ${
-                        isManagerSelected(manager.id, position)
-                          ? "selected"
-                          : ""
-                      } ${
-                        isVoteDisabled(manager.id, position) ? "disabled" : ""
-                      }`}
-                      onClick={() => handleVote(manager.id, position)}
-                      disabled={isVoteDisabled(manager.id, position)}
+            {managers.map((manager) => {
+              const norm = (s: string) => String(s).trim().toLowerCase();
+              const stats = teamStatsByManager.get(norm(manager.name)) ?? {
+                record: "-",
+                avgPf: "-",
+                avgPa: "-",
+              };
+              return (
+                <div key={manager.id} className="poll-card">
+                  <span className="manager-poll-name">{manager.name}</span>
+                  <span className="custom-col">{stats.record}</span>
+                  <span className="avgpfpa-col">
+                    <span className="avgpfpa-value">{stats.avgPf}</span>
+                    <span className="avgpfpa-value">{stats.avgPa}</span>
+                  </span>
+                  {POSITIONS.map((position) => (
+                    <div
+                      key={`${manager.id}-${position}`}
+                      className="vote-cell"
                     >
-                      <div className="vote-circle"></div>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ))}
+                      <button
+                        className={`vote-button ${
+                          isManagerSelected(manager.id, position)
+                            ? "selected"
+                            : ""
+                        } ${
+                          isVoteDisabled(manager.id, position) ? "disabled" : ""
+                        }`}
+                        onClick={() => handleVote(manager.id, position)}
+                        disabled={isVoteDisabled(manager.id, position)}
+                      >
+                        <div className="vote-circle"></div>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
 
             <div className="poll-card not-selected">
               <span className="manager-poll-name">Not selected</span>
+              <span className="custom-col"></span>
+              <span className="avgpfpa-col"></span>
               {POSITIONS.map((position) => (
                 <div key={`not-selected-${position}`} className="vote-cell">
                   <button
@@ -179,6 +236,13 @@ function ManagerPoll() {
           >
             {hasSubmitted ? "ALREADY SUBMITTED" : "SUBMIT"}
           </button>
+          {/*<button
+            style={{ marginTop: "16px", background: "#f44336", color: "white", fontWeight: "bold" }}
+            onClick={clearMyVote}
+            disabled={!hasSubmitted}
+          > 
+            Clear My Vote (TEMP)
+          </button>*/}
         </div>
       </div>
     </div>
