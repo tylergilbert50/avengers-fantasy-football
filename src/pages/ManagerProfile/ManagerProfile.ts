@@ -285,12 +285,12 @@ export const useManagerCareer = (
           pW += pw;
           pL += pl;
 
-          // Check multiple indicators for playoff appearance
+          // ✅ FIXED: Playoff detection - only count as playoff appearance if they have a valid playoff seed
+          const playoffSpots = 6; // Adjust this to your league's playoff spots
           const madePO =
-            pw + pl > 0 ||
-            (my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= 6) ||
-            (my?.rankPlayoffs && my.rankPlayoffs > 0) ||
-            my?.record?.overall?.wins >= 7;
+            my?.playoffSeed &&
+            my.playoffSeed > 0 &&
+            my.playoffSeed <= playoffSpots;
 
           // Determine final position
           const finalRank =

@@ -297,7 +297,6 @@ function ManagerProfile() {
                 )
               )}
 
-              {/* Optional tiny placeholder row (keeps layout stable on first view) */}
               {safeCareer.yearly.length === 0 && (
                 <div className="yearly-stats-row" aria-hidden>
                   <div className="year-badge">—</div>
@@ -357,9 +356,10 @@ function ManagerProfile() {
                         fill: "#000",
                       }}
                       height={isMobile ? 60 : 50}
+                      padding={{ left: 20, right: 20 }}
                     />
                     <YAxis
-                      domain={[1, 11]}
+                      domain={[0.3, 11]}
                       reversed={true}
                       ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
                       tickFormatter={(v) => `${v}`}
