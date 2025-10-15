@@ -107,14 +107,32 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   const byWeek = new Map<number, Array<{ id: number; pts: number }>>();
 
   for (const m of schedule) {
+    // Skip playoff weeks or bye weeks
+    if (!m.matchupPeriodId && !m.matchupPeriod && !m.week) continue;
+
     const wk = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
-    const teams = m.teams ?? [];
-    for (const t of teams) {
-      const id = t.teamId;
-      const pts =
-        t.totalPoints ?? t.totalPointsLive ?? t.score ?? t.cumulativeScore ?? 0;
+
+    // Handle different matchup data structures
+    if (m.home && m.away) {
+      // Structure: { home: {...}, away: {...} }
+      const homeId = m.home.teamId;
+      const awayId = m.away.teamId;
+      const homePts = m.home.totalPoints ?? m.home.points ?? m.home.score ?? 0;
+      const awayPts = m.away.totalPoints ?? m.away.points ?? m.away.score ?? 0;
+
       if (!byWeek.has(wk)) byWeek.set(wk, []);
-      byWeek.get(wk)!.push({ id, pts });
+      if (homePts > 0) byWeek.get(wk)!.push({ id: homeId, pts: homePts });
+      if (awayPts > 0) byWeek.get(wk)!.push({ id: awayId, pts: awayPts });
+    } else if (m.teams && Array.isArray(m.teams)) {
+      // Structure: { teams: [{...}, {...}] }
+      for (const t of m.teams) {
+        const id = t.teamId ?? t.id;
+        const pts =
+          t.totalPoints ?? t.points ?? t.score ?? t.totalPointsLive ?? 0;
+
+        if (!byWeek.has(wk)) byWeek.set(wk, []);
+        if (pts > 0) byWeek.get(wk)!.push({ id, pts });
+      }
     }
   }
 
@@ -122,12 +140,19 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   let bottom = 0;
 
   for (const [, arr] of byWeek) {
-    if (!arr.length) continue;
+    if (arr.length < 2) continue; // Need at least 2 teams to compare
+
+    // Sort by points descending
     arr.sort((a, b) => b.pts - a.pts);
+
     const me = arr.find((x) => x.id === teamId);
     if (!me) continue;
-    if (me.pts === arr[0].pts) top += 1;
-    if (me.pts === arr[arr.length - 1].pts) bottom += 1;
+
+    // Check if this team had the highest score this week
+    if (me.pts === arr[0].pts && me.pts > 0) top += 1;
+
+    // Check if this team had the lowest score this week
+    if (me.pts === arr[arr.length - 1].pts && me.pts > 0) bottom += 1;
   }
 
   return { top, bottom };
@@ -191,9 +216,72 @@ export const useManagerCareer = (
           W += w;
           L += l;
 
-          const post = my?.record?.postseason ?? {};
-          const pw = post.wins ?? 0;
-          const pl = post.losses ?? 0;
+          // Try to get playoff record from multiple possible sources
+          let pw = 0;
+          let pl = 0;
+
+          // Option 1: Check record.postseason
+          if (my?.record?.postseason) {
+            pw = my.record.postseason.wins ?? 0;
+            pl = my.record.postseason.losses ?? 0;
+          }
+
+          // Option 2: Check playoffRecord directly
+          if (pw === 0 && pl === 0 && my?.playoffRecord) {
+            pw = my.playoffRecord.wins ?? 0;
+            pl = my.playoffRecord.losses ?? 0;
+          }
+
+          // Option 3: Try to derive from matchup data
+          if (pw === 0 && pl === 0) {
+            try {
+              const mu = await seasonMatchups(leagueId, year);
+              const schedule: any[] = mu?.schedule ?? [];
+
+              for (const m of schedule) {
+                // Check if this is a playoff matchup
+                const isPlayoff =
+                  m.playoffTierType !== undefined ||
+                  m.playoff === true ||
+                  (m.matchupPeriodId && m.matchupPeriodId >= 15);
+
+                if (!isPlayoff) continue;
+
+                // Check if our team is in this matchup
+                let myScore = 0;
+                let oppScore = 0;
+
+                if (m.home && m.away) {
+                  if (m.home.teamId === my.id) {
+                    myScore = m.home.totalPoints ?? m.home.points ?? 0;
+                    oppScore = m.away.totalPoints ?? m.away.points ?? 0;
+                  } else if (m.away.teamId === my.id) {
+                    myScore = m.away.totalPoints ?? m.away.points ?? 0;
+                    oppScore = m.home.totalPoints ?? m.home.points ?? 0;
+                  }
+                } else if (m.teams) {
+                  const myTeam = m.teams.find(
+                    (t: any) => (t.teamId ?? t.id) === my.id
+                  );
+                  if (myTeam) {
+                    myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
+                    const oppTeam = m.teams.find(
+                      (t: any) => (t.teamId ?? t.id) !== my.id
+                    );
+                    oppScore = oppTeam
+                      ? oppTeam.totalPoints ?? oppTeam.points ?? 0
+                      : 0;
+                  }
+                }
+
+                if (myScore > 0 && oppScore > 0) {
+                  if (myScore > oppScore) pw++;
+                  else if (oppScore > myScore) pl++;
+                }
+              }
+            } catch {}
+          }
+
           pW += pw;
           pL += pl;
 
@@ -204,6 +292,7 @@ export const useManagerCareer = (
             (my?.rankPlayoffs && my.rankPlayoffs > 0) ||
             my?.record?.overall?.wins >= 7;
 
+          // Determine final position
           const finalRank =
             my?.rankCalculatedFinal ??
             my?.rankFinal ??
@@ -222,7 +311,11 @@ export const useManagerCareer = (
                   my.id
                 );
 
-          if (position === 1 && pw + pl > 0) champ += 1;
+          // Count championship if finished 1st place
+          // Championship requires either playoff wins or being ranked 1st in a league with playoffs
+          if (position === 1) {
+            champ += 1;
+          }
 
           try {
             const mu = await seasonMatchups(leagueId, year);
@@ -278,15 +371,21 @@ export const useAllManagersRanking = (leagueId: string) => {
       try {
         const now = new Date().getFullYear();
         const currentSeason = await getCurrentSeason(leagueId, now);
-        const tsCurrent = await seasonTeamsAndStandings(leagueId, currentSeason);
+        const tsCurrent = await seasonTeamsAndStandings(
+          leagueId,
+          currentSeason
+        );
 
         // Calculate winning % for each manager
         const managerStats: Array<{ name: string; winPct: number }> = [];
 
-        for (const [teamName, managerName] of Object.entries(teamManagerMapRaw)) {
+        for (const [teamName, managerName] of Object.entries(
+          teamManagerMapRaw
+        )) {
           const ownerId = getOwnerIdForManager(tsCurrent, managerName);
-          
-          let W = 0, L = 0;
+
+          let W = 0,
+            L = 0;
 
           for (let year = START_SEASON; year < currentSeason; year++) {
             const ts = await seasonTeamsAndStandings(leagueId, year);
@@ -312,7 +411,7 @@ export const useAllManagersRanking = (leagueId: string) => {
 
         // Sort by winning percentage (highest first) and assign ranks
         managerStats.sort((a, b) => b.winPct - a.winPct);
-        
+
         const rankMap: Record<string, number> = {};
         managerStats.forEach((stat, index) => {
           rankMap[stat.name] = index + 1;
