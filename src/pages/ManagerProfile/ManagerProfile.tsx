@@ -29,7 +29,7 @@ const displayMeta: Record<
     displayName: "Tyler Gilbert",
     name: "TYLER",
     nickname: "JARVIS",
-    image: "images/managers/tyler2.avif",
+    image: "images/managers/tyler.avif",
   },
   connor: {
     displayName: "Connor Boswer",

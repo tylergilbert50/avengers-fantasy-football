@@ -40,7 +40,6 @@ function ManagerPoll() {
     managers,
     handleVote,
     handleSubmit,
-    clearMyVote,
   } = usePollData(userId, currentWeek, teams);
 
   const isManagerSelected = (managerId: string, position: string) =>
