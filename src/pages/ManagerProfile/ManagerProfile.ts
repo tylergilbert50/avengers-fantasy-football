@@ -32,7 +32,6 @@ const START_SEASON = 2021;
 
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-// ⚠️ Keep aligned with your site labels
 const teamManagerMapRaw: Record<string, string> = {
   "Terribly Well-Balanced": "Stuart Iverson",
   "Fat Hammered Thor": "Jeremy Stojakovich",
@@ -360,7 +359,6 @@ export const useManagerCareer = (
   return useMemo(() => data, [data]);
 };
 
-// NEW HOOK: Calculate rankings for all managers based on winning percentage
 export const useAllManagersRanking = (leagueId: string) => {
   const [rankings, setRankings] = useState<Record<string, number>>({});
 
@@ -379,7 +377,7 @@ export const useAllManagersRanking = (leagueId: string) => {
         // Calculate winning % for each manager
         const managerStats: Array<{ name: string; winPct: number }> = [];
 
-        for (const [teamName, managerName] of Object.entries(
+        for (const [_teamName, managerName] of Object.entries(
           teamManagerMapRaw
         )) {
           const ownerId = getOwnerIdForManager(tsCurrent, managerName);
