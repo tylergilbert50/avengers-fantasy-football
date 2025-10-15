@@ -2,7 +2,7 @@ import {
   useCurrentSeason,
   useStandings,
 } from "../home/components/Standings/standingss";
-import "./standings.css";
+import "./Standings.css";
 
 function Standings() {
   const LEAGUE_ID = "1268500224";
