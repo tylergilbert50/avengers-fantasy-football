@@ -1,4 +1,4 @@
-// ManagerPoll.ts (owner-ID based)
+// ManagerProfile.ts (owner-ID based)
 import { useEffect, useMemo, useState } from "react";
 
 export interface YearRow {
@@ -197,6 +197,7 @@ export const useManagerCareer = (
           pW += pw;
           pL += pl;
 
+          // Check multiple indicators for playoff appearance
           const madePO =
             pw + pl > 0 ||
             (my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= 6) ||
@@ -242,8 +243,6 @@ export const useManagerCareer = (
           finishes.push({ year, position, color: finishColor(position) });
         }
 
-        const latestYear = Math.max(...finishes.map((f) => f.year));
-        const latest = finishes.find((f) => f.year === latestYear);
         const winPct = W + L ? W / (W + L) : 0;
 
         setData({
@@ -252,7 +251,7 @@ export const useManagerCareer = (
           playoffRecord: `${pW}-${pL}`,
           record: `${W}-${L}`,
           winPct: winPct.toFixed(3).replace(/^0/, ""),
-          rank: latest ? latest.position : 99,
+          rank: 0, // We'll calculate this externally
           num1Weeks: n1,
           num10Weeks: n10,
           yearly: yearly.sort((a, b) => a.year - b.year),
@@ -266,4 +265,65 @@ export const useManagerCareer = (
   }, [leagueId, managerDisplayName]);
 
   return useMemo(() => data, [data]);
+};
+
+// NEW HOOK: Calculate rankings for all managers based on winning percentage
+export const useAllManagersRanking = (leagueId: string) => {
+  const [rankings, setRankings] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!leagueId) return;
+
+    (async () => {
+      try {
+        const now = new Date().getFullYear();
+        const currentSeason = await getCurrentSeason(leagueId, now);
+        const tsCurrent = await seasonTeamsAndStandings(leagueId, currentSeason);
+
+        // Calculate winning % for each manager
+        const managerStats: Array<{ name: string; winPct: number }> = [];
+
+        for (const [teamName, managerName] of Object.entries(teamManagerMapRaw)) {
+          const ownerId = getOwnerIdForManager(tsCurrent, managerName);
+          
+          let W = 0, L = 0;
+
+          for (let year = START_SEASON; year < currentSeason; year++) {
+            const ts = await seasonTeamsAndStandings(leagueId, year);
+            const teams: any[] = ts?.teams ?? [];
+
+            let my = teams.find((t) => ownerId && t.primaryOwner === ownerId);
+            if (!my) {
+              my = teams.find((t) => {
+                const mapped = teamManagerMap[normalize(t?.name ?? "")];
+                return mapped && managerEq(mapped, managerName);
+              });
+            }
+            if (!my) continue;
+
+            const rec = my?.record?.overall ?? {};
+            W += rec.wins ?? 0;
+            L += rec.losses ?? 0;
+          }
+
+          const winPct = W + L ? W / (W + L) : 0;
+          managerStats.push({ name: managerName, winPct });
+        }
+
+        // Sort by winning percentage (highest first) and assign ranks
+        managerStats.sort((a, b) => b.winPct - a.winPct);
+        
+        const rankMap: Record<string, number> = {};
+        managerStats.forEach((stat, index) => {
+          rankMap[stat.name] = index + 1;
+        });
+
+        setRankings(rankMap);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [leagueId]);
+
+  return rankings;
 };

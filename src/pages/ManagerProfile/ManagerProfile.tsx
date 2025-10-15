@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import { useManagerCareer } from "./ManagerProfile";
+import { useManagerCareer, useAllManagersRanking } from "./ManagerProfile";
 import type { ManagerCareer } from "./ManagerProfile";
 
 type FinishPoint = {
@@ -21,7 +21,6 @@ type FinishPoint = {
 
 const LEAGUE_ID = "1268500224";
 
-// Static display-only metadata per route slug
 const displayMeta: Record<
   string,
   { displayName: string; name: string; nickname: string; image: string }
@@ -101,6 +100,8 @@ function ManagerProfile() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const allRankings = useAllManagersRanking(LEAGUE_ID);
+
   if (!meta) {
     return (
       <div className="container">
@@ -115,15 +116,12 @@ function ManagerProfile() {
     );
   }
 
-  // --------- Anti-flash strategy: cache last known data per manager ----------
   const [careerCache, setCareerCache] = useState<Record<string, ManagerCareer>>(
     {}
   );
 
-  // Latest data coming from API
   const latest = useManagerCareer(LEAGUE_ID, meta.displayName);
 
-  // Update cache when fresh data arrives
   useEffect(() => {
     if (latest) {
       setCareerCache((prev) => ({
@@ -133,10 +131,8 @@ function ManagerProfile() {
     }
   }, [latest, meta.displayName]);
 
-  // Use cached data if present; otherwise undefined
   const cachedCareer = careerCache[meta.displayName];
 
-  // Render immediately with placeholders if no cached data yet
   const safeCareer: ManagerCareer =
     cachedCareer ??
     ({
@@ -152,9 +148,10 @@ function ManagerProfile() {
       finishes: [],
     } as ManagerCareer);
 
+  const actualRank = meta?.displayName ? allRankings[meta.displayName] || 0 : 0;
+
   const chartData: FinishPoint[] = safeCareer.finishes;
 
-  // Custom dot for Recharts
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (!payload || !payload.position) return null;
@@ -191,7 +188,6 @@ function ManagerProfile() {
     );
   };
 
-  // Compute X-axis bounds safely (placeholder friendly)
   const xYears = chartData.map((d) => d.year);
   const hasChart = xYears.length > 0;
   const xMin = hasChart ? Math.min(...xYears) - 0.5 : 2020.5;
@@ -245,7 +241,9 @@ function ManagerProfile() {
               <div className="career-stat-card">
                 <div className="career-stat-header">WINNING %</div>
                 <div className="career-stat-value">{safeCareer.winPct}</div>
-                <div className="rank-text">RANK: #{safeCareer.rank}</div>
+                <div className="rank-text">
+                  RANK: #{actualRank || safeCareer.rank || "—"}
+                </div>
               </div>
             </div>
 
@@ -388,7 +386,6 @@ function ManagerProfile() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                // Subtle placeholder box — keeps layout from collapsing
                 <div
                   style={{
                     width: "100%",
