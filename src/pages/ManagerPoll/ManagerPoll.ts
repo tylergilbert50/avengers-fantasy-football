@@ -4,7 +4,6 @@ import {
   getVotesForWeek,
   hasUserVoted,
   listenToVotes,
-  clearUserVoteForWeek,
   type PollVote,
 } from "../../services/pollService";
 
@@ -107,11 +106,6 @@ const saveVotesToLocalStorage = (week: number, votes: Votes) => {
   localStorage.setItem(`managerPollVotes_week${week}`, JSON.stringify(votes));
 };
 
-const clearLocalStorage = (week: number) => {
-  localStorage.removeItem(`managerPollSubmitted_week${week}`);
-  localStorage.removeItem(`managerPollVotes_week${week}`);
-};
-
 export const usePollData = (
   userId: string,
   currentWeek: number,
@@ -202,24 +196,6 @@ export const usePollData = (
     }
   };
 
-  const clearMyVote = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to clear your vote for Week ${currentWeek}?`
-    );
-
-    if (confirmed) {
-      const success = await clearUserVoteForWeek(userId, currentWeek);
-      if (success) {
-        alert("Your vote cleared successfully!");
-        clearLocalStorage(currentWeek);
-        setHasSubmitted(false);
-        setVotes(getEmptyVotes());
-      } else {
-        alert("Error clearing your vote. Please try again.");
-      }
-    }
-  };
-
   return {
     votes,
     hasSubmitted,
@@ -227,7 +203,6 @@ export const usePollData = (
     managers,
     handleVote,
     handleSubmit,
-    clearMyVote,
   };
 };
 
