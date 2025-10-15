@@ -31,7 +31,7 @@ function ManagerPoll() {
   const teams = useStandings(LEAGUE_ID, year);
   const currentWeek = getCurrentWeek();
   const [userId] = useState(getUserId);
-  const [showResults, setShowResults] = useState(shouldShowResults());
+  const [showResults] = useState(shouldShowResults());
 
   const {
     votes,
@@ -40,7 +40,6 @@ function ManagerPoll() {
     managers,
     handleVote,
     handleSubmit,
-    clearMyVote,
   } = usePollData(userId, currentWeek, teams);
 
   const isManagerSelected = (managerId: string, position: string) =>
@@ -108,14 +107,7 @@ function ManagerPoll() {
     return (
       <div>
         {renderResults()}
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            onClick={() => setShowResults(false)}
-            style={{ padding: "10px 20px", fontSize: "16px" }}
-          >
-            Back to Poll
-          </button>
-        </div>
+        <div style={{ textAlign: "center", marginTop: "20px" }}></div>
       </div>
     );
   }
@@ -236,13 +228,18 @@ function ManagerPoll() {
           >
             {hasSubmitted ? "ALREADY SUBMITTED" : "SUBMIT"}
           </button>
-          <button
-            style={{ marginTop: "16px", background: "#f44336", color: "white", fontWeight: "bold" }}
+          {/* <button
+            style={{
+              marginTop: "16px",
+              background: "#f44336",
+              color: "white",
+              fontWeight: "bold",
+            }}
             onClick={clearMyVote}
             disabled={!hasSubmitted}
-          > 
+          >
             Clear My Vote (TEMP)
-          </button>
+          </button>  */}
         </div>
       </div>
     </div>
