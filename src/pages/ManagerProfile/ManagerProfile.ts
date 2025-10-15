@@ -35,7 +35,7 @@ const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const teamManagerMapRaw: Record<string, string> = {
   "Terribly Well-Balanced": "Stuart Iverson",
   "Fat Hammered Thor": "Jeremy Stojakovich",
-  "Genius, Plaiboi, Champion": "Connor Boswer",
+  "Genius, Plaiboi, Champion": "Connor Bowser",
   "Wolverine's Bubs": "Andrew Casazza",
   "Bruce Raising Banners": "Josh Hartless",
   "I NEVER Freeze!": "Demarco Moore",

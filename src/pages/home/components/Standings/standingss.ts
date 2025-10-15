@@ -47,7 +47,7 @@ export const useStandings = (leagueId: string, year: number): Team[] => {
   const teamManagerMapRaw: { [teamName: string]: string } = {
     "Terribly Well-Balanced": "Stuart Iverson",
     "Fat Hammered Thor": "Jeremy Stojakovich",
-    "Genius, Plaiboi, Champion": "Connor Boswer",
+    "Genius, Plaiboi, Champion": "Connor Bowser",
     "Wolverine's Bubs": "Andrew Casazza",
     "Bruce Raising Banners": "Josh Hartless",
     "I NEVER Freeze!": "Demarco Moore",

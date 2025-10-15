@@ -41,7 +41,7 @@ export const useTopTeams = (leagueId: string, year: number) => {
   const teamManagerMapRaw: { [teamName: string]: string } = {
     "Terribly Well-Balanced": "Stuart Iverson",
     "Fat Hammered Thor": "Jeremy Stojakovich",
-    "Genius, Plaiboi, Champion": "Connor Boswer",
+    "Genius, Plaiboi, Champion": "Connor Bowser",
     "Wolverine's Bubs": "Andrew Casazza",
     "Bruce Raising Banners": "Josh Hartless",
     "I NEVER Freeze!": "Demarco Moore",
@@ -59,7 +59,7 @@ export const useTopTeams = (leagueId: string, year: number) => {
   const managerImageMap: { [key: string]: string } = {
     "Stuart Iverson": "/images/managers/stuart.avif",
     "Jeremy Stojakovich": "/images/managers/jeremy.avif",
-    "Connor Boswer": "/images/managers/connor.avif",
+    "Connor Bowser": "/images/managers/connor.avif",
     "Andrew Casazza": "/images/managers/andrew.avif",
     "Josh Hartless": "/images/managers/josh.avif",
     "Demarco Moore": "/images/managers/demarco.avif",

@@ -32,7 +32,7 @@ const displayMeta: Record<
     image: "images/managers/tyler.avif",
   },
   connor: {
-    displayName: "Connor Boswer",
+    displayName: "Connor Bowser",
     name: "CONNOR",
     nickname: "GENIUS, PLAIBOI, CHAMPION",
     image: "images/managers/connor.avif",
