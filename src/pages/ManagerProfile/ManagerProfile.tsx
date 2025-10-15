@@ -108,7 +108,7 @@ function ManagerProfile() {
         <div className="profile-wrapper">
           <div className="profile">
             <h2 style={{ textAlign: "center", marginTop: 80 }}>
-              Manager Not Found
+              Page Not Done
             </h2>
           </div>
         </div>

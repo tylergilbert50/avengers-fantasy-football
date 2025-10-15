@@ -99,7 +99,7 @@ export const getCurrentWeek = () => {
 
 export const shouldShowResults = () => {
   const now = new Date();
-  return now.getDay() === 2 && now.getHours() >= 10;
+  return now.getDay() === 4 && now.getHours() >= 10;
 };
 
 const saveVotesToLocalStorage = (week: number, votes: Votes) => {

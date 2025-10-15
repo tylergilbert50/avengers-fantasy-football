@@ -284,14 +284,12 @@ export const useManagerCareer = (
           pW += pw;
           pL += pl;
 
-          // ✅ FIXED: Playoff detection - only count as playoff appearance if they have a valid playoff seed
-          const playoffSpots = 6; // Adjust this to your league's playoff spots
+          const playoffSpots = 6;
           const madePO =
             my?.playoffSeed &&
             my.playoffSeed > 0 &&
             my.playoffSeed <= playoffSpots;
 
-          // Determine final position
           const finalRank =
             my?.rankCalculatedFinal ??
             my?.rankFinal ??
@@ -310,8 +308,6 @@ export const useManagerCareer = (
                   my.id
                 );
 
-          // Count championship if finished 1st place
-          // Championship requires either playoff wins or being ranked 1st in a league with playoffs
           if (position === 1) {
             champ += 1;
           }
