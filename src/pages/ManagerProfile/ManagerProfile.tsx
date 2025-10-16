@@ -251,7 +251,7 @@ function ManagerProfile() {
               <div className="football-stat">
                 <div className="football-label">#1 WEEKS</div>
                 <div className="football-icon">
-                  <img src="images/football.png" alt="Football" />
+                  <img src="images/football.avif" alt="Football" />
                   <span className="football-number">
                     {safeCareer.num1Weeks}
                   </span>
@@ -260,7 +260,7 @@ function ManagerProfile() {
               <div className="football-stat">
                 <div className="football-label">#10 WEEKS</div>
                 <div className="football-icon">
-                  <img src="images/football.png" alt="Football" />
+                  <img src="images/football.avif" alt="Football" />
                   <span className="football-number">
                     {safeCareer.num10Weeks}
                   </span>
@@ -273,8 +273,7 @@ function ManagerProfile() {
             <div className="yearly-stats-table">
               <div className="yearly-stats-header">
                 <div className="yearly-stats-header-item">YEAR</div>
-                <div className="yearly-stats-header-item">W</div>
-                <div className="yearly-stats-header-item">L</div>
+                <div className="yearly-stats-header-item">W - L</div>
                 <div className="yearly-stats-header-item">PLAYOFF APP</div>
                 <div className="yearly-stats-header-item">AVG PTS</div>
                 <div className="yearly-stats-header-item">AVG PA</div>
@@ -284,8 +283,7 @@ function ManagerProfile() {
                 (row) => (
                   <div className="yearly-stats-row" key={row.year}>
                     <div className="year-badge">{row.year}</div>
-                    <div className="record-value">{row.w}</div>
-                    <div className="record-value">{row.l}</div>
+                    <div className="record-value">{row.w} - {row.l}</div>
                     <div
                       className={`playoff-badge ${row.playoff ? "yes" : "no"}`}
                     >
@@ -300,7 +298,6 @@ function ManagerProfile() {
               {safeCareer.yearly.length === 0 && (
                 <div className="yearly-stats-row" aria-hidden>
                   <div className="year-badge">—</div>
-                  <div className="record-value">—</div>
                   <div className="record-value">—</div>
                   <div className="playoff-badge no">—</div>
                   <div className="stats-value">—</div>

@@ -306,7 +306,7 @@
 
 .yearly-stats-header {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   gap: 15px;
   padding-bottom: 12px;
   border-bottom: 3px dashed black;
@@ -322,7 +322,7 @@
 
 .yearly-stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   gap: 15px;
   padding: 12px 0;
   align-items: center;
