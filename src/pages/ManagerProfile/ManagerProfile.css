@@ -636,11 +636,11 @@
 }
 
 .grid-line:first-child {
-  border-top: 2px solid #cccccc;
+  border-top: 2px solid white;
 }
 
 .grid-line:last-child {
-  border-bottom: 2px solid #cccccc;
+  border-bottom: 2px solid white;
 }
 
 .graph-svg {
@@ -807,10 +807,10 @@
       border-bottom: 1.5px solid #ccc;
     }
     .grid-line:first-child {
-      border-top: 1.5px solid #ccc;
+      border-top: 1.5px solid white;
     }
     .grid-line:last-child {
-      border-bottom: 1.5px solid #ccc;
+      border-bottom: 1.5px solid white;
     }
     .data-point {
       width: clamp(36px, 8vw, 60px);

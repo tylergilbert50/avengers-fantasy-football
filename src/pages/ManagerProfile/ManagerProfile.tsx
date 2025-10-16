@@ -354,14 +354,15 @@ function ManagerProfile() {
                         fontStyle: "italic",
                         fontFamily: "Georgia, serif",
                         fill: "#000",
+                        dy: -30,
                       }}
                       height={isMobile ? 60 : 50}
                       padding={{ left: 20, right: 20 }}
                     />
                     <YAxis
-                      domain={[0.3, 11]}
+                      domain={[1, 10]}
                       reversed={true}
-                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                       tickFormatter={(v) => `${v}`}
                       axisLine={false}
                       tickLine={false}
