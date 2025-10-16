@@ -20,7 +20,7 @@ function Managers() {
           </Link>
         </div>
         <div className="manager-item">
-          <img src="/images/managers/connor.avif" />
+          <img src="/images/managers/connor.png" />
           <Link to="/connor" className="manager-button">
             CONNOR
           </Link>

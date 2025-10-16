@@ -57,16 +57,16 @@ export const useTopTeams = (leagueId: string, year: number) => {
     );
 
   const managerImageMap: { [key: string]: string } = {
-    "Stuart Iverson": "/images/managers/stuart.avif",
-    "Jeremy Stojakovich": "/images/managers/jeremy.avif",
-    "Connor Bowser": "/images/managers/connor.avif",
-    "Andrew Casazza": "/images/managers/andrew.avif",
-    "Josh Hartless": "/images/managers/josh.avif",
-    "Demarco Moore": "/images/managers/demarco.avif",
-    "Brett Gilbert": "/images/managers/brett.avif",
-    "Danny Stiles": "/images/managers/danny.avif",
-    "Tyler Gilbert": "/images/managers/tyler.avif",
-    "Daniel Dixon": "/images/managers/daniel.avif",
+    "Stuart Iverson": "/images/managers/stuart.png",
+    "Jeremy Stojakovich": "/images/managers/jeremy.png",
+    "Connor Bowser": "/images/managers/connor.png",
+    "Andrew Casazza": "/images/managers/andrew.png",
+    "Josh Hartless": "/images/managers/josh.png",
+    "Demarco Moore": "/images/managers/demarco.png",
+    "Brett Gilbert": "/images/managers/brett.png",
+    "Danny Stiles": "/images/managers/danny.png",
+    "Tyler Gilbert": "/images/managers/tyler.png",
+    "Daniel Dixon": "/images/managers/daniel.png",
   };
 
   useEffect(() => {

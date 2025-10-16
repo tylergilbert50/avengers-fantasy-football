@@ -29,61 +29,61 @@ const displayMeta: Record<
     displayName: "Tyler Gilbert",
     name: "TYLER",
     nickname: "JARVIS",
-    image: "images/managers/tyler.avif",
+    image: "images/managers/tyler.png",
   },
   connor: {
     displayName: "Connor Bowser",
     name: "CONNOR",
     nickname: "GENIUS, PLAIBOI, CHAMPION",
-    image: "images/managers/connor.avif",
+    image: "images/managers/connor.png",
   },
   andrew: {
     displayName: "Andrew Casazza",
     name: "ANDREW",
     nickname: "WOLVERINE'S BUBS",
-    image: "images/managers/andrew.avif",
+    image: "images/managers/andrew.png",
   },
   jeremy: {
     displayName: "Jeremy Stojakovich",
     name: "JEREMY",
     nickname: "FAT HAMMERED THOR",
-    image: "images/managers/jeremy.avif",
+    image: "images/managers/jeremy.png",
   },
   josh: {
     displayName: "Josh Hartless",
     name: "JOSH",
     nickname: "BRUCE RAISING BANNERS",
-    image: "images/managers/josh.avif",
+    image: "images/managers/josh.png",
   },
   demarco: {
     displayName: "Demarco Moore",
     name: "DEMARCO",
     nickname: "I NEVER FREEZE!",
-    image: "images/managers/demarco.avif",
+    image: "images/managers/demarco.png",
   },
   brett: {
     displayName: "Brett Gilbert",
     name: "BRETT",
     nickname: "ANYONE CAN WEAR THE MASK",
-    image: "images/managers/brett.avif",
+    image: "images/managers/brett.png",
   },
   danny: {
     displayName: "Danny Stiles",
     name: "DANNY",
     nickname: "THE DOOM",
-    image: "images/managers/danny.avif",
+    image: "images/managers/danny.png",
   },
   daniel: {
     displayName: "Daniel Dixon",
     name: "DANIEL",
     nickname: "I CAN DO THIS ALL DAY",
-    image: "images/managers/daniel.avif",
+    image: "images/managers/daniel.png",
   },
   stuart: {
     displayName: "Stuart Iverson",
     name: "STUART",
     nickname: "TERRIBLY WELL-BALANCED",
-    image: "images/managers/stuart.avif",
+    image: "images/managers/stuart.png",
   },
 };
 
@@ -251,7 +251,7 @@ function ManagerProfile() {
               <div className="football-stat">
                 <div className="football-label">#1 WEEKS</div>
                 <div className="football-icon">
-                  <img src="images/football.avif" alt="Football" />
+                  <img src="images/football.png" alt="Football" />
                   <span className="football-number">
                     {safeCareer.num1Weeks}
                   </span>
@@ -260,7 +260,7 @@ function ManagerProfile() {
               <div className="football-stat">
                 <div className="football-label">#10 WEEKS</div>
                 <div className="football-icon">
-                  <img src="images/football.avif" alt="Football" />
+                  <img src="images/football.png" alt="Football" />
                   <span className="football-number">
                     {safeCareer.num10Weeks}
                   </span>

@@ -6,6 +6,14 @@
   user-select: none;
 }
 
+.manager-item img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
 .manager-button {
   display: flex;
   align-items: center;
