@@ -1,4 +1,4 @@
-// ManagerProfile.ts (owner-ID based)
+// ManagerProfile.ts (optimized version)
 import { useEffect, useMemo, useState } from "react";
 
 export interface YearRow {
@@ -49,11 +49,26 @@ const teamManagerMap: Record<string, string> = Object.fromEntries(
 );
 const managerEq = (a: string, b: string) => normalize(a) === normalize(b);
 
+// Simple in-memory cache for API responses
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 const fetchJSON = async (url: string) => {
+  // Check cache first
+  const cached = apiCache.get(url);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
-  return r.json();
+  const data = await r.json();
+
+  // Store in cache
+  apiCache.set(url, { data, timestamp: Date.now() });
+  return data;
 };
+
 const seasonSettings = (leagueId: string, y: number) =>
   fetchJSON(
     `${ESPN_BASE}/seasons/${y}/segments/0/leagues/${leagueId}?view=mSettings`
@@ -98,6 +113,7 @@ const rankTeams = (
   const i = s.findIndex((t) => t.id === id);
   return i >= 0 ? i + 1 : teams.length;
 };
+
 const finishColor = (pos: number) =>
   pos === 1 ? "gold" : pos === 2 ? "silver" : pos === 3 ? "bronze" : "black";
 
@@ -106,14 +122,11 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   const byWeek = new Map<number, Array<{ id: number; pts: number }>>();
 
   for (const m of schedule) {
-    // Skip playoff weeks or bye weeks
     if (!m.matchupPeriodId && !m.matchupPeriod && !m.week) continue;
 
     const wk = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
 
-    // Handle different matchup data structures
     if (m.home && m.away) {
-      // Structure: { home: {...}, away: {...} }
       const homeId = m.home.teamId;
       const awayId = m.away.teamId;
       const homePts = m.home.totalPoints ?? m.home.points ?? m.home.score ?? 0;
@@ -123,7 +136,6 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
       if (homePts > 0) byWeek.get(wk)!.push({ id: homeId, pts: homePts });
       if (awayPts > 0) byWeek.get(wk)!.push({ id: awayId, pts: awayPts });
     } else if (m.teams && Array.isArray(m.teams)) {
-      // Structure: { teams: [{...}, {...}] }
       for (const t of m.teams) {
         const id = t.teamId ?? t.id;
         const pts =
@@ -139,25 +151,45 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   let bottom = 0;
 
   for (const [, arr] of byWeek) {
-    if (arr.length < 2) continue; // Need at least 2 teams to compare
-
-    // Sort by points descending
+    if (arr.length < 2) continue;
     arr.sort((a, b) => b.pts - a.pts);
-
     const me = arr.find((x) => x.id === teamId);
     if (!me) continue;
-
-    // Check if this team had the highest score this week
     if (me.pts === arr[0].pts && me.pts > 0) top += 1;
-
-    // Check if this team had the lowest score this week
     if (me.pts === arr[arr.length - 1].pts && me.pts > 0) bottom += 1;
   }
 
   return { top, bottom };
 };
 
-/** MAIN HOOK: owner-ID matching across seasons */
+// Batch fetch all season data in parallel
+async function fetchAllSeasonData(leagueId: string, currentSeason: number) {
+  const years = [];
+  for (let year = START_SEASON; year < currentSeason; year++) {
+    years.push(year);
+  }
+
+  // Fetch all data in parallel
+  const [allTeamsData, allMatchupData] = await Promise.all([
+    Promise.all(years.map((year) => seasonTeamsAndStandings(leagueId, year))),
+    Promise.all(
+      years.map((year) => seasonMatchups(leagueId, year).catch(() => null))
+    ),
+  ]);
+
+  // Create a map for easy access
+  const dataByYear = new Map();
+  years.forEach((year, index) => {
+    dataByYear.set(year, {
+      teams: allTeamsData[index],
+      matchups: allMatchupData[index],
+    });
+  });
+
+  return dataByYear;
+}
+
+/** MAIN HOOK: optimized with parallel fetching */
 export const useManagerCareer = (
   leagueId: string,
   managerDisplayName: string
@@ -170,16 +202,22 @@ export const useManagerCareer = (
     (async () => {
       try {
         const now = new Date().getFullYear();
-        const currentSeason = await getCurrentSeason(leagueId, now);
 
-        // Get current-season teams to discover the stable primaryOwner for this manager
-        const tsCurrent = await seasonTeamsAndStandings(
-          leagueId,
-          currentSeason
-        );
-        const ownerId = getOwnerIdForManager(tsCurrent, managerDisplayName);
+        // First, get the current season and current teams data
+        const [currentSeason, tsCurrent] = await Promise.all([
+          getCurrentSeason(leagueId, now),
+          seasonTeamsAndStandings(leagueId, now).catch(() => null),
+        ]);
 
-        // If we still don't have an ownerId, we'll fallback to name-matching each year
+        // Get owner ID
+        const ownerId = tsCurrent
+          ? getOwnerIdForManager(tsCurrent, managerDisplayName)
+          : null;
+
+        // Fetch all historical data in parallel
+        const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
+
+        // Process the data
         let W = 0,
           L = 0,
           champ = 0,
@@ -191,10 +229,13 @@ export const useManagerCareer = (
         const finishes: FinishDot[] = [];
 
         for (let year = START_SEASON; year < currentSeason; year++) {
-          const ts = await seasonTeamsAndStandings(leagueId, year);
+          const yearData = dataByYear.get(year);
+          if (!yearData) continue;
+
+          const ts = yearData.teams;
           const teams: any[] = ts?.teams ?? [];
 
-          // Find the team for this manager: prefer by ownerId, else by name map
+          // Find the team for this manager
           let my = teams.find((t) => ownerId && t.primaryOwner === ownerId);
           if (!my) {
             my = teams.find((t) => {
@@ -215,98 +256,81 @@ export const useManagerCareer = (
           W += w;
           L += l;
 
-          // Determine if team made playoffs (top 6)
           const playoffSpots = 6;
           const madePO =
             my?.playoffSeed &&
             my.playoffSeed > 0 &&
             my.playoffSeed <= playoffSpots;
 
-          // Try to get playoff record from multiple possible sources
           let pw = 0;
           let pl = 0;
 
-          // Only count playoff games if team actually made playoffs
           if (madePO) {
-            // Option 1: Check record.postseason
             if (my?.record?.postseason) {
               pw = my.record.postseason.wins ?? 0;
               pl = my.record.postseason.losses ?? 0;
             }
 
-            // Option 2: Check playoffRecord directly
             if (pw === 0 && pl === 0 && my?.playoffRecord) {
               pw = my.playoffRecord.wins ?? 0;
               pl = my.playoffRecord.losses ?? 0;
             }
 
-            // Option 3: Try to derive from matchup data
-            if (pw === 0 && pl === 0) {
-              try {
-                const mu = await seasonMatchups(leagueId, year);
-                const schedule: any[] = mu?.schedule ?? [];
+            // Try matchup data if we have it
+            if (pw === 0 && pl === 0 && yearData.matchups) {
+              const schedule: any[] = yearData.matchups?.schedule ?? [];
+              const playoffMatchups = schedule
+                .filter((m) => {
+                  const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
+                  return week >= 15 && week <= 17;
+                })
+                .sort((a, b) => {
+                  const weekA = a.matchupPeriodId ?? a.matchupPeriod ?? a.week;
+                  const weekB = b.matchupPeriodId ?? b.matchupPeriod ?? b.week;
+                  return weekA - weekB;
+                });
 
-                // Sort playoff matchups by week to process in order
-                const playoffMatchups = schedule
-                  .filter((m) => {
-                    const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
-                    return week >= 15 && week <= 17;
-                  })
-                  .sort((a, b) => {
-                    const weekA =
-                      a.matchupPeriodId ?? a.matchupPeriod ?? a.week;
-                    const weekB =
-                      b.matchupPeriodId ?? b.matchupPeriod ?? b.week;
-                    return weekA - weekB;
-                  });
+              let eliminated = false;
+              for (const m of playoffMatchups) {
+                if (eliminated) break;
+                let myScore = 0;
+                let oppScore = 0;
+                let foundMyTeam = false;
 
-                let eliminated = false;
-
-                for (const m of playoffMatchups) {
-                  if (eliminated) break; // Stop counting after elimination
-
-                  // Check if our team is in this matchup
-                  let myScore = 0;
-                  let oppScore = 0;
-                  let foundMyTeam = false;
-
-                  if (m.home && m.away) {
-                    if (m.home.teamId === my.id) {
-                      myScore = m.home.totalPoints ?? m.home.points ?? 0;
-                      oppScore = m.away.totalPoints ?? m.away.points ?? 0;
-                      foundMyTeam = true;
-                    } else if (m.away.teamId === my.id) {
-                      myScore = m.away.totalPoints ?? m.away.points ?? 0;
-                      oppScore = m.home.totalPoints ?? m.home.points ?? 0;
-                      foundMyTeam = true;
-                    }
-                  } else if (m.teams) {
-                    const myTeam = m.teams.find(
-                      (t: any) => (t.teamId ?? t.id) === my.id
-                    );
-                    if (myTeam) {
-                      foundMyTeam = true;
-                      myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
-                      const oppTeam = m.teams.find(
-                        (t: any) => (t.teamId ?? t.id) !== my.id
-                      );
-                      oppScore = oppTeam
-                        ? oppTeam.totalPoints ?? oppTeam.points ?? 0
-                        : 0;
-                    }
+                if (m.home && m.away) {
+                  if (m.home.teamId === my.id) {
+                    myScore = m.home.totalPoints ?? m.home.points ?? 0;
+                    oppScore = m.away.totalPoints ?? m.away.points ?? 0;
+                    foundMyTeam = true;
+                  } else if (m.away.teamId === my.id) {
+                    myScore = m.away.totalPoints ?? m.away.points ?? 0;
+                    oppScore = m.home.totalPoints ?? m.home.points ?? 0;
+                    foundMyTeam = true;
                   }
-
-                  if (foundMyTeam && myScore > 0 && oppScore > 0) {
-                    if (myScore > oppScore) {
-                      pw++;
-                    } else if (oppScore > myScore) {
-                      pl++;
-                      eliminated = true; // Team is eliminated after a loss
-                    }
+                } else if (m.teams) {
+                  const myTeam = m.teams.find(
+                    (t: any) => (t.teamId ?? t.id) === my.id
+                  );
+                  if (myTeam) {
+                    foundMyTeam = true;
+                    myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
+                    const oppTeam = m.teams.find(
+                      (t: any) => (t.teamId ?? t.id) !== my.id
+                    );
+                    oppScore = oppTeam
+                      ? oppTeam.totalPoints ?? oppTeam.points ?? 0
+                      : 0;
                   }
                 }
-              } catch (e) {
-                console.error(`Error processing matchups:`, e);
+
+                if (foundMyTeam && myScore > 0 && oppScore > 0) {
+                  if (myScore > oppScore) {
+                    pw++;
+                  } else if (oppScore > myScore) {
+                    pl++;
+                    eliminated = true;
+                  }
+                }
               }
             }
           }
@@ -336,12 +360,15 @@ export const useManagerCareer = (
             champ += 1;
           }
 
-          try {
-            const mu = await seasonMatchups(leagueId, year);
-            const { top, bottom } = countWeeklyExtremes(mu, my.id);
+          // Count weekly extremes if we have matchup data
+          if (yearData.matchups) {
+            const { top, bottom } = countWeeklyExtremes(
+              yearData.matchups,
+              my.id
+            );
             n1 += top;
             n10 += bottom;
-          } catch {}
+          }
 
           yearly.push({
             year,
@@ -363,7 +390,7 @@ export const useManagerCareer = (
           playoffRecord: `${pW}-${pL}`,
           record: `${W}-${L}`,
           winPct: winPct.toFixed(3).replace(/^0/, ""),
-          rank: 0, // We'll calculate this externally
+          rank: 0,
           num1Weeks: n1,
           num10Weeks: n10,
           yearly: yearly.sort((a, b) => a.year - b.year),
@@ -379,6 +406,7 @@ export const useManagerCareer = (
   return useMemo(() => data, [data]);
 };
 
+// Optimized hook that shares data across all managers
 export const useAllManagersRanking = (leagueId: string) => {
   const [rankings, setRankings] = useState<Record<string, number>>({});
 
@@ -389,12 +417,17 @@ export const useAllManagersRanking = (leagueId: string) => {
       try {
         const now = new Date().getFullYear();
         const currentSeason = await getCurrentSeason(leagueId, now);
+
+        // Fetch all data once in parallel
+        const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
+
+        // Get current season data for owner IDs
         const tsCurrent = await seasonTeamsAndStandings(
           leagueId,
           currentSeason
         );
 
-        // Calculate winning % for each manager
+        // Calculate winning % for each manager using the already-fetched data
         const managerStats: Array<{ name: string; winPct: number }> = [];
 
         for (const [_teamName, managerName] of Object.entries(
@@ -406,7 +439,10 @@ export const useAllManagersRanking = (leagueId: string) => {
             L = 0;
 
           for (let year = START_SEASON; year < currentSeason; year++) {
-            const ts = await seasonTeamsAndStandings(leagueId, year);
+            const yearData = dataByYear.get(year);
+            if (!yearData) continue;
+
+            const ts = yearData.teams;
             const teams: any[] = ts?.teams ?? [];
 
             let my = teams.find((t) => ownerId && t.primaryOwner === ownerId);
@@ -427,9 +463,8 @@ export const useAllManagersRanking = (leagueId: string) => {
           managerStats.push({ name: managerName, winPct });
         }
 
-        // Sort by winning percentage (highest first) and assign ranks
+        // Sort and assign ranks
         managerStats.sort((a, b) => b.winPct - a.winPct);
-
         const rankMap: Record<string, number> = {};
         managerStats.forEach((stat, index) => {
           rankMap[stat.name] = index + 1;

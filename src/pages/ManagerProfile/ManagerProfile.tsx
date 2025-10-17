@@ -273,8 +273,7 @@ function ManagerProfile() {
             <div className="yearly-stats-table">
               <div className="yearly-stats-header">
                 <div className="yearly-stats-header-item">YEAR</div>
-                <div className="yearly-stats-header-item">W</div>
-                <div className="yearly-stats-header-item">L</div>
+                <div className="yearly-stats-header-item">W - L</div>
                 <div className="yearly-stats-header-item">PLAYOFF APP</div>
                 <div className="yearly-stats-header-item">AVG PTS</div>
                 <div className="yearly-stats-header-item">AVG PA</div>
@@ -284,8 +283,9 @@ function ManagerProfile() {
                 (row) => (
                   <div className="yearly-stats-row" key={row.year}>
                     <div className="year-badge">{row.year}</div>
-                    <div className="record-value">{row.w}</div>
-                    <div className="record-value">{row.l}</div>
+                    <div className="record-value">
+                      {row.w} - {row.l}
+                    </div>
                     <div
                       className={`playoff-badge ${row.playoff ? "yes" : "no"}`}
                     >
@@ -354,14 +354,15 @@ function ManagerProfile() {
                         fontStyle: "italic",
                         fontFamily: "Georgia, serif",
                         fill: "#000",
+                        dy: -30,
                       }}
                       height={isMobile ? 60 : 50}
                       padding={{ left: 20, right: 20 }}
                     />
                     <YAxis
-                      domain={[0.3, 11]}
+                      domain={[1, 10]}
                       reversed={true}
-                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                       tickFormatter={(v) => `${v}`}
                       axisLine={false}
                       tickLine={false}

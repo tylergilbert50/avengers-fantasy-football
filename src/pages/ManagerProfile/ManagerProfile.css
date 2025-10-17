@@ -284,7 +284,7 @@
   position: absolute;
   font-family: "VarelaRound";
   font-size: 52px;
-  font-weight: bold;
+  font-weight: normal;
   color: black;
   top: 50%;
   left: 50%;
@@ -538,7 +538,6 @@
   color: black;
 }
 
-
 .career-finishes-section {
   width: 100%;
   margin-top: 30px;
@@ -707,10 +706,30 @@
   }
 }
 
+/* Fix for the playoff record box on mobile */
 @media (max-width: 768px) {
-  /* Mobile adjustments */
-  .profile-wrapper {
-    padding: 0 10px;
+  .stat-card {
+    /* Adjust the height to accommodate the content better */
+    height: 185px; /* Increased from 175px */
+    padding: 12px 15px; /* Slightly reduced padding */
+  }
+
+  .stat-label {
+    font-size: 19px; /* Slightly smaller font */
+    margin-bottom: 8px; /* Reduced margin */
+  }
+
+  .stat-value {
+    font-size: 68px; /* Slightly smaller to fit better */
+    padding-bottom: 8px; /* Reduced padding */
+  }
+
+  .yearly-stats-row {
+    gap: 8px;
+  }
+
+  .record-value::after {
+    margin: 0 4px;
   }
 
   .profile {
@@ -819,11 +838,25 @@
     }
   }
 
-  /* Small phones: even tighter gutters so the plot almost touches the edges */
+  /* For very small screens */
   @media (max-width: 480px) {
-    .career-finishes-graph {
-      padding: 6px 8px;
-      height: clamp(340px, 80vw, 520px);
+    .stat-card {
+      height: 180px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 62px;
+      padding-bottom: 6px;
+    }
+    .yearly-stats-row {
+      gap: 5px;
+      padding: 10px 0;
     }
     .graph-years {
       grid-template-columns: 34px repeat(10, 1fr);
