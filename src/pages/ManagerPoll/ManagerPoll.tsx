@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCurrentSeason, useStandings } from "../hooks/useFantasyLeague";
 import "./ManagerPoll.css";
 import {
@@ -7,6 +7,8 @@ import {
   getCurrentWeek,
   shouldShowResults,
   type PollResult,
+  type Manager,
+  getEmptyVotes,
 } from "./ManagerPoll";
 
 const LEAGUE_ID = "1268500224";
@@ -23,6 +25,20 @@ const POSITIONS = [
   "10th",
 ];
 
+// Default team names to show immediately
+const DEFAULT_MANAGERS = [
+  "Andrew Casazza",
+  "Brett Gilbert",
+  "Connor Bowser",
+  "Daniel Dixon",
+  "Danny Stiles",
+  "Demarco Moore",
+  "Jeremy Stojakovich",
+  "Josh Hartless",
+  "Stuart Iverson",
+  "Tyler Gilbert",
+].sort();
+
 function ManagerPoll() {
   const { year } = useCurrentSeason(LEAGUE_ID);
   const teams = useStandings(LEAGUE_ID, year);
@@ -30,14 +46,88 @@ function ManagerPoll() {
   const [userId] = useState(getUserId);
   const [showResults] = useState(shouldShowResults());
 
-  const {
-    votes,
-    hasSubmitted,
-    pollResults,
-    managers,
-    handleVote,
-    handleSubmit,
-  } = usePollData(userId, currentWeek, teams);
+  // Use default managers initially to render immediately
+  const [managers, setManagers] = useState<Manager[]>(
+    DEFAULT_MANAGERS.map((name, idx) => ({
+      id: `temp_${idx}`,
+      name,
+    }))
+  );
+
+  // Initialize with empty state to render immediately
+  const [votes, setVotes] = useState(getEmptyVotes());
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [pollResults, setPollResults] = useState<PollResult[]>([]);
+  const [pollDataReady, setPollDataReady] = useState(false);
+
+  // Get real poll data
+  const pollData = usePollData(userId, currentWeek, teams || []);
+
+  // Update managers when teams data arrives
+  useEffect(() => {
+    if (teams && teams.length > 0) {
+      const realManagers = teams
+        .map((team) => ({
+          id: team.id.toString(),
+          name: team.name,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setManagers(realManagers);
+    }
+  }, [teams]);
+
+  // Update poll data when it's ready
+  useEffect(() => {
+    if (pollData.managers.length > 0) {
+      setManagers(pollData.managers);
+      setVotes(pollData.votes);
+      setHasSubmitted(pollData.hasSubmitted);
+      setPollResults(pollData.pollResults);
+      setPollDataReady(true);
+    }
+  }, [
+    pollData.managers,
+    pollData.votes,
+    pollData.hasSubmitted,
+    pollData.pollResults,
+  ]);
+
+  const handleVote = (managerId: string, position: string) => {
+    if (hasSubmitted) return;
+
+    if (pollDataReady) {
+      pollData.handleVote(managerId, position);
+    } else {
+      // Local optimistic update before poll data is ready
+      setVotes((prevVotes) => {
+        const newVotes = { ...prevVotes };
+
+        if (prevVotes[position] === managerId) {
+          newVotes[position] = null;
+          return newVotes;
+        }
+
+        if (prevVotes[position] !== null && prevVotes[position] !== managerId) {
+          return prevVotes;
+        }
+
+        Object.keys(newVotes).forEach((pos) => {
+          if (newVotes[pos] === managerId) newVotes[pos] = null;
+        });
+
+        newVotes[position] = managerId;
+        return newVotes;
+      });
+    }
+  };
+
+  const handleSubmit = () => {
+    if (pollDataReady) {
+      pollData.handleSubmit();
+    } else {
+      alert("Please wait for the poll to fully load before submitting.");
+    }
+  };
 
   const isManagerSelected = (managerId: string, position: string) =>
     votes[position] === managerId;
@@ -57,6 +147,19 @@ function ManagerPoll() {
     (votes[position] !== null && votes[position] !== managerId);
 
   const renderResults = () => {
+    // Show placeholder results if data isn't ready yet
+    const resultsToShow =
+      pollResults.length > 0
+        ? pollResults
+        : managers.map((m, idx) => ({
+            id: m.id,
+            name: m.name,
+            record: "0-0",
+            trend: "-",
+            pollPoints: 0,
+            firstPlaceVotes: 0,
+          }));
+
     return (
       <div className="poll-wrapper">
         <div className="poll">
@@ -70,7 +173,7 @@ function ManagerPoll() {
               <span className="points-header">POLL PTS</span>
             </div>
             <div className="results-content">
-              {pollResults.map((result: PollResult, index: number) => {
+              {resultsToShow.map((result: PollResult, index: number) => {
                 const trendClass = result.trend.includes("▲")
                   ? "trend-up"
                   : result.trend.includes("▼")
@@ -223,18 +326,6 @@ function ManagerPoll() {
           >
             {hasSubmitted ? "ALREADY SUBMITTED" : "SUBMIT"}
           </button>
-          {/* <button
-            style={{
-              marginTop: "16px",
-              background: "#f44336",
-              color: "white",
-              fontWeight: "bold",
-            }}
-            onClick={clearMyVote}
-            disabled={!hasSubmitted}
-          >
-            Clear My Vote (TEMP)
-          </button>  */}
         </div>
       </div>
     </div>
