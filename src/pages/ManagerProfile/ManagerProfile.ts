@@ -254,7 +254,7 @@ async function fetchAllSeasonData(leagueId: string, currentSeason: number): Prom
 
 // Process manager data from the fetched season data
 async function processManagerCareer(
-  leagueId: string,
+  _leagueId: string,
   managerDisplayName: string,
   dataByYear: Map<number, any>,
   tsCurrent: any,
