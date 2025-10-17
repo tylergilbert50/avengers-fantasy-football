@@ -151,7 +151,7 @@ function ManagerPoll() {
     const resultsToShow =
       pollResults.length > 0
         ? pollResults
-        : managers.map((m, idx) => ({
+        : managers.map((m) => ({
             id: m.id,
             name: m.name,
             record: "0-0",
@@ -251,9 +251,8 @@ function ManagerPoll() {
           <div className="poll-header">
             <span></span>
             <span className="custom-col-header">RECORD</span>
-            <span className="custom-col-header avgpfpa-col">
-              <span className="avgpfpa-label">AVG PF</span>
-              <span className="avgpfpa-label">AVG PA</span>
+            <span className="custom-col-header avgpf-col">
+              <span className="avgpf-label">AVG PF</span>
             </span>
             {POSITIONS.map((position) => (
               <span key={position}>{position}</span>
@@ -271,9 +270,8 @@ function ManagerPoll() {
                 <div key={manager.id} className="poll-card">
                   <span className="manager-poll-name">{manager.name}</span>
                   <span className="custom-col">{stats.record}</span>
-                  <span className="avgpfpa-col">
-                    <span className="avgpfpa-value">{stats.avgPf}</span>
-                    <span className="avgpfpa-value">{stats.avgPa}</span>
+                  <span className="avgpf-col">
+                    <span className="avgpf-value">{stats.avgPf}</span>
                   </span>
                   {POSITIONS.map((position) => (
                     <div
