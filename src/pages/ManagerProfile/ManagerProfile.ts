@@ -215,80 +215,106 @@ export const useManagerCareer = (
           W += w;
           L += l;
 
-          // Try to get playoff record from multiple possible sources
-          let pw = 0;
-          let pl = 0;
-
-          // Option 1: Check record.postseason
-          if (my?.record?.postseason) {
-            pw = my.record.postseason.wins ?? 0;
-            pl = my.record.postseason.losses ?? 0;
-          }
-
-          // Option 2: Check playoffRecord directly
-          if (pw === 0 && pl === 0 && my?.playoffRecord) {
-            pw = my.playoffRecord.wins ?? 0;
-            pl = my.playoffRecord.losses ?? 0;
-          }
-
-          // Option 3: Try to derive from matchup data
-          if (pw === 0 && pl === 0) {
-            try {
-              const mu = await seasonMatchups(leagueId, year);
-              const schedule: any[] = mu?.schedule ?? [];
-
-              for (const m of schedule) {
-                // Check if this is a playoff matchup
-                const isPlayoff =
-                  m.playoffTierType !== undefined ||
-                  m.playoff === true ||
-                  (m.matchupPeriodId && m.matchupPeriodId >= 15);
-
-                if (!isPlayoff) continue;
-
-                // Check if our team is in this matchup
-                let myScore = 0;
-                let oppScore = 0;
-
-                if (m.home && m.away) {
-                  if (m.home.teamId === my.id) {
-                    myScore = m.home.totalPoints ?? m.home.points ?? 0;
-                    oppScore = m.away.totalPoints ?? m.away.points ?? 0;
-                  } else if (m.away.teamId === my.id) {
-                    myScore = m.away.totalPoints ?? m.away.points ?? 0;
-                    oppScore = m.home.totalPoints ?? m.home.points ?? 0;
-                  }
-                } else if (m.teams) {
-                  const myTeam = m.teams.find(
-                    (t: any) => (t.teamId ?? t.id) === my.id
-                  );
-                  if (myTeam) {
-                    myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
-                    const oppTeam = m.teams.find(
-                      (t: any) => (t.teamId ?? t.id) !== my.id
-                    );
-                    oppScore = oppTeam
-                      ? oppTeam.totalPoints ?? oppTeam.points ?? 0
-                      : 0;
-                  }
-                }
-
-                if (myScore > 0 && oppScore > 0) {
-                  if (myScore > oppScore) pw++;
-                  else if (oppScore > myScore) pl++;
-                }
-              }
-            } catch {}
-          }
-
-          pW += pw;
-          pL += pl;
-
+          // Determine if team made playoffs (top 6)
           const playoffSpots = 6;
           const madePO =
             my?.playoffSeed &&
             my.playoffSeed > 0 &&
             my.playoffSeed <= playoffSpots;
+
+          // Try to get playoff record from multiple possible sources
+          let pw = 0;
+          let pl = 0;
+
+          // Only count playoff games if team actually made playoffs
+          if (madePO) {
+            // Option 1: Check record.postseason
+            if (my?.record?.postseason) {
+              pw = my.record.postseason.wins ?? 0;
+              pl = my.record.postseason.losses ?? 0;
+            }
+
+            // Option 2: Check playoffRecord directly
+            if (pw === 0 && pl === 0 && my?.playoffRecord) {
+              pw = my.playoffRecord.wins ?? 0;
+              pl = my.playoffRecord.losses ?? 0;
+            }
+
+            // Option 3: Try to derive from matchup data
+            if (pw === 0 && pl === 0) {
+              try {
+                const mu = await seasonMatchups(leagueId, year);
+                const schedule: any[] = mu?.schedule ?? [];
+
+                // Sort playoff matchups by week to process in order
+                const playoffMatchups = schedule
+                  .filter((m) => {
+                    const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
+                    return week >= 15 && week <= 17;
+                  })
+                  .sort((a, b) => {
+                    const weekA =
+                      a.matchupPeriodId ?? a.matchupPeriod ?? a.week;
+                    const weekB =
+                      b.matchupPeriodId ?? b.matchupPeriod ?? b.week;
+                    return weekA - weekB;
+                  });
+
+                let eliminated = false;
+
+                for (const m of playoffMatchups) {
+                  if (eliminated) break; // Stop counting after elimination
+
+                  const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
+
+                  // Check if our team is in this matchup
+                  let myScore = 0;
+                  let oppScore = 0;
+                  let foundMyTeam = false;
+
+                  if (m.home && m.away) {
+                    if (m.home.teamId === my.id) {
+                      myScore = m.home.totalPoints ?? m.home.points ?? 0;
+                      oppScore = m.away.totalPoints ?? m.away.points ?? 0;
+                      foundMyTeam = true;
+                    } else if (m.away.teamId === my.id) {
+                      myScore = m.away.totalPoints ?? m.away.points ?? 0;
+                      oppScore = m.home.totalPoints ?? m.home.points ?? 0;
+                      foundMyTeam = true;
+                    }
+                  } else if (m.teams) {
+                    const myTeam = m.teams.find(
+                      (t: any) => (t.teamId ?? t.id) === my.id
+                    );
+                    if (myTeam) {
+                      foundMyTeam = true;
+                      myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
+                      const oppTeam = m.teams.find(
+                        (t: any) => (t.teamId ?? t.id) !== my.id
+                      );
+                      oppScore = oppTeam
+                        ? oppTeam.totalPoints ?? oppTeam.points ?? 0
+                        : 0;
+                    }
+                  }
+
+                  if (foundMyTeam && myScore > 0 && oppScore > 0) {
+                    if (myScore > oppScore) {
+                      pw++;
+                    } else if (oppScore > myScore) {
+                      pl++;
+                      eliminated = true; // Team is eliminated after a loss
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error(`Error processing matchups:`, e);
+              }
+            }
+          }
+
+          pW += pw;
+          pL += pl;
 
           const finalRank =
             my?.rankCalculatedFinal ??

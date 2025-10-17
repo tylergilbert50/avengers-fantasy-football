@@ -92,7 +92,7 @@ body {
 }
 
 .poll-header {
-  grid-template-columns: 0.9fr 1fr 1fr repeat(10, 0.5fr);
+  grid-template-columns: 0.9fr 1fr 0.9fr repeat(10, 0.5fr);
 }
 
 .results-header {
@@ -108,6 +108,16 @@ body {
 .trend-header,
 .points-header {
   text-align: center;
+}
+
+/* Make the RECORD header font size match the AVG PF label */
+.custom-col-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px; /* matches .avgpf-label */
+  font-weight: normal;
 }
 
 .poll-card-content,
@@ -142,7 +152,7 @@ body {
   column-gap: 13px;
 }
 
-.avgpfpa-col {
+.avgpf-col {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -150,14 +160,14 @@ body {
   line-height: 1.1;
 }
 
-.avgpfpa-label {
+.avgpf-label {
   font-size: 18px;
   font-weight: normal;
   color: black;
   letter-spacing: 0.5px;
 }
 
-.avgpfpa-value {
+.avgpf-value {
   font-size: 18px;
   font-weight: bold;
   color: black;
@@ -311,12 +321,12 @@ body {
   }
 
   .poll-header {
-    grid-template-columns: 1.5fr repeat(10, 0.4fr);
+    grid-template-columns: 1.5fr 0.9fr repeat(10, 0.4fr);
     padding: 0 12px;
   }
 
   .poll-card {
-    grid-template-columns: 1.5fr repeat(10, 0.4fr);
+    grid-template-columns: 1.5fr 0.9fr repeat(10, 0.4fr);
     padding: 0 12px;
   }
 
@@ -378,7 +388,7 @@ body {
 
   .poll-header,
   .poll-card {
-    grid-template-columns: 0.9fr 1fr 1fr repeat(10, 0.5fr);
+    grid-template-columns: 0.9fr 1fr 0.9fr repeat(10, 0.5fr);
     column-gap: 0px;
   }
 
@@ -396,16 +406,20 @@ body {
     text-align: center;
   }
 
-  .avgpfpa-col {
+  .avgpf-col {
     gap: 2px;
   }
 
-  .avgpfpa-label {
+  .avgpf-label {
     font-size: 8px;
     letter-spacing: 0;
   }
 
-  .avgpfpa-value {
+  .custom-col-header {
+    font-size: 8px;
+  }
+
+  .avgpf-value {
     font-size: 9px;
   }
 
@@ -499,8 +513,12 @@ body {
     font-size: 9px;
   }
 
-  .avgpfpa-value {
+  .avgpf-value {
     font-size: 8px;
+  }
+
+  .custom-col-header {
+    font-size: 9px;
   }
 
   .vote-circle {
