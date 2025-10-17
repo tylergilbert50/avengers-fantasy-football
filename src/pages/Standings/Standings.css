@@ -59,7 +59,7 @@ body {
   width: calc(100% - 40px);
   max-width: 843px;
   display: grid;
-  grid-template-columns: 55px 2.5fr 1.7fr 1.1fr 1.2fr;
+  grid-template-columns: 45px 2.5fr 1.7fr 1.1fr 1.2fr;
   column-gap: 25px;
   align-items: center;
   padding: 0 20px;
@@ -179,7 +179,7 @@ body {
 
   .standings-header {
     width: calc(100% - 16px);
-    grid-template-columns: 32px 1.8fr 0.9fr 0.7fr 0.7fr;
+    grid-template-columns: 15px 1.8fr 1.2fr 0.7fr 0.7fr;
     column-gap: 6px;
     padding: 0 8px;
     font-size: 12px;
