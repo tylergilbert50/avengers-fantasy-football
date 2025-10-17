@@ -10,6 +10,7 @@ import Home from "./pages/home/Home";
 import ManagerProfile from "./pages/ManagerProfile/ManagerProfile.tsx";
 import Standings from "./pages/Standings/Standings";
 import Managers from "./pages/Managers/Managers";
+import { DataPreloader } from "./pages/ManagerProfile/DataPreloader";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -24,6 +25,7 @@ function ScrollToTop() {
 function App() {
   return (
     <Router>
+      <DataPreloader />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />

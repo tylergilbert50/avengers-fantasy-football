@@ -1,5 +1,5 @@
-// ManagerProfile.ts (optimized version)
-import { useEffect, useMemo, useState } from "react";
+// ManagerProfile.ts (with preloading and shared data store)
+import { useEffect, useMemo, useState, useRef } from "react";
 
 export interface YearRow {
   year: number;
@@ -49,25 +49,77 @@ const teamManagerMap: Record<string, string> = Object.fromEntries(
 );
 const managerEq = (a: string, b: string) => normalize(a) === normalize(b);
 
-// Simple in-memory cache for API responses
-const apiCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-const fetchJSON = async (url: string) => {
-  // Check cache first
-  const cached = apiCache.get(url);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
+// Enhanced cache with permanent storage for the session
+class DataStore {
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private allSeasonDataCache = new Map<string, Promise<Map<number, any>>>();
+  private managerCareersCache = new Map<string, ManagerCareer>();
+  private rankingsCache: Record<string, number> | null = null;
+  
+  // Store promises to prevent duplicate fetches
+  private fetchPromises = new Map<string, Promise<any>>();
+  
+  async fetchJSON(url: string): Promise<any> {
+    // Check if we're already fetching this URL
+    if (this.fetchPromises.has(url)) {
+      return this.fetchPromises.get(url);
+    }
+    
+    // Check cache
+    const cached = this.cache.get(url);
+    if (cached && Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30 min cache
+      return cached.data;
+    }
+    
+    // Create fetch promise
+    const fetchPromise = fetch(url)
+      .then(r => {
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
+        return r.json();
+      })
+      .then(data => {
+        this.cache.set(url, { data, timestamp: Date.now() });
+        this.fetchPromises.delete(url);
+        return data;
+      })
+      .catch(err => {
+        this.fetchPromises.delete(url);
+        throw err;
+      });
+    
+    this.fetchPromises.set(url, fetchPromise);
+    return fetchPromise;
   }
+  
+  getAllSeasonDataPromise(leagueId: string): Promise<Map<number, any>> | undefined {
+    return this.allSeasonDataCache.get(leagueId);
+  }
+  
+  setAllSeasonDataPromise(leagueId: string, promise: Promise<Map<number, any>>) {
+    this.allSeasonDataCache.set(leagueId, promise);
+  }
+  
+  getManagerCareer(key: string): ManagerCareer | undefined {
+    return this.managerCareersCache.get(key);
+  }
+  
+  setManagerCareer(key: string, career: ManagerCareer) {
+    this.managerCareersCache.set(key, career);
+  }
+  
+  getRankings(): Record<string, number> | null {
+    return this.rankingsCache;
+  }
+  
+  setRankings(rankings: Record<string, number>) {
+    this.rankingsCache = rankings;
+  }
+}
 
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
-  const data = await r.json();
+// Global singleton store
+const dataStore = new DataStore();
 
-  // Store in cache
-  apiCache.set(url, { data, timestamp: Date.now() });
-  return data;
-};
+const fetchJSON = (url: string) => dataStore.fetchJSON(url);
 
 const seasonSettings = (leagueId: string, y: number) =>
   fetchJSON(
@@ -91,7 +143,6 @@ const getCurrentSeason = async (leagueId: string, fallback: number) => {
   }
 };
 
-// Find the stable owner GUID for this manager from CURRENT season
 const getOwnerIdForManager = (
   tsCurrent: any,
   managerDisplayName: string
@@ -162,243 +213,320 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   return { top, bottom };
 };
 
-// Batch fetch all season data in parallel
-async function fetchAllSeasonData(leagueId: string, currentSeason: number) {
-  const years = [];
-  for (let year = START_SEASON; year < currentSeason; year++) {
-    years.push(year);
+// Fetch all season data with deduplication
+async function fetchAllSeasonData(leagueId: string, currentSeason: number): Promise<Map<number, any>> {
+  // Check if we're already fetching this data
+  const existingPromise = dataStore.getAllSeasonDataPromise(leagueId);
+  if (existingPromise) {
+    return existingPromise;
   }
+  
+  // Create new fetch promise
+  const fetchPromise = (async () => {
+    const years = [];
+    for (let year = START_SEASON; year < currentSeason; year++) {
+      years.push(year);
+    }
 
-  // Fetch all data in parallel
-  const [allTeamsData, allMatchupData] = await Promise.all([
-    Promise.all(years.map((year) => seasonTeamsAndStandings(leagueId, year))),
-    Promise.all(
-      years.map((year) => seasonMatchups(leagueId, year).catch(() => null))
-    ),
-  ]);
+    // Fetch all data in parallel
+    const [allTeamsData, allMatchupData] = await Promise.all([
+      Promise.all(years.map(year => seasonTeamsAndStandings(leagueId, year))),
+      Promise.all(years.map(year => seasonMatchups(leagueId, year).catch(() => null)))
+    ]);
 
-  // Create a map for easy access
-  const dataByYear = new Map();
-  years.forEach((year, index) => {
-    dataByYear.set(year, {
-      teams: allTeamsData[index],
-      matchups: allMatchupData[index],
+    // Create a map for easy access
+    const dataByYear = new Map();
+    years.forEach((year, index) => {
+      dataByYear.set(year, {
+        teams: allTeamsData[index],
+        matchups: allMatchupData[index]
+      });
     });
-  });
 
-  return dataByYear;
+    return dataByYear;
+  })();
+  
+  // Store promise to prevent duplicate fetches
+  dataStore.setAllSeasonDataPromise(leagueId, fetchPromise);
+  
+  return fetchPromise;
 }
 
-/** MAIN HOOK: optimized with parallel fetching */
+// Process manager data from the fetched season data
+async function processManagerCareer(
+  leagueId: string,
+  managerDisplayName: string,
+  dataByYear: Map<number, any>,
+  tsCurrent: any,
+  currentSeason: number
+): Promise<ManagerCareer> {
+  const ownerId = tsCurrent ? getOwnerIdForManager(tsCurrent, managerDisplayName) : null;
+  
+  let W = 0, L = 0, champ = 0, pW = 0, pL = 0, n1 = 0, n10 = 0;
+  const yearly: YearRow[] = [];
+  const finishes: FinishDot[] = [];
+
+  for (let year = START_SEASON; year < currentSeason; year++) {
+    const yearData = dataByYear.get(year);
+    if (!yearData) continue;
+
+    const ts = yearData.teams;
+    const teams: any[] = ts?.teams ?? [];
+
+    let my = teams.find((t: any) => ownerId && t.primaryOwner === ownerId);
+    if (!my) {
+      my = teams.find((t: any) => {
+        const mapped = teamManagerMap[normalize(t?.name ?? "")];
+        return mapped && managerEq(mapped, managerDisplayName);
+      });
+    }
+    if (!my) continue;
+
+    const rec = my?.record?.overall ?? {};
+    const w = rec.wins ?? 0;
+    const l = rec.losses ?? 0;
+    const t = rec.ties ?? 0;
+    const gp = w + l + t;
+    const pf = rec.pointsFor ?? 0;
+    const pa = rec.pointsAgainst ?? 0;
+
+    W += w;
+    L += l;
+
+    const playoffSpots = 6;
+    const madePO = my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= playoffSpots;
+
+    let pw = 0;
+    let pl = 0;
+
+    if (madePO) {
+      if (my?.record?.postseason) {
+        pw = my.record.postseason.wins ?? 0;
+        pl = my.record.postseason.losses ?? 0;
+      }
+
+      if (pw === 0 && pl === 0 && my?.playoffRecord) {
+        pw = my.playoffRecord.wins ?? 0;
+        pl = my.playoffRecord.losses ?? 0;
+      }
+
+      if (pw === 0 && pl === 0 && yearData.matchups) {
+        const schedule: any[] = yearData.matchups?.schedule ?? [];
+        const playoffMatchups = schedule
+          .filter((m) => {
+            const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
+            return week >= 15 && week <= 17;
+          })
+          .sort((a, b) => {
+            const weekA = a.matchupPeriodId ?? a.matchupPeriod ?? a.week;
+            const weekB = b.matchupPeriodId ?? b.matchupPeriod ?? b.week;
+            return weekA - weekB;
+          });
+
+        let eliminated = false;
+        for (const m of playoffMatchups) {
+          if (eliminated) break;
+          let myScore = 0;
+          let oppScore = 0;
+          let foundMyTeam = false;
+
+          if (m.home && m.away) {
+            if (m.home.teamId === my.id) {
+              myScore = m.home.totalPoints ?? m.home.points ?? 0;
+              oppScore = m.away.totalPoints ?? m.away.points ?? 0;
+              foundMyTeam = true;
+            } else if (m.away.teamId === my.id) {
+              myScore = m.away.totalPoints ?? m.away.points ?? 0;
+              oppScore = m.home.totalPoints ?? m.home.points ?? 0;
+              foundMyTeam = true;
+            }
+          } else if (m.teams) {
+            const myTeam = m.teams.find((t: any) => (t.teamId ?? t.id) === my.id);
+            if (myTeam) {
+              foundMyTeam = true;
+              myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
+              const oppTeam = m.teams.find((t: any) => (t.teamId ?? t.id) !== my.id);
+              oppScore = oppTeam ? oppTeam.totalPoints ?? oppTeam.points ?? 0 : 0;
+            }
+          }
+
+          if (foundMyTeam && myScore > 0 && oppScore > 0) {
+            if (myScore > oppScore) {
+              pw++;
+            } else if (oppScore > myScore) {
+              pl++;
+              eliminated = true;
+            }
+          }
+        }
+      }
+    }
+
+    pW += pw;
+    pL += pl;
+
+    const finalRank = my?.rankCalculatedFinal ?? my?.rankFinal ?? my?.finalStanding ?? undefined;
+
+    const position = typeof finalRank === "number"
+      ? finalRank
+      : rankTeams(
+          teams.map((t: any) => ({
+            id: t.id,
+            wins: t?.record?.overall?.wins ?? 0,
+            pf: t?.record?.overall?.pointsFor ?? 0,
+          })),
+          my.id
+        );
+
+    if (position === 1) {
+      champ += 1;
+    }
+
+    if (yearData.matchups) {
+      const { top, bottom } = countWeeklyExtremes(yearData.matchups, my.id);
+      n1 += top;
+      n10 += bottom;
+    }
+
+    yearly.push({
+      year,
+      w,
+      l,
+      playoff: madePO,
+      avgPts: gp ? Number((pf / gp).toFixed(2)) : 0,
+      avgPa: gp ? Number((pa / gp).toFixed(2)) : 0,
+    });
+
+    finishes.push({ year, position, color: finishColor(position) });
+  }
+
+  const winPct = W + L ? W / (W + L) : 0;
+
+  return {
+    championships: champ,
+    playoffAppearances: yearly.filter((y) => y.playoff).length,
+    playoffRecord: `${pW}-${pL}`,
+    record: `${W}-${L}`,
+    winPct: winPct.toFixed(3).replace(/^0/, ""),
+    rank: 0,
+    num1Weeks: n1,
+    num10Weeks: n10,
+    yearly: yearly.sort((a, b) => a.year - b.year),
+    finishes: finishes.sort((a, b) => a.year - b.year),
+  };
+}
+
+// Preload all data for all managers
+export function preloadAllManagers(leagueId: string) {
+  if (!leagueId) return;
+  
+  (async () => {
+    try {
+      const now = new Date().getFullYear();
+      const [currentSeason, tsCurrent] = await Promise.all([
+        getCurrentSeason(leagueId, now),
+        seasonTeamsAndStandings(leagueId, now).catch(() => null)
+      ]);
+      
+      // Start fetching all season data
+      const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
+      
+      // Process all managers in parallel
+      const managerPromises = Object.values(teamManagerMapRaw).map(async (managerName) => {
+        const cacheKey = `${leagueId}-${managerName}`;
+        
+        // Skip if already cached
+        if (dataStore.getManagerCareer(cacheKey)) {
+          return;
+        }
+        
+        const career = await processManagerCareer(
+          leagueId,
+          managerName,
+          dataByYear,
+          tsCurrent,
+          currentSeason
+        );
+        
+        dataStore.setManagerCareer(cacheKey, career);
+      });
+      
+      await Promise.all(managerPromises);
+      
+      // Also calculate rankings while we have all the data
+      const managerStats: Array<{ name: string; winPct: number }> = [];
+      
+      for (const managerName of Object.values(teamManagerMapRaw)) {
+        const cacheKey = `${leagueId}-${managerName}`;
+        const career = dataStore.getManagerCareer(cacheKey);
+        if (career) {
+          const winPct = parseFloat('0' + career.winPct);
+          managerStats.push({ name: managerName, winPct });
+        }
+      }
+      
+      managerStats.sort((a, b) => b.winPct - a.winPct);
+      const rankMap: Record<string, number> = {};
+      managerStats.forEach((stat, index) => {
+        rankMap[stat.name] = index + 1;
+      });
+      
+      dataStore.setRankings(rankMap);
+    } catch (e) {
+      console.error('Preload error:', e);
+    }
+  })();
+}
+
+/** MAIN HOOK: Returns cached data immediately if available */
 export const useManagerCareer = (
   leagueId: string,
   managerDisplayName: string
 ): ManagerCareer | null => {
   const [data, setData] = useState<ManagerCareer | null>(null);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (!leagueId || !managerDisplayName) return;
+    
+    const cacheKey = `${leagueId}-${managerDisplayName}`;
+    
+    // Check cache first
+    const cached = dataStore.getManagerCareer(cacheKey);
+    if (cached) {
+      setData(cached);
+      return;
+    }
+    
+    // Prevent duplicate fetches
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
     (async () => {
       try {
         const now = new Date().getFullYear();
-
-        // First, get the current season and current teams data
         const [currentSeason, tsCurrent] = await Promise.all([
           getCurrentSeason(leagueId, now),
-          seasonTeamsAndStandings(leagueId, now).catch(() => null),
+          seasonTeamsAndStandings(leagueId, now).catch(() => null)
         ]);
-
-        // Get owner ID
-        const ownerId = tsCurrent
-          ? getOwnerIdForManager(tsCurrent, managerDisplayName)
-          : null;
-
-        // Fetch all historical data in parallel
+        
         const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
-
-        // Process the data
-        let W = 0,
-          L = 0,
-          champ = 0,
-          pW = 0,
-          pL = 0,
-          n1 = 0,
-          n10 = 0;
-        const yearly: YearRow[] = [];
-        const finishes: FinishDot[] = [];
-
-        for (let year = START_SEASON; year < currentSeason; year++) {
-          const yearData = dataByYear.get(year);
-          if (!yearData) continue;
-
-          const ts = yearData.teams;
-          const teams: any[] = ts?.teams ?? [];
-
-          // Find the team for this manager
-          let my = teams.find((t) => ownerId && t.primaryOwner === ownerId);
-          if (!my) {
-            my = teams.find((t) => {
-              const mapped = teamManagerMap[normalize(t?.name ?? "")];
-              return mapped && managerEq(mapped, managerDisplayName);
-            });
-          }
-          if (!my) continue;
-
-          const rec = my?.record?.overall ?? {};
-          const w = rec.wins ?? 0;
-          const l = rec.losses ?? 0;
-          const t = rec.ties ?? 0;
-          const gp = w + l + t;
-          const pf = rec.pointsFor ?? 0;
-          const pa = rec.pointsAgainst ?? 0;
-
-          W += w;
-          L += l;
-
-          const playoffSpots = 6;
-          const madePO =
-            my?.playoffSeed &&
-            my.playoffSeed > 0 &&
-            my.playoffSeed <= playoffSpots;
-
-          let pw = 0;
-          let pl = 0;
-
-          if (madePO) {
-            if (my?.record?.postseason) {
-              pw = my.record.postseason.wins ?? 0;
-              pl = my.record.postseason.losses ?? 0;
-            }
-
-            if (pw === 0 && pl === 0 && my?.playoffRecord) {
-              pw = my.playoffRecord.wins ?? 0;
-              pl = my.playoffRecord.losses ?? 0;
-            }
-
-            // Try matchup data if we have it
-            if (pw === 0 && pl === 0 && yearData.matchups) {
-              const schedule: any[] = yearData.matchups?.schedule ?? [];
-              const playoffMatchups = schedule
-                .filter((m) => {
-                  const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
-                  return week >= 15 && week <= 17;
-                })
-                .sort((a, b) => {
-                  const weekA = a.matchupPeriodId ?? a.matchupPeriod ?? a.week;
-                  const weekB = b.matchupPeriodId ?? b.matchupPeriod ?? b.week;
-                  return weekA - weekB;
-                });
-
-              let eliminated = false;
-              for (const m of playoffMatchups) {
-                if (eliminated) break;
-                let myScore = 0;
-                let oppScore = 0;
-                let foundMyTeam = false;
-
-                if (m.home && m.away) {
-                  if (m.home.teamId === my.id) {
-                    myScore = m.home.totalPoints ?? m.home.points ?? 0;
-                    oppScore = m.away.totalPoints ?? m.away.points ?? 0;
-                    foundMyTeam = true;
-                  } else if (m.away.teamId === my.id) {
-                    myScore = m.away.totalPoints ?? m.away.points ?? 0;
-                    oppScore = m.home.totalPoints ?? m.home.points ?? 0;
-                    foundMyTeam = true;
-                  }
-                } else if (m.teams) {
-                  const myTeam = m.teams.find(
-                    (t: any) => (t.teamId ?? t.id) === my.id
-                  );
-                  if (myTeam) {
-                    foundMyTeam = true;
-                    myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
-                    const oppTeam = m.teams.find(
-                      (t: any) => (t.teamId ?? t.id) !== my.id
-                    );
-                    oppScore = oppTeam
-                      ? oppTeam.totalPoints ?? oppTeam.points ?? 0
-                      : 0;
-                  }
-                }
-
-                if (foundMyTeam && myScore > 0 && oppScore > 0) {
-                  if (myScore > oppScore) {
-                    pw++;
-                  } else if (oppScore > myScore) {
-                    pl++;
-                    eliminated = true;
-                  }
-                }
-              }
-            }
-          }
-
-          pW += pw;
-          pL += pl;
-
-          const finalRank =
-            my?.rankCalculatedFinal ??
-            my?.rankFinal ??
-            my?.finalStanding ??
-            undefined;
-
-          const position =
-            typeof finalRank === "number"
-              ? finalRank
-              : rankTeams(
-                  teams.map((t: any) => ({
-                    id: t.id,
-                    wins: t?.record?.overall?.wins ?? 0,
-                    pf: t?.record?.overall?.pointsFor ?? 0,
-                  })),
-                  my.id
-                );
-
-          if (position === 1) {
-            champ += 1;
-          }
-
-          // Count weekly extremes if we have matchup data
-          if (yearData.matchups) {
-            const { top, bottom } = countWeeklyExtremes(
-              yearData.matchups,
-              my.id
-            );
-            n1 += top;
-            n10 += bottom;
-          }
-
-          yearly.push({
-            year,
-            w,
-            l,
-            playoff: madePO,
-            avgPts: gp ? Number((pf / gp).toFixed(2)) : 0,
-            avgPa: gp ? Number((pa / gp).toFixed(2)) : 0,
-          });
-
-          finishes.push({ year, position, color: finishColor(position) });
-        }
-
-        const winPct = W + L ? W / (W + L) : 0;
-
-        setData({
-          championships: champ,
-          playoffAppearances: yearly.filter((y) => y.playoff).length,
-          playoffRecord: `${pW}-${pL}`,
-          record: `${W}-${L}`,
-          winPct: winPct.toFixed(3).replace(/^0/, ""),
-          rank: 0,
-          num1Weeks: n1,
-          num10Weeks: n10,
-          yearly: yearly.sort((a, b) => a.year - b.year),
-          finishes: finishes.sort((a, b) => a.year - b.year),
-        });
+        
+        const career = await processManagerCareer(
+          leagueId,
+          managerDisplayName,
+          dataByYear,
+          tsCurrent,
+          currentSeason
+        );
+        
+        dataStore.setManagerCareer(cacheKey, career);
+        setData(career);
       } catch (e) {
         console.error(e);
         setData(null);
+      } finally {
+        loadingRef.current = false;
       }
     })();
   }, [leagueId, managerDisplayName]);
@@ -406,37 +534,36 @@ export const useManagerCareer = (
   return useMemo(() => data, [data]);
 };
 
-// Optimized hook that shares data across all managers
 export const useAllManagersRanking = (leagueId: string) => {
   const [rankings, setRankings] = useState<Record<string, number>>({});
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (!leagueId) return;
+    
+    // Check cache first
+    const cached = dataStore.getRankings();
+    if (cached) {
+      setRankings(cached);
+      return;
+    }
+    
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
     (async () => {
       try {
         const now = new Date().getFullYear();
         const currentSeason = await getCurrentSeason(leagueId, now);
-
-        // Fetch all data once in parallel
         const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
+        const tsCurrent = await seasonTeamsAndStandings(leagueId, currentSeason);
 
-        // Get current season data for owner IDs
-        const tsCurrent = await seasonTeamsAndStandings(
-          leagueId,
-          currentSeason
-        );
-
-        // Calculate winning % for each manager using the already-fetched data
         const managerStats: Array<{ name: string; winPct: number }> = [];
 
-        for (const [_teamName, managerName] of Object.entries(
-          teamManagerMapRaw
-        )) {
+        for (const [_teamName, managerName] of Object.entries(teamManagerMapRaw)) {
           const ownerId = getOwnerIdForManager(tsCurrent, managerName);
 
-          let W = 0,
-            L = 0;
+          let W = 0, L = 0;
 
           for (let year = START_SEASON; year < currentSeason; year++) {
             const yearData = dataByYear.get(year);
@@ -445,9 +572,9 @@ export const useAllManagersRanking = (leagueId: string) => {
             const ts = yearData.teams;
             const teams: any[] = ts?.teams ?? [];
 
-            let my = teams.find((t) => ownerId && t.primaryOwner === ownerId);
+            let my = teams.find((t: any) => ownerId && t.primaryOwner === ownerId);
             if (!my) {
-              my = teams.find((t) => {
+              my = teams.find((t: any) => {
                 const mapped = teamManagerMap[normalize(t?.name ?? "")];
                 return mapped && managerEq(mapped, managerName);
               });
@@ -463,16 +590,18 @@ export const useAllManagersRanking = (leagueId: string) => {
           managerStats.push({ name: managerName, winPct });
         }
 
-        // Sort and assign ranks
         managerStats.sort((a, b) => b.winPct - a.winPct);
         const rankMap: Record<string, number> = {};
         managerStats.forEach((stat, index) => {
           rankMap[stat.name] = index + 1;
         });
 
+        dataStore.setRankings(rankMap);
         setRankings(rankMap);
       } catch (e) {
         console.error(e);
+      } finally {
+        loadingRef.current = false;
       }
     })();
   }, [leagueId]);
