@@ -25,9 +25,14 @@ function MenuButtons() {
       <Link to="/schedule" className="menu-button">
         <img src="/images/buttons/schedule.avif" />
       </Link>
-      <Link to="/history" className="menu-button">
+      <a
+        href="https://docs.google.com/spreadsheets/d/1QygMGu_XW0hOnu2AId1ClXWijLGTmEFlsWs-ZHqf_ho/edit?usp=sharing"
+        className="menu-button"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img src="/images/buttons/history.avif" />
-      </Link>
+      </a>
       <Link to="/trade-history" className="menu-button">
         <img src="/images/buttons/trade-history.avif" />
       </Link>
