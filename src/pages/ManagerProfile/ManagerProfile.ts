@@ -265,8 +265,6 @@ export const useManagerCareer = (
                 for (const m of playoffMatchups) {
                   if (eliminated) break; // Stop counting after elimination
 
-                  const week = m.matchupPeriodId ?? m.matchupPeriod ?? m.week;
-
                   // Check if our team is in this matchup
                   let myScore = 0;
                   let oppScore = 0;
