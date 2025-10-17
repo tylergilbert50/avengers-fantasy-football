@@ -1,8 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  useCurrentSeason,
-  useStandings,
-} from "../home/components/Standings/standingss";
+import { useCurrentSeason, useStandings } from "../hooks/useFantasyLeague";
 import "./ManagerPoll.css";
 import {
   usePollData,
@@ -60,8 +57,6 @@ function ManagerPoll() {
     (votes[position] !== null && votes[position] !== managerId);
 
   const renderResults = () => {
-    if (pollResults.length === 0) return <div>Loading results...</div>;
-
     return (
       <div className="poll-wrapper">
         <div className="poll">
@@ -153,8 +148,9 @@ function ManagerPoll() {
           <div className="poll-header">
             <span></span>
             <span className="custom-col-header">RECORD</span>
-            <span className="custom-col-header avgpf-col">
-              <span className="avgpf-label">AVG PF</span>
+            <span className="custom-col-header avgpfpa-col">
+              <span className="avgpfpa-label">AVG PF</span>
+              <span className="avgpfpa-label">AVG PA</span>
             </span>
             {POSITIONS.map((position) => (
               <span key={position}>{position}</span>
@@ -172,8 +168,9 @@ function ManagerPoll() {
                 <div key={manager.id} className="poll-card">
                   <span className="manager-poll-name">{manager.name}</span>
                   <span className="custom-col">{stats.record}</span>
-                  <span className="avgpf-col">
-                    <span className="avgpf-value">{stats.avgPf}</span>
+                  <span className="avgpfpa-col">
+                    <span className="avgpfpa-value">{stats.avgPf}</span>
+                    <span className="avgpfpa-value">{stats.avgPa}</span>
                   </span>
                   {POSITIONS.map((position) => (
                     <div

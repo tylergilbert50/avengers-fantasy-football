@@ -15,10 +15,20 @@ interface Team {
   gamesPlayed: number;
 }
 
+// Add caching outside the hooks
+const seasonCache = new Map<string, number>();
+const standingsCache = new Map<string, Team[]>();
+
 export const useCurrentSeason = (leagueId: string): SeasonInfo => {
   const [year, setYear] = useState<number>(new Date().getFullYear());
 
   useEffect(() => {
+    // Check cache first
+    if (seasonCache.has(leagueId)) {
+      setYear(seasonCache.get(leagueId)!);
+      return;
+    }
+
     const fetchCurrentSeason = async () => {
       const response = await fetch(
         `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${leagueId}?view=mSettings`
@@ -28,13 +38,14 @@ export const useCurrentSeason = (leagueId: string): SeasonInfo => {
 
       if (data.seasonId) {
         setYear(data.seasonId);
+        seasonCache.set(leagueId, data.seasonId);
       }
     };
 
     if (leagueId) {
       fetchCurrentSeason();
     }
-  }, [leagueId, year]);
+  }, [leagueId]); // REMOVED 'year' from dependencies - this was causing the loop!
 
   return { year };
 };
@@ -63,6 +74,14 @@ export const useStandings = (leagueId: string, year: number): Team[] => {
     );
 
   useEffect(() => {
+    const cacheKey = `${leagueId}-${year}`;
+    
+    // Check cache first
+    if (standingsCache.has(cacheKey)) {
+      setTeams(standingsCache.get(cacheKey)!);
+      return;
+    }
+
     const fetchStandings = async () => {
       const response = await fetch(
         `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${leagueId}?view=mTeam&view=mStandings`
@@ -94,6 +113,7 @@ export const useStandings = (leagueId: string, year: number): Team[] => {
       });
 
       setTeams(teamData);
+      standingsCache.set(cacheKey, teamData);
     };
 
     if (year) {

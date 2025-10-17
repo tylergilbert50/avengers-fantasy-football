@@ -1,7 +1,4 @@
-import {
-  useCurrentSeason,
-  useStandings,
-} from "../home/components/Standings/standingss";
+import { useCurrentSeason, useStandings } from "../hooks/useFantasyLeague";
 import "./Standings.css";
 
 function Standings() {
