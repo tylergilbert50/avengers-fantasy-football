@@ -1,5 +1,5 @@
 /* Import Google Fonts for script/italic styling */
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap");
 
 .draft-button-wrapper {
   display: flex;
@@ -8,6 +8,7 @@
   justify-content: center;
   margin-top: 20px;
   gap: 25px;
+  flex-wrap: wrap;
 }
 
 .draft-button {
@@ -26,6 +27,11 @@
   color: white;
   text-decoration: none;
   background-color: #323232;
+  transition: transform 0.2s ease;
+}
+
+.draft-button:hover {
+  transform: scale(1.05);
 }
 
 .draft-player-container {
@@ -43,8 +49,9 @@
   border-radius: 25px;
   height: 340px;
   width: 220px;
+  max-width: 100%;
   padding: 12px;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   text-align: center;
   background-color: white;
   display: flex;
@@ -64,7 +71,7 @@
 }
 
 .card-year {
-  font-family: 'Kalam', cursive;
+  font-family: "Kalam", cursive;
   font-size: 42px;
   margin: 0;
   font-style: italic;
@@ -82,7 +89,7 @@
   font-weight: bold;
   color: white;
   font-style: italic;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
 }
 
 .position-rb {
@@ -113,7 +120,7 @@
 }
 
 .player-name {
-  font-family: 'Arial Black', sans-serif;
+  font-family: "Arial Black", sans-serif;
   font-size: 18px;
   font-weight: 900;
   margin: 8px 0 4px 0;
@@ -121,15 +128,196 @@
   font-style: italic;
   letter-spacing: -0.5px;
   white-space: pre-line;
-  color: #1a1a1a;
   text-transform: uppercase;
+  color: #1a1a1a;
 }
 
 .drafter-name {
   font-size: 14px;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   font-weight: normal;
   color: #666;
   margin: 4px 0 0 0;
   font-style: normal;
+}
+
+/* Tablet styles */
+@media (max-width: 768px) {
+  .draft-button-wrapper {
+    gap: 15px;
+    padding: 0 10px;
+  }
+
+  .draft-button {
+    width: 120px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .draft-player-container {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    margin: 20px auto;
+  }
+
+  .draft-player-card {
+    width: 200px;
+    height: 320px;
+  }
+}
+
+/* Mobile styles */
+@media (max-width: 480px) {
+  /* Adjust heading if it exists */
+  .avengers-text {
+    font-size: 28px;
+    padding: 0 10px;
+  }
+
+  .draft-button-wrapper {
+    gap: 10px;
+    margin-top: 15px;
+    padding: 0 10px;
+  }
+
+  .draft-button {
+    width: 100px;
+    height: 36px;
+    font-size: 16px;
+    border-width: 2px;
+    margin: 5px 0;
+  }
+
+  .draft-player-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px;
+    margin: 15px auto;
+    max-width: 400px;
+  }
+
+  .draft-player-card {
+    width: 100%;
+    height: 300px;
+    padding: 10px;
+    border-width: 3px;
+    border-radius: 20px;
+  }
+
+  /* Center the last card if odd number */
+  .draft-player-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 190px;
+    margin: 0 auto;
+  }
+
+  .card-header {
+    height: 40px;
+    margin-bottom: 3px;
+  }
+
+  .card-year {
+    font-size: 36px;
+  }
+
+  .position-badge {
+    font-size: 18px;
+    padding: 3px 10px;
+    margin-left: 15px;
+    margin-bottom: 6px;
+  }
+
+  .player-image {
+    width: 110px;
+    height: 140px;
+    border-width: 2px;
+    margin: 3px auto 6px auto;
+  }
+
+  .player-name {
+    font-family: "Arial Black", sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    margin: 8px 0 4px 0;
+    line-height: 0.9;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    white-space: pre-line;
+    text-transform: uppercase;
+    color: #1a1a1a;
+  }
+
+  .drafter-name {
+    font-size: 13px;
+  }
+}
+
+/* Extra small mobile styles */
+@media (max-width: 360px) {
+  .draft-button-wrapper {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .draft-button {
+    width: 140px;
+  }
+
+  .draft-player-container {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .draft-player-card {
+    width: 100%;
+    max-width: 220px;
+    height: 320px;
+  }
+
+  .player-image {
+    width: 120px;
+    height: 150px;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .draft-player-container {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    margin: 10px auto;
+  }
+
+  .draft-player-card {
+    height: 280px;
+    width: 180px;
+  }
+
+  .player-image {
+    width: 100px;
+    height: 130px;
+  }
+
+  .card-year {
+    font-size: 34px;
+  }
+
+  .position-badge {
+    font-size: 16px;
+  }
+
+  .player-name {
+    font-family: "Arial Black", sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    margin: 8px 0 4px 0;
+    line-height: 0.9;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    white-space: pre-line;
+    text-transform: uppercase;
+    color: #1a1a1a;
+  }
 }
