@@ -105,13 +105,7 @@ function ManagerProfile() {
   if (!meta) {
     return (
       <div className="container">
-        <div className="profile-wrapper">
-          <div className="profile">
-            <h2 style={{ textAlign: "center", marginTop: 80 }}>
-              Page Not Done
-            </h2>
-          </div>
-        </div>
+        <h1 className="avengers-text">UNDER CONSTRUCTION</h1>
       </div>
     );
   }
