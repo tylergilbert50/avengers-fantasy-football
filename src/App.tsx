@@ -11,6 +11,7 @@ import ManagerProfile from "./pages/ManagerProfile/ManagerProfile.tsx";
 import Standings from "./pages/Standings/Standings";
 import Managers from "./pages/Managers/Managers";
 import DraftHistory from "./pages/DraftHistory/DraftHistory.tsx";
+import Records from "./pages/Records/Records.tsx";
 import { DataPreloader } from "./pages/ManagerProfile/DataPreloader";
 
 function ScrollToTop() {
@@ -35,6 +36,7 @@ function App() {
         <Route path="/manager-poll" element={<ManagerPoll />} />
         <Route path="/:managerName" element={<ManagerProfile />} />
         <Route path="/draft-history" element={<DraftHistory />} />
+        <Route path="/records" element={<Records />} />
       </Routes>
     </Router>
   );
