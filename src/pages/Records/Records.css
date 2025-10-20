@@ -1,0 +1,70 @@
+.records-top-text {
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 35px;
+  font-weight: normal;
+  user-select: none;
+  margin-bottom: -30px;
+}
+
+.records-bottom-text {
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: normal;
+  user-select: none;
+  margin-top: -20px;
+  margin-bottom: 50px;
+}
+
+.records-container {
+  display: grid;
+  grid-template-columns: repeat(2, 2fr);
+  gap: 30px;
+}
+
+.records-card {
+  text-align: center;
+  height: 285px;
+  width: 375px;
+  background: white;
+  border: 5px solid black;
+  border-radius: 25px;
+}
+
+.records-card-title {
+  height: 35px;
+  width: 350px;
+  margin: 7px;
+  padding: 7px;
+  background-color: #282626;
+  border-radius: 15px 15px 0px 0px;
+  font-family: "Helvetica", Arial, sans-serif;
+  font-size: 20px;
+  font-weight: normal;
+  color: white;
+}
+
+.records-card-content {
+  justify-items: center;
+  display: grid;
+  grid-template-columns: repeat(3, 2fr);
+}
+
+.records-card-box {
+  background-color: #949494;
+  border-radius: 100px;
+  height: 28px;
+  width: 85px;
+  margin: 5px;
+}
+
+.records-header-box {
+  margin-top: 10px;
+  margin-right: 30px;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  user-select: none;
+}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useCurrentSeason, useStandings } from "../hooks/useFantasyLeague";
 import "./ManagerPoll.css";
 import {
@@ -43,10 +43,10 @@ function ManagerPoll() {
   const { year } = useCurrentSeason(LEAGUE_ID);
   const teams = useStandings(LEAGUE_ID, year);
   const currentWeek = getCurrentWeek();
-  const [userId] = useState(getUserId);
+  const userId = useMemo(() => getUserId(), []);
   const [showResults] = useState(shouldShowResults());
 
-  // Use default managers initially to render immediately
+  // Seed immediate UI with placeholder managers
   const [managers, setManagers] = useState<Manager[]>(
     DEFAULT_MANAGERS.map((name, idx) => ({
       id: `temp_${idx}`,
@@ -54,100 +54,152 @@ function ManagerPoll() {
     }))
   );
 
-  // Initialize with empty state to render immediately
+  // Immediate blank UI state
   const [votes, setVotes] = useState(getEmptyVotes());
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [pollResults, setPollResults] = useState<PollResult[]>([]);
   const [pollDataReady, setPollDataReady] = useState(false);
 
-  // Get real poll data
+  // Kick off poll data fetch (standings are passed for enrichment, but the hook shouldn't block on them)
   const pollData = usePollData(userId, currentWeek, teams || []);
 
-  // Update managers when teams data arrives
+  // Destructure to keep effect deps stable (avoids re-running from object identity churn)
+  const {
+    managers: pdManagers,
+    votes: pdVotes,
+    hasSubmitted: pdHasSubmitted,
+    pollResults: pdPollResults,
+    handleVote: pdHandleVote,
+    handleSubmit: pdHandleSubmit,
+  } = pollData;
+
+  // Once teams arrive (and before pollData is ready), hydrate managers exactly once
   useEffect(() => {
-    if (teams && teams.length > 0) {
-      const realManagers = teams
-        .map((team) => ({
-          id: team.id.toString(),
-          name: team.name,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      setManagers(realManagers);
-    }
-  }, [teams]);
+    if (!teams || teams.length === 0) return;
+    if (pdManagers.length > 0) return;
 
-  // Update poll data when it's ready
+    const realManagers = teams
+      .map((team: any) => ({ id: String(team.id), name: team.name }))
+      .sort((a: Manager, b: Manager) => a.name.localeCompare(b.name));
+
+    setManagers(realManagers);
+  }, [teams, pdManagers.length]);
+
+  // When poll data becomes ready, replace local placeholders with real data
   useEffect(() => {
-    if (pollData.managers.length > 0) {
-      setManagers(pollData.managers);
-      setVotes(pollData.votes);
-      setHasSubmitted(pollData.hasSubmitted);
-      setPollResults(pollData.pollResults);
-      setPollDataReady(true);
-    }
-  }, [
-    pollData.managers,
-    pollData.votes,
-    pollData.hasSubmitted,
-    pollData.pollResults,
-  ]);
+    if (pdManagers.length === 0) return;
 
-  const handleVote = (managerId: string, position: string) => {
-    if (hasSubmitted) return;
+    setManagers(pdManagers);
+    setVotes(pdVotes);
+    setHasSubmitted(pdHasSubmitted);
+    setPollResults(pdPollResults);
+    setPollDataReady(true);
+  }, [pdManagers, pdVotes, pdHasSubmitted, pdPollResults]);
 
-    if (pollDataReady) {
-      pollData.handleVote(managerId, position);
-    } else {
-      // Local optimistic update before poll data is ready
-      setVotes((prevVotes) => {
-        const newVotes = { ...prevVotes };
+  // Stable hot-path predicates & handlers to avoid rebinds on every render
+  const isManagerSelected = useCallback(
+    (managerId: string, position: string) => votes[position] === managerId,
+    [votes]
+  );
 
-        if (prevVotes[position] === managerId) {
-          newVotes[position] = null;
-          return newVotes;
-        }
+  const isManagerVotedElsewhere = useCallback(
+    (managerId: string, currentPosition: string) =>
+      Object.entries(votes).some(
+        ([pos, votedManagerId]) =>
+          pos !== currentPosition && votedManagerId === managerId
+      ),
+    [votes]
+  );
 
-        if (prevVotes[position] !== null && prevVotes[position] !== managerId) {
-          return prevVotes;
-        }
+  const isVoteDisabled = useCallback(
+    (managerId: string, position: string) =>
+      isManagerVotedElsewhere(managerId, position) ||
+      hasSubmitted ||
+      (votes[position] !== null && votes[position] !== managerId),
+    [hasSubmitted, votes, isManagerVotedElsewhere]
+  );
 
-        Object.keys(newVotes).forEach((pos) => {
-          if (newVotes[pos] === managerId) newVotes[pos] = null;
+  const handleVote = useCallback(
+    (managerId: string, position: string) => {
+      if (hasSubmitted) return;
+
+      if (pollDataReady) {
+        pdHandleVote(managerId, position);
+      } else {
+        // Local optimistic update before poll data is ready
+        setVotes((prev) => {
+          const next = { ...prev };
+
+          // Toggle off if same pick
+          if (prev[position] === managerId) {
+            next[position] = null;
+            return next;
+          }
+
+          // Block if trying to replace a different manager in a filled position
+          if (prev[position] !== null && prev[position] !== managerId) {
+            return prev;
+          }
+
+          // Ensure a manager isn't picked twice
+          Object.keys(next).forEach((pos) => {
+            if (next[pos] === managerId) next[pos] = null;
+          });
+
+          // Commit new pick
+          next[position] = managerId;
+          return next;
         });
+      }
+    },
+    [hasSubmitted, pollDataReady, pdHandleVote]
+  );
 
-        newVotes[position] = managerId;
-        return newVotes;
-      });
-    }
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (pollDataReady) {
-      pollData.handleSubmit();
+      pdHandleSubmit();
     } else {
       alert("Please wait for the poll to fully load before submitting.");
     }
-  };
+  }, [pollDataReady, pdHandleSubmit]);
 
-  const isManagerSelected = (managerId: string, position: string) =>
-    votes[position] === managerId;
+  // Build stats lookup from standings
+  const teamStatsByManager = useMemo(() => {
+    const get = (t: any, ...keys: string[]) =>
+      keys.reduce((v, k) => (v ??= t?.[k]), undefined);
 
-  const isManagerVotedElsewhere = (
-    managerId: string,
-    currentPosition: string
-  ) =>
-    Object.entries(votes).some(
-      ([pos, votedManagerId]) =>
-        pos !== currentPosition && votedManagerId === managerId
-    );
+    const map = new Map<string, { record: string; avgPf: string; avgPa: string }>();
 
-  const isVoteDisabled = (managerId: string, position: string) =>
-    isManagerVotedElsewhere(managerId, position) ||
-    hasSubmitted ||
-    (votes[position] !== null && votes[position] !== managerId);
+    (teams ?? []).forEach((t: any) => {
+      const wins = get(t, "wins", "w") ?? 0;
+      const losses = get(t, "losses", "l") ?? 0;
+      const gp = Math.max(Number(wins) + Number(losses), 1);
+      const pfTotal = get(t, "points_for", "pf", "pointsFor", "fpts") ?? 0;
+      const paTotal =
+        get(t, "points_against", "pa", "pointsAgainst", "fpts_against") ?? 0;
+
+      const avgPf = (Number(pfTotal) / gp).toFixed(1);
+      const avgPa = (Number(paTotal) / gp).toFixed(1);
+
+      const owner =
+        get(t, "owner", "owner_id", "user", "owner.display_name") ??
+        get(t, "display_name", "team_name", "name") ??
+        "";
+
+      const norm = (s: string) => String(s).trim().toLowerCase();
+
+      [owner, get(t, "display_name"), get(t, "team_name"), get(t, "name")]
+        .filter((s): s is string => typeof s === "string" && !!s)
+        .map((s) => norm(s))
+        .forEach((k: string) => {
+          if (!map.has(k)) map.set(k, { record: `${wins}-${losses}`, avgPf, avgPa });
+        });
+    });
+
+    return map;
+  }, [teams]);
 
   const renderResults = () => {
-    // Show placeholder results if data isn't ready yet
     const resultsToShow =
       pollResults.length > 0
         ? pollResults
@@ -187,9 +239,7 @@ function ManagerPoll() {
                     </div>
                     <span className="result-name">{result.name}</span>
                     <span className="result-record">{result.record}</span>
-                    <span className={`result-trend ${trendClass}`}>
-                      {result.trend}
-                    </span>
+                    <span className={`result-trend ${trendClass}`}>{result.trend}</span>
                     <span className="result-points">{result.pollPoints}</span>
                   </div>
                 );
@@ -210,44 +260,12 @@ function ManagerPoll() {
     );
   }
 
-  // Build stats lookup from standings
-  const teamStatsByManager = useMemo(() => {
-    const get = (t: any, ...keys: string[]) =>
-      keys.reduce((v, k) => (v ??= t?.[k]), undefined);
-    const map = new Map<
-      string,
-      { record: string; avgPf: string; avgPa: string }
-    >();
-    (teams ?? []).forEach((t: any) => {
-      const wins = get(t, "wins", "w") ?? 0;
-      const losses = get(t, "losses", "l") ?? 0;
-      const gp = Math.max(Number(wins) + Number(losses), 1);
-      const pfTotal = get(t, "points_for", "pf", "pointsFor", "fpts") ?? 0;
-      const paTotal =
-        get(t, "points_against", "pa", "pointsAgainst", "fpts_against") ?? 0;
-      const avgPf = (Number(pfTotal) / gp).toFixed(1);
-      const avgPa = (Number(paTotal) / gp).toFixed(1);
-      const owner =
-        get(t, "owner", "owner_id", "user", "owner.display_name") ??
-        get(t, "display_name", "team_name", "name") ??
-        "";
-      const norm = (s: string) => String(s).trim().toLowerCase();
-      [owner, get(t, "display_name"), get(t, "team_name"), get(t, "name")]
-        .filter((s): s is string => typeof s === "string" && !!s)
-        .map((s) => norm(s))
-        .forEach((k: string) => {
-          if (!map.has(k))
-            map.set(k, { record: `${wins}-${losses}`, avgPf, avgPa });
-        });
-    });
-    return map;
-  }, [teams]);
-
   return (
     <div className="poll-wrapper">
       <div className="poll">
         <div className="poll-content">
           <div className="poll-title">WEEK {currentWeek}</div>
+
           <div className="poll-header">
             <span></span>
             <span className="custom-col-header">RECORD</span>
@@ -258,6 +276,7 @@ function ManagerPoll() {
               <span key={position}>{position}</span>
             ))}
           </div>
+
           <div className="poll-card-content">
             {managers.map((manager) => {
               const norm = (s: string) => String(s).trim().toLowerCase();
@@ -266,6 +285,7 @@ function ManagerPoll() {
                 avgPf: "-",
                 avgPa: "-",
               };
+
               return (
                 <div key={manager.id} className="poll-card">
                   <span className="manager-poll-name">{manager.name}</span>
@@ -273,19 +293,14 @@ function ManagerPoll() {
                   <span className="avgpf-col">
                     <span className="avgpf-value">{stats.avgPf}</span>
                   </span>
+
                   {POSITIONS.map((position) => (
-                    <div
-                      key={`${manager.id}-${position}`}
-                      className="vote-cell"
-                    >
+                    <div key={`${manager.id}-${position}`} className="vote-cell">
                       <button
+                        aria-label={`Vote ${manager.name} for ${position}`}
                         className={`vote-button ${
-                          isManagerSelected(manager.id, position)
-                            ? "selected"
-                            : ""
-                        } ${
-                          isVoteDisabled(manager.id, position) ? "disabled" : ""
-                        }`}
+                          isManagerSelected(manager.id, position) ? "selected" : ""
+                        } ${isVoteDisabled(manager.id, position) ? "disabled" : ""}`}
                         onClick={() => handleVote(manager.id, position)}
                         disabled={isVoteDisabled(manager.id, position)}
                       >
@@ -300,13 +315,14 @@ function ManagerPoll() {
             <div className="poll-card not-selected">
               <span className="manager-poll-name">Not selected</span>
               <span className="custom-col"></span>
-              <span className="avgpfpa-col"></span>
+              <span className="avgpf-col"></span>
               {POSITIONS.map((position) => (
                 <div key={`not-selected-${position}`} className="vote-cell">
                   <button
-                    className={`vote-button ${
-                      votes[position] === null ? "selected" : ""
-                    } ${hasSubmitted ? "disabled" : ""}`}
+                    aria-label={`Clear pick for ${position}`}
+                    className={`vote-button ${votes[position] === null ? "selected" : ""} ${
+                      hasSubmitted ? "disabled" : ""
+                    }`}
                     onClick={() => handleVote("", position)}
                     disabled={hasSubmitted}
                   >
