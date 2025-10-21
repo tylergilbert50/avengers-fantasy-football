@@ -204,6 +204,10 @@
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
   .records-top-text {
     font-size: 24px;
     margin-bottom: -10px;
@@ -221,12 +225,17 @@
     gap: 20px;
     padding: 0 15px;
     margin: 0 auto 30px auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .records-card {
     max-width: 100%;
+    width: 100%;
     border: 3px solid black;
     min-height: auto;
+    box-sizing: border-box;
   }
 
   .records-card-title {
@@ -238,6 +247,8 @@
   .records-card-content {
     padding: 0 5px;
     gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .records-card-box {
@@ -245,6 +256,8 @@
     font-size: 11px;
     padding: 0 8px;
     margin: 3px 0;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .records-rank-inline {
