@@ -1,10 +1,8 @@
-/* Highest/Lowest Combined Score cards */
 .records-card:nth-child(3) .records-card-content,
 .records-card:nth-child(4) .records-card-content {
   grid-template-columns: 180px 155px 90px;
 }
 
-/* Largest/Smallest Margin of Victory cards */
 .records-card:nth-child(5) .records-card-content,
 .records-card:nth-child(6) .records-card-content {
   grid-template-columns: 180px 140px 90px;
@@ -188,7 +186,6 @@
   object-fit: contain;
 }
 
-/* Seasonal cards with 4 data columns */
 .records-card:nth-child(7) .records-card-content,
 .records-card:nth-child(8) .records-card-content,
 .records-card:nth-child(9) .records-card-content,
@@ -196,7 +193,6 @@
   grid-template-columns: 150px 100px 110px 80px;
 }
 
-/* Streak cards with 3 data columns */
 .records-card:nth-child(11) .records-card-content,
 .records-card:nth-child(12) .records-card-content {
   grid-template-columns: 140px 70px 160px;
@@ -289,25 +285,21 @@
     height: 20px;
   }
 
-  /* Mobile: Highest/Lowest Scoring Week cards */
   .records-card:nth-child(1) .records-card-content,
   .records-card:nth-child(2) .records-card-content {
     grid-template-columns: 110px 85px 100px;
   }
 
-  /* Mobile: Highest/Lowest Combined Score cards */
   .records-card:nth-child(3) .records-card-content,
   .records-card:nth-child(4) .records-card-content {
     grid-template-columns: 140px 120px 70px;
   }
 
-  /* Mobile: Largest/Smallest Margin of Victory cards */
   .records-card:nth-child(5) .records-card-content,
   .records-card:nth-child(6) .records-card-content {
     grid-template-columns: 140px 110px 70px;
   }
 
-  /* Mobile: Seasonal cards with 4 data columns */
   .records-card:nth-child(7) .records-card-content,
   .records-card:nth-child(8) .records-card-content,
   .records-card:nth-child(9) .records-card-content,
@@ -315,7 +307,6 @@
     grid-template-columns: 110px 70px 85px 60px;
   }
 
-  /* Mobile: Streak cards with 3 data columns */
   .records-card:nth-child(11) .records-card-content,
   .records-card:nth-child(12) .records-card-content {
     grid-template-columns: 110px 55px 130px;
