@@ -21,50 +21,134 @@
   display: grid;
   grid-template-columns: repeat(2, 2fr);
   gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .records-card {
   text-align: center;
-  height: 285px;
-  width: 375px;
+  height: auto;
+  min-height: 285px;
+  width: 100%;
+  max-width: 550px;
   background: white;
   border: 5px solid black;
   border-radius: 25px;
+  padding-bottom: 15px;
 }
 
 .records-card-title {
   height: 35px;
-  width: 350px;
+  width: calc(100% - 14px);
   margin: 7px;
   padding: 7px;
   background-color: #282626;
   border-radius: 15px 15px 0px 0px;
   font-family: "Helvetica", Arial, sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: normal;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .records-card-content {
   justify-items: center;
   display: grid;
-  grid-template-columns: repeat(3, 2fr);
+  grid-template-columns: 50px 1fr 100px 120px;
+  padding: 0 10px;
+  gap: 5px;
+}
+
+.records-card-content.four-column {
+  grid-template-columns: 50px 1fr 100px 100px 50px;
 }
 
 .records-card-box {
-  background-color: #949494;
+  background-color: #E8E6E6;
   border-radius: 100px;
   height: 28px;
-  width: 85px;
-  margin: 5px;
+  min-width: 70px;
+  margin: 5px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 8px;
+}
+
+.records-rank {
+  width: 30px;
+  min-width: 30px;
+  background-color: #282626;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.records-matchup {
+  font-size: 10px;
+  padding: 0 5px;
+}
+
+.records-span {
+  font-size: 9px;
+  padding: 0 4px;
+  min-width: 110px;
+}
+
+.records-opponent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.records-year {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.records-icon {
+  width: 40px;
+  min-width: 40px;
 }
 
 .records-header-box {
   margin-top: 10px;
-  margin-right: 30px;
+  margin-bottom: 5px;
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 600;
   user-select: none;
+  text-transform: uppercase;
+}
+
+.espn-logo {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Seasonal cards with 4 data columns */
+.records-card:nth-child(7) .records-card-content,
+.records-card:nth-child(8) .records-card-content,
+.records-card:nth-child(9) .records-card-content,
+.records-card:nth-child(10) .records-card-content {
+  grid-template-columns: 50px 120px 80px 100px 50px;
+}
+
+/* Streak cards with 4 data columns */
+.records-card:nth-child(11) .records-card-content,
+.records-card:nth-child(12) .records-card-content {
+  grid-template-columns: 50px 120px 70px 160px 50px;
 }

@@ -1,4 +1,3 @@
-// ManagerProfile.ts (with preloading and shared data store)
 import { useEffect, useMemo, useState, useRef } from "react";
 
 export interface YearRow {
@@ -55,62 +54,68 @@ class DataStore {
   private allSeasonDataCache = new Map<string, Promise<Map<number, any>>>();
   private managerCareersCache = new Map<string, ManagerCareer>();
   private rankingsCache: Record<string, number> | null = null;
-  
+
   // Store promises to prevent duplicate fetches
   private fetchPromises = new Map<string, Promise<any>>();
-  
+
   async fetchJSON(url: string): Promise<any> {
     // Check if we're already fetching this URL
     if (this.fetchPromises.has(url)) {
       return this.fetchPromises.get(url);
     }
-    
+
     // Check cache
     const cached = this.cache.get(url);
-    if (cached && Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30 min cache
+    if (cached && Date.now() - cached.timestamp < 30 * 60 * 1000) {
+      // 30 min cache
       return cached.data;
     }
-    
+
     // Create fetch promise
     const fetchPromise = fetch(url)
-      .then(r => {
+      .then((r) => {
         if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
         return r.json();
       })
-      .then(data => {
+      .then((data) => {
         this.cache.set(url, { data, timestamp: Date.now() });
         this.fetchPromises.delete(url);
         return data;
       })
-      .catch(err => {
+      .catch((err) => {
         this.fetchPromises.delete(url);
         throw err;
       });
-    
+
     this.fetchPromises.set(url, fetchPromise);
     return fetchPromise;
   }
-  
-  getAllSeasonDataPromise(leagueId: string): Promise<Map<number, any>> | undefined {
+
+  getAllSeasonDataPromise(
+    leagueId: string
+  ): Promise<Map<number, any>> | undefined {
     return this.allSeasonDataCache.get(leagueId);
   }
-  
-  setAllSeasonDataPromise(leagueId: string, promise: Promise<Map<number, any>>) {
+
+  setAllSeasonDataPromise(
+    leagueId: string,
+    promise: Promise<Map<number, any>>
+  ) {
     this.allSeasonDataCache.set(leagueId, promise);
   }
-  
+
   getManagerCareer(key: string): ManagerCareer | undefined {
     return this.managerCareersCache.get(key);
   }
-  
+
   setManagerCareer(key: string, career: ManagerCareer) {
     this.managerCareersCache.set(key, career);
   }
-  
+
   getRankings(): Record<string, number> | null {
     return this.rankingsCache;
   }
-  
+
   setRankings(rankings: Record<string, number>) {
     this.rankingsCache = rankings;
   }
@@ -214,13 +219,16 @@ const countWeeklyExtremes = (matchupData: any, teamId: number) => {
 };
 
 // Fetch all season data with deduplication
-async function fetchAllSeasonData(leagueId: string, currentSeason: number): Promise<Map<number, any>> {
+async function fetchAllSeasonData(
+  leagueId: string,
+  currentSeason: number
+): Promise<Map<number, any>> {
   // Check if we're already fetching this data
   const existingPromise = dataStore.getAllSeasonDataPromise(leagueId);
   if (existingPromise) {
     return existingPromise;
   }
-  
+
   // Create new fetch promise
   const fetchPromise = (async () => {
     const years = [];
@@ -230,8 +238,10 @@ async function fetchAllSeasonData(leagueId: string, currentSeason: number): Prom
 
     // Fetch all data in parallel
     const [allTeamsData, allMatchupData] = await Promise.all([
-      Promise.all(years.map(year => seasonTeamsAndStandings(leagueId, year))),
-      Promise.all(years.map(year => seasonMatchups(leagueId, year).catch(() => null)))
+      Promise.all(years.map((year) => seasonTeamsAndStandings(leagueId, year))),
+      Promise.all(
+        years.map((year) => seasonMatchups(leagueId, year).catch(() => null))
+      ),
     ]);
 
     // Create a map for easy access
@@ -239,16 +249,16 @@ async function fetchAllSeasonData(leagueId: string, currentSeason: number): Prom
     years.forEach((year, index) => {
       dataByYear.set(year, {
         teams: allTeamsData[index],
-        matchups: allMatchupData[index]
+        matchups: allMatchupData[index],
       });
     });
 
     return dataByYear;
   })();
-  
+
   // Store promise to prevent duplicate fetches
   dataStore.setAllSeasonDataPromise(leagueId, fetchPromise);
-  
+
   return fetchPromise;
 }
 
@@ -260,9 +270,17 @@ async function processManagerCareer(
   tsCurrent: any,
   currentSeason: number
 ): Promise<ManagerCareer> {
-  const ownerId = tsCurrent ? getOwnerIdForManager(tsCurrent, managerDisplayName) : null;
-  
-  let W = 0, L = 0, champ = 0, pW = 0, pL = 0, n1 = 0, n10 = 0;
+  const ownerId = tsCurrent
+    ? getOwnerIdForManager(tsCurrent, managerDisplayName)
+    : null;
+
+  let W = 0,
+    L = 0,
+    champ = 0,
+    pW = 0,
+    pL = 0,
+    n1 = 0,
+    n10 = 0;
   const yearly: YearRow[] = [];
   const finishes: FinishDot[] = [];
 
@@ -294,7 +312,8 @@ async function processManagerCareer(
     L += l;
 
     const playoffSpots = 6;
-    const madePO = my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= playoffSpots;
+    const madePO =
+      my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= playoffSpots;
 
     let pw = 0;
     let pl = 0;
@@ -341,12 +360,18 @@ async function processManagerCareer(
               foundMyTeam = true;
             }
           } else if (m.teams) {
-            const myTeam = m.teams.find((t: any) => (t.teamId ?? t.id) === my.id);
+            const myTeam = m.teams.find(
+              (t: any) => (t.teamId ?? t.id) === my.id
+            );
             if (myTeam) {
               foundMyTeam = true;
               myScore = myTeam.totalPoints ?? myTeam.points ?? 0;
-              const oppTeam = m.teams.find((t: any) => (t.teamId ?? t.id) !== my.id);
-              oppScore = oppTeam ? oppTeam.totalPoints ?? oppTeam.points ?? 0 : 0;
+              const oppTeam = m.teams.find(
+                (t: any) => (t.teamId ?? t.id) !== my.id
+              );
+              oppScore = oppTeam
+                ? oppTeam.totalPoints ?? oppTeam.points ?? 0
+                : 0;
             }
           }
 
@@ -365,18 +390,23 @@ async function processManagerCareer(
     pW += pw;
     pL += pl;
 
-    const finalRank = my?.rankCalculatedFinal ?? my?.rankFinal ?? my?.finalStanding ?? undefined;
+    const finalRank =
+      my?.rankCalculatedFinal ??
+      my?.rankFinal ??
+      my?.finalStanding ??
+      undefined;
 
-    const position = typeof finalRank === "number"
-      ? finalRank
-      : rankTeams(
-          teams.map((t: any) => ({
-            id: t.id,
-            wins: t?.record?.overall?.wins ?? 0,
-            pf: t?.record?.overall?.pointsFor ?? 0,
-          })),
-          my.id
-        );
+    const position =
+      typeof finalRank === "number"
+        ? finalRank
+        : rankTeams(
+            teams.map((t: any) => ({
+              id: t.id,
+              wins: t?.record?.overall?.wins ?? 0,
+              pf: t?.record?.overall?.pointsFor ?? 0,
+            })),
+            my.id
+          );
 
     if (position === 1) {
       champ += 1;
@@ -419,61 +449,63 @@ async function processManagerCareer(
 // Preload all data for all managers
 export function preloadAllManagers(leagueId: string) {
   if (!leagueId) return;
-  
+
   (async () => {
     try {
       const now = new Date().getFullYear();
       const [currentSeason, tsCurrent] = await Promise.all([
         getCurrentSeason(leagueId, now),
-        seasonTeamsAndStandings(leagueId, now).catch(() => null)
+        seasonTeamsAndStandings(leagueId, now).catch(() => null),
       ]);
-      
+
       // Start fetching all season data
       const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
-      
+
       // Process all managers in parallel
-      const managerPromises = Object.values(teamManagerMapRaw).map(async (managerName) => {
-        const cacheKey = `${leagueId}-${managerName}`;
-        
-        // Skip if already cached
-        if (dataStore.getManagerCareer(cacheKey)) {
-          return;
+      const managerPromises = Object.values(teamManagerMapRaw).map(
+        async (managerName) => {
+          const cacheKey = `${leagueId}-${managerName}`;
+
+          // Skip if already cached
+          if (dataStore.getManagerCareer(cacheKey)) {
+            return;
+          }
+
+          const career = await processManagerCareer(
+            leagueId,
+            managerName,
+            dataByYear,
+            tsCurrent,
+            currentSeason
+          );
+
+          dataStore.setManagerCareer(cacheKey, career);
         }
-        
-        const career = await processManagerCareer(
-          leagueId,
-          managerName,
-          dataByYear,
-          tsCurrent,
-          currentSeason
-        );
-        
-        dataStore.setManagerCareer(cacheKey, career);
-      });
-      
+      );
+
       await Promise.all(managerPromises);
-      
+
       // Also calculate rankings while we have all the data
       const managerStats: Array<{ name: string; winPct: number }> = [];
-      
+
       for (const managerName of Object.values(teamManagerMapRaw)) {
         const cacheKey = `${leagueId}-${managerName}`;
         const career = dataStore.getManagerCareer(cacheKey);
         if (career) {
-          const winPct = parseFloat('0' + career.winPct);
+          const winPct = parseFloat("0" + career.winPct);
           managerStats.push({ name: managerName, winPct });
         }
       }
-      
+
       managerStats.sort((a, b) => b.winPct - a.winPct);
       const rankMap: Record<string, number> = {};
       managerStats.forEach((stat, index) => {
         rankMap[stat.name] = index + 1;
       });
-      
+
       dataStore.setRankings(rankMap);
     } catch (e) {
-      console.error('Preload error:', e);
+      console.error("Preload error:", e);
     }
   })();
 }
@@ -488,16 +520,16 @@ export const useManagerCareer = (
 
   useEffect(() => {
     if (!leagueId || !managerDisplayName) return;
-    
+
     const cacheKey = `${leagueId}-${managerDisplayName}`;
-    
+
     // Check cache first
     const cached = dataStore.getManagerCareer(cacheKey);
     if (cached) {
       setData(cached);
       return;
     }
-    
+
     // Prevent duplicate fetches
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -507,11 +539,11 @@ export const useManagerCareer = (
         const now = new Date().getFullYear();
         const [currentSeason, tsCurrent] = await Promise.all([
           getCurrentSeason(leagueId, now),
-          seasonTeamsAndStandings(leagueId, now).catch(() => null)
+          seasonTeamsAndStandings(leagueId, now).catch(() => null),
         ]);
-        
+
         const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
-        
+
         const career = await processManagerCareer(
           leagueId,
           managerDisplayName,
@@ -519,7 +551,7 @@ export const useManagerCareer = (
           tsCurrent,
           currentSeason
         );
-        
+
         dataStore.setManagerCareer(cacheKey, career);
         setData(career);
       } catch (e) {
@@ -540,14 +572,14 @@ export const useAllManagersRanking = (leagueId: string) => {
 
   useEffect(() => {
     if (!leagueId) return;
-    
+
     // Check cache first
     const cached = dataStore.getRankings();
     if (cached) {
       setRankings(cached);
       return;
     }
-    
+
     if (loadingRef.current) return;
     loadingRef.current = true;
 
@@ -556,14 +588,20 @@ export const useAllManagersRanking = (leagueId: string) => {
         const now = new Date().getFullYear();
         const currentSeason = await getCurrentSeason(leagueId, now);
         const dataByYear = await fetchAllSeasonData(leagueId, currentSeason);
-        const tsCurrent = await seasonTeamsAndStandings(leagueId, currentSeason);
+        const tsCurrent = await seasonTeamsAndStandings(
+          leagueId,
+          currentSeason
+        );
 
         const managerStats: Array<{ name: string; winPct: number }> = [];
 
-        for (const [_teamName, managerName] of Object.entries(teamManagerMapRaw)) {
+        for (const [_teamName, managerName] of Object.entries(
+          teamManagerMapRaw
+        )) {
           const ownerId = getOwnerIdForManager(tsCurrent, managerName);
 
-          let W = 0, L = 0;
+          let W = 0,
+            L = 0;
 
           for (let year = START_SEASON; year < currentSeason; year++) {
             const yearData = dataByYear.get(year);
@@ -572,7 +610,9 @@ export const useAllManagersRanking = (leagueId: string) => {
             const ts = yearData.teams;
             const teams: any[] = ts?.teams ?? [];
 
-            let my = teams.find((t: any) => ownerId && t.primaryOwner === ownerId);
+            let my = teams.find(
+              (t: any) => ownerId && t.primaryOwner === ownerId
+            );
             if (!my) {
               my = teams.find((t: any) => {
                 const mapped = teamManagerMap[normalize(t?.name ?? "")];
