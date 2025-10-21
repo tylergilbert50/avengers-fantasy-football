@@ -201,7 +201,20 @@ function ManagerProfile() {
             </div>
 
             <div className="profile-text-section">
-              <span className="profile-title">{meta.nickname}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <span className="profile-title">{meta.nickname}</span>
+                {(slug === 'tyler' || slug === 'andrew') && (
+                  <img 
+                    src="/images/stanleeaward.png" 
+                    alt="Stan Lee Award" 
+                    style={{ 
+                      height: '100px', 
+                      width: 'auto',
+                      objectFit: 'contain'
+                    }} 
+                  />
+                )}
+              </div>
               <hr className="profile-top-dashed-line" />
               <div className="stats-cards">
                 <div className="stat-card">
