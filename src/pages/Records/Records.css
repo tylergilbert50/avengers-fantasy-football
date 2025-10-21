@@ -1,3 +1,15 @@
+/* Highest/Lowest Combined Score cards */
+.records-card:nth-child(3) .records-card-content,
+.records-card:nth-child(4) .records-card-content {
+  grid-template-columns: 180px 155px 90px;
+}
+
+/* Largest/Smallest Margin of Victory cards */
+.records-card:nth-child(5) .records-card-content,
+.records-card:nth-child(6) .records-card-content {
+  grid-template-columns: 180px 140px 90px;
+}
+
 .records-top-text {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
@@ -22,7 +34,7 @@
   grid-template-columns: repeat(2, 2fr);
   gap: 30px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto 50px auto;
 }
 
 .records-card {
@@ -56,30 +68,42 @@
 .records-card-content {
   justify-items: center;
   display: grid;
-  grid-template-columns: 50px 1fr 100px 120px;
+  grid-template-columns: 140px 110px 135px;
   padding: 0 10px;
-  gap: 5px;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .records-card-content.four-column {
-  grid-template-columns: 50px 1fr 100px 100px 50px;
+  grid-template-columns: 1fr 100px 100px 50px;
 }
 
 .records-card-box {
-  background-color: #E8E6E6;
+  background-color: #e8e6e6;
   border-radius: 100px;
-  height: 28px;
+  height: 40px;
   min-width: 70px;
-  margin: 5px 2px;
+  width: 100%;
+  margin: 5px 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0 12px;
+  position: relative;
+}
+
+.records-score-with-logo {
+  width: 100%;
+  height: 37px;
+  gap: 11px;
+  justify-content: center;
   padding: 0 8px;
 }
 
@@ -92,33 +116,58 @@
   font-size: 14px;
 }
 
+.records-rank-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  background-color: #282626;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  position: absolute;
+  left: 6px;
+}
+
 .records-matchup {
-  font-size: 10px;
-  padding: 0 5px;
+  font-size: 11px;
+  padding: 0 8px 0 40px;
+  justify-content: flex-start;
+  min-width: 0;
 }
 
 .records-span {
-  font-size: 9px;
+  font-size: 13px;
   padding: 0 4px;
-  min-width: 110px;
+  width: 100%;
+  justify-content: center;
 }
 
 .records-opponent {
+  width: 100%;
+  height: 37px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 0 8px;
 }
 
 .records-year {
+  width: 100%;
+  height: 37px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 0 8px;
 }
 
 .records-icon {
-  width: 40px;
+  width: 100%;
   min-width: 40px;
 }
 
@@ -127,14 +176,14 @@
   margin-bottom: 5px;
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 600;
   user-select: none;
   text-transform: uppercase;
 }
 
 .espn-logo {
-  height: 18px;
+  height: 25px;
   width: auto;
   object-fit: contain;
 }
@@ -144,11 +193,119 @@
 .records-card:nth-child(8) .records-card-content,
 .records-card:nth-child(9) .records-card-content,
 .records-card:nth-child(10) .records-card-content {
-  grid-template-columns: 50px 120px 80px 100px 50px;
+  grid-template-columns: 150px 100px 110px 80px;
 }
 
-/* Streak cards with 4 data columns */
+/* Streak cards with 3 data columns */
 .records-card:nth-child(11) .records-card-content,
 .records-card:nth-child(12) .records-card-content {
-  grid-template-columns: 50px 120px 70px 160px 50px;
+  grid-template-columns: 140px 70px 160px;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .records-top-text {
+    font-size: 24px;
+    margin-bottom: -10px;
+  }
+
+  .records-bottom-text {
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 30px;
+    padding: 0 15px;
+  }
+
+  .records-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 15px;
+    margin: 0 auto 30px auto;
+  }
+
+  .records-card {
+    max-width: 100%;
+    border: 3px solid black;
+    min-height: auto;
+  }
+
+  .records-card-title {
+    font-size: 14px;
+    height: 30px;
+    padding: 5px;
+  }
+
+  .records-card-content {
+    padding: 0 5px;
+    gap: 8px;
+  }
+
+  .records-card-box {
+    height: 35px;
+    font-size: 11px;
+    padding: 0 8px;
+    margin: 3px 0;
+  }
+
+  .records-rank-inline {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 11px;
+    left: 5px;
+    margin-right: 6px;
+  }
+
+  .records-matchup {
+    font-size: 9px;
+    padding: 0 6px 0 30px;
+  }
+
+  .records-span {
+    font-size: 11px;
+  }
+
+  .records-header-box {
+    font-size: 13px;
+    margin-top: 8px;
+    margin-bottom: 3px;
+  }
+
+  .espn-logo {
+    height: 20px;
+  }
+
+  /* Mobile: Highest/Lowest Scoring Week cards */
+  .records-card:nth-child(1) .records-card-content,
+  .records-card:nth-child(2) .records-card-content {
+    grid-template-columns: 110px 85px 100px;
+  }
+
+  /* Mobile: Highest/Lowest Combined Score cards */
+  .records-card:nth-child(3) .records-card-content,
+  .records-card:nth-child(4) .records-card-content {
+    grid-template-columns: 140px 120px 70px;
+  }
+
+  /* Mobile: Largest/Smallest Margin of Victory cards */
+  .records-card:nth-child(5) .records-card-content,
+  .records-card:nth-child(6) .records-card-content {
+    grid-template-columns: 140px 110px 70px;
+  }
+
+  /* Mobile: Seasonal cards with 4 data columns */
+  .records-card:nth-child(7) .records-card-content,
+  .records-card:nth-child(8) .records-card-content,
+  .records-card:nth-child(9) .records-card-content,
+  .records-card:nth-child(10) .records-card-content {
+    grid-template-columns: 110px 70px 85px 60px;
+  }
+
+  /* Mobile: Streak cards with 3 data columns */
+  .records-card:nth-child(11) .records-card-content,
+  .records-card:nth-child(12) .records-card-content {
+    grid-template-columns: 110px 55px 130px;
+    gap: 15px;
+  }
 }

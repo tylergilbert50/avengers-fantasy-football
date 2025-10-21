@@ -18,35 +18,135 @@ function Records() {
   ];
 
   const highestCombinedScore = [
-    { rank: 1, matchup: "DANIEL VS. BRETT", score: "202.36 - 167.50", year: "2021" },
-    { rank: 2, matchup: "BRETT VS. ANDREW", score: "178.06 - 174.22", year: "2023" },
-    { rank: 3, matchup: "DANIEL VS. BRETT", score: "174.88 - 162.70", year: "2023" },
-    { rank: 4, matchup: "CONNOR VS. DREW", score: "169.12 - 165.82", year: "2021" },
-    { rank: 5, matchup: "JOSH VS. DEMARCO", score: "166.46 - 163.12", year: "2022" },
+    {
+      rank: 1,
+      matchup: "DANIEL VS. BRETT",
+      score: "202.36 - 167.50",
+      year: "2021",
+    },
+    {
+      rank: 2,
+      matchup: "BRETT VS. ANDREW",
+      score: "178.06 - 174.22",
+      year: "2023",
+    },
+    {
+      rank: 3,
+      matchup: "DANIEL VS. BRETT",
+      score: "174.88 - 162.70",
+      year: "2023",
+    },
+    {
+      rank: 4,
+      matchup: "CONNOR VS. DREW",
+      score: "169.12 - 165.82",
+      year: "2021",
+    },
+    {
+      rank: 5,
+      matchup: "JOSH VS. DEMARCO",
+      score: "166.46 - 163.12",
+      year: "2022",
+    },
   ];
 
   const lowestCombinedScore = [
-    { rank: 1, matchup: "DEMARCO VS. ANDREW", score: "106.18 - 42.26", year: "2023" },
-    { rank: 2, matchup: "JEREMY VS. DEMARCO", score: "90.42 - 69.30", year: "2022" },
-    { rank: 3, matchup: "DANNY VS. CONNOR", score: "111.40 - 62.70", year: "2022" },
-    { rank: 4, matchup: "JEREMY VS. DREW", score: "113.00 - 65.46", year: "2021" },
-    { rank: 5, matchup: "DREW VS. JAKE", score: "109.06 - 70.10", year: "2021" },
+    {
+      rank: 1,
+      matchup: "DEMARCO VS. ANDREW",
+      score: "106.18 - 42.26",
+      year: "2023",
+    },
+    {
+      rank: 2,
+      matchup: "JEREMY VS. DEMARCO",
+      score: "90.42 - 69.30",
+      year: "2022",
+    },
+    {
+      rank: 3,
+      matchup: "DANNY VS. CONNOR",
+      score: "111.40 - 62.70",
+      year: "2022",
+    },
+    {
+      rank: 4,
+      matchup: "JEREMY VS. DREW",
+      score: "113.00 - 65.46",
+      year: "2021",
+    },
+    {
+      rank: 5,
+      matchup: "DREW VS. JAKE",
+      score: "109.06 - 70.10",
+      year: "2021",
+    },
   ];
 
   const largestMarginOfVictory = [
-    { rank: 1, matchup: "DANNY VS. JOSH", score: "196.52 - 63.50", year: "2023" },
-    { rank: 2, matchup: "JEREMY VS. ANDREW", score: "176.18 - 63.10", year: "2021" },
-    { rank: 3, matchup: "JOSH VS. DANNY", score: "186.50 - 93.98", year: "2022" },
-    { rank: 4, matchup: "STUART VS. JEREMY", score: "186.52 - 96.42", year: "2025" },
-    { rank: 5, matchup: "DANNY VS DEMARCO", score: "161.72 - 74.26", year: "2023" },
+    {
+      rank: 1,
+      matchup: "DANNY VS. JOSH",
+      score: "196.52 - 63.50",
+      year: "2023",
+    },
+    {
+      rank: 2,
+      matchup: "JEREMY VS. ANDREW",
+      score: "176.18 - 63.10",
+      year: "2021",
+    },
+    {
+      rank: 3,
+      matchup: "JOSH VS. DANNY",
+      score: "186.50 - 93.98",
+      year: "2022",
+    },
+    {
+      rank: 4,
+      matchup: "STUART VS. JEREMY",
+      score: "186.52 - 96.42",
+      year: "2025",
+    },
+    {
+      rank: 5,
+      matchup: "DANNY VS DEMARCO",
+      score: "161.72 - 74.26",
+      year: "2023",
+    },
   ];
 
   const smallestMarginOfVictory = [
-    { rank: 1, matchup: "ANDREW VS. JOSH", score: "113.36 - 113.36", year: "2021" },
-    { rank: 2, matchup: "CONNOR VS. JEREMY", score: "132.02 - 132.06", year: "2024" },
-    { rank: 3, matchup: "CONNOR VS. TRAVIS", score: "99.18 - 98.80", year: "2021" },
-    { rank: 4, matchup: "DANNY VS. DEMARCO", score: "143.68 - 142.76", year: "2023" },
-    { rank: 5, matchup: "CONNOR VS. BRETT", score: "135.46 - 134.42", year: "2024" },
+    {
+      rank: 1,
+      matchup: "ANDREW VS. JOSH",
+      score: "113.36 - 113.36",
+      year: "2021",
+    },
+    {
+      rank: 2,
+      matchup: "CONNOR VS. JEREMY",
+      score: "132.02 - 132.06",
+      year: "2024",
+    },
+    {
+      rank: 3,
+      matchup: "CONNOR VS. TRAVIS",
+      score: "99.18 - 98.80",
+      year: "2021",
+    },
+    {
+      rank: 4,
+      matchup: "DANNY VS. DEMARCO",
+      score: "143.68 - 142.76",
+      year: "2023",
+    },
+    {
+      rank: 5,
+      matchup: "CONNOR VS. BRETT",
+      score: "135.46 - 134.42",
+      year: "2024",
+    },
   ];
 
   const highestSeasonalPoints = [
@@ -67,8 +167,20 @@ function Records() {
 
   const highestPointsAgainst = [
     { rank: 1, team: "BRETT", papg: "138.91", points: "1944.70", year: "2023" },
-    { rank: 2, team: "CONNOR", papg: "133.90", points: "1874.62", year: "2021" },
-    { rank: 3, team: "DANIEL", papg: "132.84", points: "1859.78", year: "2023" },
+    {
+      rank: 2,
+      team: "CONNOR",
+      papg: "133.90",
+      points: "1874.62",
+      year: "2021",
+    },
+    {
+      rank: 3,
+      team: "DANIEL",
+      papg: "132.84",
+      points: "1859.78",
+      year: "2023",
+    },
     { rank: 4, team: "BRETT", papg: "132.01", points: "1848.16", year: "2022" },
     { rank: 5, team: "TYLER", papg: "131.19", points: "1836.66", year: "2024" },
   ];
@@ -77,8 +189,20 @@ function Records() {
     { rank: 1, team: "JOSH", papg: "108.98", points: "1525.78", year: "2022" },
     { rank: 2, team: "JAKE", papg: "110.04", points: "1540.56", year: "2021" },
     { rank: 3, team: "DANNY", papg: "110.59", points: "1548.22", year: "2023" },
-    { rank: 4, team: "JEREMY", papg: "112.30", points: "1569.72", year: "2022" },
-    { rank: 5, team: "CONNOR", papg: "112.30", points: "1572.18", year: "2022" },
+    {
+      rank: 4,
+      team: "JEREMY",
+      papg: "112.30",
+      points: "1569.72",
+      year: "2022",
+    },
+    {
+      rank: 5,
+      team: "CONNOR",
+      papg: "112.30",
+      points: "1572.18",
+      year: "2022",
+    },
   ];
 
   const longestWinningStreaks = [
@@ -109,68 +233,98 @@ function Records() {
           ))}
           {data.map((record, index) => (
             <>
-              <div key={`rank-${index}`} className="records-card-box records-rank">
-                {record.rank}
-              </div>
-              {type === 'simple' && (
+              {type === "simple" && (
                 <>
                   <div key={`name-${index}`} className="records-card-box">
+                    <span className="records-rank-inline">{record.rank}</span>
                     {record.team}
                   </div>
-                  <div key={`value-${index}`} className="records-card-box records-score-with-logo">
-                    <span>{record.score || record.ppg || record.papg || record.games}</span>
-                    <img src="/images/espn.png" alt="ESPN" className="espn-logo" />
+                  <div
+                    key={`value-${index}`}
+                    className="records-card-box records-score-with-logo"
+                  >
+                    <span>
+                      {record.score ||
+                        record.ppg ||
+                        record.papg ||
+                        record.games}
+                    </span>
+                    <img
+                      src="/images/espn.png"
+                      alt="ESPN"
+                      className="espn-logo"
+                    />
                   </div>
-                  <div key={`detail-${index}`} className="records-card-box records-opponent">
+                  <div
+                    key={`detail-${index}`}
+                    className="records-card-box records-opponent"
+                  >
                     {record.opponent}
                   </div>
                 </>
               )}
-              {type === 'matchup' && (
+              {type === "matchup" && (
                 <>
-                  <div key={`matchup-${index}`} className="records-card-box records-matchup">
+                  <div
+                    key={`matchup-${index}`}
+                    className="records-card-box records-matchup"
+                  >
+                    <span className="records-rank-inline">{record.rank}</span>
                     {record.matchup}
                   </div>
-                  <div key={`score-${index}`} className="records-card-box records-score-with-logo">
+                  <div
+                    key={`score-${index}`}
+                    className="records-card-box records-score-with-logo"
+                  >
                     <span>{record.score}</span>
-                    <img src="/images/espn.png" alt="ESPN" className="espn-logo" />
+                    <img
+                      src="/images/espn.png"
+                      alt="ESPN"
+                      className="espn-logo"
+                    />
                   </div>
-                  <div key={`year-${index}`} className="records-card-box records-year">
+                  <div
+                    key={`year-${index}`}
+                    className="records-card-box records-year"
+                  >
                     {record.year}
                   </div>
                 </>
               )}
-              {type === 'seasonal' && (
+              {type === "seasonal" && (
                 <>
                   <div key={`team-${index}`} className="records-card-box">
+                    <span className="records-rank-inline">{record.rank}</span>
                     {record.team}
                   </div>
-                  <div key={`ppg-${index}`} className="records-card-box records-score-with-logo">
+                  <div key={`ppg-${index}`} className="records-card-box">
                     <span>{record.ppg || record.papg}</span>
-                    <img src="/images/espn.png" alt="ESPN" className="espn-logo" />
                   </div>
-                  <div key={`points-${index}`} className="records-card-box records-score-with-logo">
+                  <div key={`points-${index}`} className="records-card-box">
                     <span>{record.points}</span>
-                    <img src="/images/espn.png" alt="ESPN" className="espn-logo" />
                   </div>
-                  <div key={`year-${index}`} className="records-card-box records-year">
+                  <div
+                    key={`year-${index}`}
+                    className="records-card-box records-year"
+                  >
                     {record.year}
                   </div>
                 </>
               )}
-              {type === 'streak' && (
+              {type === "streak" && (
                 <>
                   <div key={`team-${index}`} className="records-card-box">
+                    <span className="records-rank-inline">{record.rank}</span>
                     {record.team}
                   </div>
-                  <div key={`games-${index}`} className="records-card-box records-score-with-logo">
+                  <div key={`games-${index}`} className="records-card-box">
                     <span>{record.games}</span>
-                    <img src="/images/espn.png" alt="ESPN" className="espn-logo" />
                   </div>
-                  <div key={`span-${index}`} className="records-card-box records-span">
+                  <div
+                    key={`span-${index}`}
+                    className="records-card-box records-span"
+                  >
                     {record.span}
-                  </div>
-                  <div key={`icon-${index}`} className="records-card-box records-icon">
                   </div>
                 </>
               )}
@@ -190,18 +344,78 @@ function Records() {
           *HISTORY SHEET HAS MORE IN-DEPTH RECORDS AND STATS
         </h2>
         <div className="records-container">
-          {renderCard("HIGHEST SCORING WEEK", ["", "TEAM", "SCORE", "OPPONENT/YEAR"], highestScoringWeek, 'simple')}
-          {renderCard("LOWEST SCORING WEEK", ["", "TEAM", "SCORE", "OPPONENT/YEAR"], lowestScoringWeek, 'simple')}
-          {renderCard("HIGHEST COMBINED SCORE", ["", "WINNER VS. LOSER", "SCORE", "YEAR"], highestCombinedScore, 'matchup')}
-          {renderCard("LOWEST COMBINED SCORE", ["", "WINNER VS. LOSER", "SCORE", "YEAR"], lowestCombinedScore, 'matchup')}
-          {renderCard("LARGEST MARGIN OF VICTORY", ["", "WINNER VS. LOSER", "SCORE", "YEAR"], largestMarginOfVictory, 'matchup')}
-          {renderCard("SMALLEST MARGIN OF VICTORY", ["", "WINNER VS. LOSER", "SCORE", "YEAR"], smallestMarginOfVictory, 'matchup')}
-          {renderCard("HIGHEST SEASONAL POINTS TOTAL", ["", "TEAM", "PPG", "POINTS", "YEAR"], highestSeasonalPoints, 'seasonal')}
-          {renderCard("LOWEST SEASONAL POINTS TOTAL", ["", "TEAM", "PPG", "POINTS", "YEAR"], lowestSeasonalPoints, 'seasonal')}
-          {renderCard("HIGHEST SEASONAL POINTS AGAINST TOTAL", ["", "TEAM", "PAPG", "PTS AGAINST", "YEAR"], highestPointsAgainst, 'seasonal')}
-          {renderCard("LOWEST SEASONAL POINTS AGAINST TOTAL", ["", "TEAM", "PAPG", "PTS AGAINST", "YEAR"], lowestPointsAgainst, 'seasonal')}
-          {renderCard("LONGEST WINNING STREAKS", ["", "TEAM", "GAMES", "SPAN", ""], longestWinningStreaks, 'streak')}
-          {renderCard("LONGEST LOSING STREAKS", ["", "TEAM", "GAMES", "SPAN", ""], longestLosingStreaks, 'streak')}
+          {renderCard(
+            "HIGHEST SCORING WEEK",
+            ["TEAM", "SCORE", "OPPONENT/YEAR"],
+            highestScoringWeek,
+            "simple"
+          )}
+          {renderCard(
+            "LOWEST SCORING WEEK",
+            ["TEAM", "SCORE", "OPPONENT/YEAR"],
+            lowestScoringWeek,
+            "simple"
+          )}
+          {renderCard(
+            "HIGHEST COMBINED SCORE",
+            ["WINNER VS. LOSER", "SCORE", "YEAR"],
+            highestCombinedScore,
+            "matchup"
+          )}
+          {renderCard(
+            "LOWEST COMBINED SCORE",
+            ["WINNER VS. LOSER", "SCORE", "YEAR"],
+            lowestCombinedScore,
+            "matchup"
+          )}
+          {renderCard(
+            "LARGEST MARGIN OF VICTORY",
+            ["WINNER VS. LOSER", "SCORE", "YEAR"],
+            largestMarginOfVictory,
+            "matchup"
+          )}
+          {renderCard(
+            "SMALLEST MARGIN OF VICTORY",
+            ["WINNER VS. LOSER", "SCORE", "YEAR"],
+            smallestMarginOfVictory,
+            "matchup"
+          )}
+          {renderCard(
+            "HIGHEST SEASONAL POINTS TOTAL",
+            ["TEAM", "PPG", "POINTS", "YEAR"],
+            highestSeasonalPoints,
+            "seasonal"
+          )}
+          {renderCard(
+            "LOWEST SEASONAL POINTS TOTAL",
+            ["TEAM", "PPG", "POINTS", "YEAR"],
+            lowestSeasonalPoints,
+            "seasonal"
+          )}
+          {renderCard(
+            "HIGHEST SEASONAL POINTS AGAINST TOTAL",
+            ["TEAM", "PAPG", "PTS AGAINST", "YEAR"],
+            highestPointsAgainst,
+            "seasonal"
+          )}
+          {renderCard(
+            "LOWEST SEASONAL POINTS AGAINST TOTAL",
+            ["TEAM", "PAPG", "PTS AGAINST", "YEAR"],
+            lowestPointsAgainst,
+            "seasonal"
+          )}
+          {renderCard(
+            "LONGEST WINNING STREAKS",
+            ["TEAM", "GAMES", "SPAN"],
+            longestWinningStreaks,
+            "streak"
+          )}
+          {renderCard(
+            "LONGEST LOSING STREAKS",
+            ["TEAM", "GAMES", "SPAN"],
+            longestLosingStreaks,
+            "streak"
+          )}
         </div>
       </div>
     </div>
