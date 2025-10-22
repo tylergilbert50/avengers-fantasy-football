@@ -35,6 +35,7 @@ const ESPN_BASE = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl";
 const START_SEASON = 2021;
 
 const teamManagerMapRaw: { [key: string]: string } = {
+  // Current 2025 names
   "Terribly Well-Balanced": "STUART",
   "Fat Hammered Thor": "JEREMY",
   "Genius, Plaiboi, Champion": "CONNOR",
@@ -45,6 +46,32 @@ const teamManagerMapRaw: { [key: string]: string } = {
   "The Doom": "DANNY",
   Jarvis: "TYLER",
   "I Can Do This All Day": "DANIEL",
+
+  // 2024 historical names
+  "Marvel Jesus": "DANNY",
+  "A Friend From Work": "DANNY",
+  "Perfectly Balanced": "TYLER",
+
+  // 2023 historical names
+  "CPU Team 1": "JAKE",
+  "Goblin's Goons": "ANDREW",
+  "Get This Man A Shield!": "DEMARCO",
+  "America's Ass": "CONNOR",
+
+  // 2022 historical names
+  "I Am Inevitable": "BRETT",
+  "Titletown Touchdowns": "JAKE",
+  "Titletown Touchdowns ": "JAKE",
+  "Wanda's OnlyTeams": "ANDREW",
+  "Wing-T Demo": "DEMARCO",
+  "On Your Left": "DANIEL",
+  "Perfectly  Balanced": "TYLER",
+
+  // 2021 historical names
+  "Hawkeyes Golden Arrows": "ANDREW",
+  "Little Lebowski Urban Achievers": "TRAVIS",
+  "Captain Kamaraca": "CONNOR",
+  "Drew Sherrow": "DREW",
 };
 
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -114,6 +141,20 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
       years.push(year);
     }
 
+    // Get current scoring period to exclude incomplete weeks
+    let currentScoringPeriod = 0;
+    try {
+      const currentSeasonData = await recordsDataStore.fetchJSON(
+        `${ESPN_BASE}/seasons/${now}/segments/0/leagues/${leagueId}`
+      );
+      currentScoringPeriod = currentSeasonData?.scoringPeriodId ?? 0;
+      console.log(
+        `Current year: ${now}, Current scoring period: ${currentScoringPeriod}`
+      );
+    } catch (error) {
+      console.error("Error fetching current scoring period:", error);
+    }
+
     // Fetch all years in parallel with higher concurrency
     const yearResults = await Promise.all(
       years.map(async (year) => {
@@ -135,11 +176,17 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
             const managerName = teamManagerMap[normalizedName];
             if (managerName) {
               teamIdToName.set(team.id, managerName);
+            } else {
+              console.log(
+                `Year ${year}: Team "${teamName}" (normalized: "${normalizedName}") not found in teamManagerMap`
+              );
             }
           }
+          console.log(`Year ${year}: Mapped ${teamIdToName.size} teams`);
 
           const schedule: any[] = matchupData?.schedule ?? [];
           const yearGames: Game[] = [];
+          let skippedNoTeamName = 0;
 
           // Process matchups more efficiently
           for (const matchup of schedule) {
@@ -147,6 +194,13 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
 
             const week =
               matchup.matchupPeriodId ?? matchup.matchupPeriod ?? matchup.week;
+
+            // Only include regular season weeks 1-14
+            if (!week || week < 1 || week > 14) continue;
+
+            // Exclude current week of current season (incomplete)
+            if (year === now && week >= currentScoringPeriod) continue;
+
             const team1Id = matchup.home.teamId;
             const team2Id = matchup.away.teamId;
             const team1Score =
@@ -157,7 +211,24 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
             const team1Name = teamIdToName.get(team1Id);
             const team2Name = teamIdToName.get(team2Id);
 
-            if (team1Name && team2Name && team1Score > 0 && team2Score > 0) {
+            // Debug: Log the first few matchups to see what we're getting
+            if (yearGames.length < 3) {
+              console.log(`Sample matchup - Year: ${year}, Week: ${week}`, {
+                team1: team1Name,
+                team1Score,
+                team2: team2Name,
+                team2Score,
+                rawMatchup: {
+                  homePoints: matchup.home.totalPoints,
+                  homePointsAlt: matchup.home.points,
+                  awayPoints: matchup.away.totalPoints,
+                  awayPointsAlt: matchup.away.points,
+                },
+              });
+            }
+
+            // Only include games that have been played (at least one team scored)
+            if (team1Name && team2Name && (team1Score > 0 || team2Score > 0)) {
               yearGames.push({
                 week,
                 year,
@@ -166,9 +237,19 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
                 team2: team2Name,
                 team2Score,
               });
+            } else if (!team1Name || !team2Name) {
+              skippedNoTeamName++;
+            } else if (team1Name && team2Name) {
+              // Log why a game was filtered out
+              console.log(
+                `Filtered out - Year: ${year}, Week: ${week}, ${team1Name} vs ${team2Name}: scores were ${team1Score} and ${team2Score}`
+              );
             }
           }
 
+          console.log(
+            `Year ${year}: Added ${yearGames.length} games, skipped ${skippedNoTeamName} due to missing team names`
+          );
           return yearGames;
         } catch (error) {
           console.error(`Error fetching data for year ${year}:`, error);
@@ -178,6 +259,32 @@ async function fetchAllGames(leagueId: string): Promise<Game[]> {
     );
 
     const games = yearResults.flat();
+    console.log(`Total games fetched: ${games.length}`);
+
+    // Look for the specific game: Andrew 42.26 vs DeMarco in 2023
+    const andrewGames2023 = games.filter(
+      (g) =>
+        g.year === 2023 &&
+        ((g.team1 === "ANDREW" && g.team2 === "DEMARCO") ||
+          (g.team1 === "DEMARCO" && g.team2 === "ANDREW"))
+    );
+    console.log("Andrew vs DeMarco games in 2023:", andrewGames2023);
+
+    if (games.length > 0) {
+      console.log("Sample game:", games[0]);
+      const allScores = games.flatMap((g) => [g.team1Score, g.team2Score]);
+      console.log("Score range:", {
+        lowest: Math.min(...allScores),
+        highest: Math.max(...allScores),
+      });
+
+      // Find lowest scores
+      const lowestScores = allScores
+        .filter((s) => s > 0)
+        .sort((a, b) => a - b)
+        .slice(0, 10);
+      console.log("10 Lowest scores found:", lowestScores);
+    }
     recordsDataStore.setGamesCache(games);
     recordsDataStore.setFetchPromise(null);
     return games;
@@ -414,8 +521,10 @@ export class RecordsCalculator {
 
   getHighestSeasonalPoints(limit: number = 5): Record[] {
     const seasonalStats = this.calculateSeasonalStats();
+    const currentYear = new Date().getFullYear();
 
     return seasonalStats
+      .filter((stats) => stats.year !== currentYear) // Add this line
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, limit)
       .map((stats, index) => ({
@@ -429,8 +538,10 @@ export class RecordsCalculator {
 
   getLowestSeasonalPoints(limit: number = 5): Record[] {
     const seasonalStats = this.calculateSeasonalStats();
+    const currentYear = new Date().getFullYear();
 
     return seasonalStats
+      .filter((stats) => stats.year !== currentYear) // Add this line
       .sort((a, b) => a.totalPoints - b.totalPoints)
       .slice(0, limit)
       .map((stats, index) => ({
@@ -444,8 +555,10 @@ export class RecordsCalculator {
 
   getHighestPointsAgainst(limit: number = 5): Record[] {
     const seasonalStats = this.calculateSeasonalStats();
+    const currentYear = new Date().getFullYear();
 
     return seasonalStats
+      .filter((stats) => stats.year !== currentYear) // Add this line
       .sort((a, b) => b.pointsAgainst - a.pointsAgainst)
       .slice(0, limit)
       .map((stats, index) => ({
@@ -459,8 +572,10 @@ export class RecordsCalculator {
 
   getLowestPointsAgainst(limit: number = 5): Record[] {
     const seasonalStats = this.calculateSeasonalStats();
+    const currentYear = new Date().getFullYear();
 
     return seasonalStats
+      .filter((stats) => stats.year !== currentYear) // Add this line
       .sort((a, b) => a.pointsAgainst - b.pointsAgainst)
       .slice(0, limit)
       .map((stats, index) => ({
