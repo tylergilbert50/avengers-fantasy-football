@@ -58,16 +58,16 @@ const POINTS_MAP: { [key: string]: number } = {
 };
 
 const WEEK_5_RANKINGS: { [managerName: string]: number } = {
-  "Stuart Iverson": 1,
-  "Andrew Casazza": 5,
-  "Jeremy Stojakovich": 3,
-  "Connor Bowser": 2,
-  "Brett Gilbert": 6,
-  "Demarco Moore": 7,
-  "Josh Hartless": 4,
-  "Tyler Gilbert": 8,
-  "Danny Stiles": 9,
-  "Daniel Dixon": 10,
+  "Stuart": 1,
+  "Andrew": 5,
+  "Jeremy": 3,
+  "Connor": 2,
+  "Brett": 6,
+  "Demarco": 7,
+  "Josh": 4,
+  "Tyler": 8,
+  "Danny": 9,
+  "Daniel": 10,
 };
 
 export const getEmptyVotes = (): Votes =>
