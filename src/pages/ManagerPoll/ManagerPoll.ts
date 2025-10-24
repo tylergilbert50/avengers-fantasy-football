@@ -57,7 +57,7 @@ const POINTS_MAP: { [key: string]: number } = {
   "10th": 1,
 };
 
-const WEEK_5_RANKINGS: { [managerName: string]: number } = {
+const WEEK_7_RANKINGS: { [managerName: string]: number } = {
   "Stuart Iverson": 1,
   "Andrew Casazza": 5,
   "Jeremy Stojakovich": 3,
@@ -236,7 +236,7 @@ const calculatePreviousWeekRankings = async (
     if (previousWeek === 5) {
       const rankings: { [id: string]: number } = {};
       managers.forEach((manager) => {
-        const rank = WEEK_5_RANKINGS[manager.name];
+        const rank = WEEK_7_RANKINGS[manager.name];
         if (rank) rankings[manager.id] = rank;
       });
       return rankings;
