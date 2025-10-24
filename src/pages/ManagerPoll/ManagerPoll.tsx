@@ -168,7 +168,10 @@ function ManagerPoll() {
     const get = (t: any, ...keys: string[]) =>
       keys.reduce((v, k) => (v ??= t?.[k]), undefined);
 
-    const map = new Map<string, { record: string; avgPf: string; avgPa: string }>();
+    const map = new Map<
+      string,
+      { record: string; avgPf: string; avgPa: string }
+    >();
 
     (teams ?? []).forEach((t: any) => {
       const wins = get(t, "wins", "w") ?? 0;
@@ -192,7 +195,8 @@ function ManagerPoll() {
         .filter((s): s is string => typeof s === "string" && !!s)
         .map((s) => norm(s))
         .forEach((k: string) => {
-          if (!map.has(k)) map.set(k, { record: `${wins}-${losses}`, avgPf, avgPa });
+          if (!map.has(k))
+            map.set(k, { record: `${wins}-${losses}`, avgPf, avgPa });
         });
     });
 
@@ -226,9 +230,9 @@ function ManagerPoll() {
             </div>
             <div className="results-content">
               {resultsToShow.map((result: PollResult, index: number) => {
-                const trendClass = result.trend.includes("▲")
+                const trendClass = result.trend.includes("â–²")
                   ? "trend-up"
-                  : result.trend.includes("▼")
+                  : result.trend.includes("â–¼")
                   ? "trend-down"
                   : "trend-same";
 
@@ -239,7 +243,9 @@ function ManagerPoll() {
                     </div>
                     <span className="result-name">{result.name}</span>
                     <span className="result-record">{result.record}</span>
-                    <span className={`result-trend ${trendClass}`}>{result.trend}</span>
+                    <span className={`result-trend ${trendClass}`}>
+                      {result.trend}
+                    </span>
                     <span className="result-points">{result.pollPoints}</span>
                   </div>
                 );
@@ -295,12 +301,19 @@ function ManagerPoll() {
                   </span>
 
                   {POSITIONS.map((position) => (
-                    <div key={`${manager.id}-${position}`} className="vote-cell">
+                    <div
+                      key={`${manager.id}-${position}`}
+                      className="vote-cell"
+                    >
                       <button
                         aria-label={`Vote ${manager.name} for ${position}`}
                         className={`vote-button ${
-                          isManagerSelected(manager.id, position) ? "selected" : ""
-                        } ${isVoteDisabled(manager.id, position) ? "disabled" : ""}`}
+                          isManagerSelected(manager.id, position)
+                            ? "selected"
+                            : ""
+                        } ${
+                          isVoteDisabled(manager.id, position) ? "disabled" : ""
+                        }`}
                         onClick={() => handleVote(manager.id, position)}
                         disabled={isVoteDisabled(manager.id, position)}
                       >
@@ -320,9 +333,9 @@ function ManagerPoll() {
                 <div key={`not-selected-${position}`} className="vote-cell">
                   <button
                     aria-label={`Clear pick for ${position}`}
-                    className={`vote-button ${votes[position] === null ? "selected" : ""} ${
-                      hasSubmitted ? "disabled" : ""
-                    }`}
+                    className={`vote-button ${
+                      votes[position] === null ? "selected" : ""
+                    } ${hasSubmitted ? "disabled" : ""}`}
                     onClick={() => handleVote("", position)}
                     disabled={hasSubmitted}
                   >

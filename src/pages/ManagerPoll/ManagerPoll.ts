@@ -58,16 +58,16 @@ const POINTS_MAP: { [key: string]: number } = {
 };
 
 const WEEK_5_RANKINGS: { [managerName: string]: number } = {
-  "Stuart": 1,
-  "Andrew": 5,
-  "Jeremy": 3,
-  "Connor": 2,
-  "Brett": 6,
-  "Demarco": 7,
-  "Josh": 4,
-  "Tyler": 8,
-  "Danny": 9,
-  "Daniel": 10,
+  "Stuart Iverson": 1,
+  "Andrew Casazza": 5,
+  "Jeremy Stojakovich": 3,
+  "Connor Bowser": 2,
+  "Brett Gilbert": 6,
+  "Demarco Moore": 7,
+  "Josh Hartless": 4,
+  "Tyler Gilbert": 8,
+  "Danny Stiles": 9,
+  "Daniel Dixon": 10,
 };
 
 export const getEmptyVotes = (): Votes =>
@@ -276,8 +276,8 @@ const calculateTrend = (
   if (!previousRank || !hasVotes) return "-";
 
   const change = previousRank - currentRank;
-  if (change > 0) return `▲${change}`;
-  if (change < 0) return `▼${Math.abs(change)}`;
+  if (change > 0) return `â–²${change}`;
+  if (change < 0) return `â–¼${Math.abs(change)}`;
   return "-";
 };
 
