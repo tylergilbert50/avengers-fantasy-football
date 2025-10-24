@@ -276,8 +276,8 @@ const calculateTrend = (
   if (!previousRank || !hasVotes) return "-";
 
   const change = previousRank - currentRank;
-  if (change > 0) return `â–²${change}`;
-  if (change < 0) return `â–¼${Math.abs(change)}`;
+  if (change > 0) return `▲${change}`;  // Up arrow
+  if (change < 0) return `▼${Math.abs(change)}`;  // Down arrow
   return "-";
 };
 

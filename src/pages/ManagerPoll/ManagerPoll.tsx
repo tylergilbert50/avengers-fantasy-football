@@ -230,9 +230,9 @@ function ManagerPoll() {
             </div>
             <div className="results-content">
               {resultsToShow.map((result: PollResult, index: number) => {
-                const trendClass = result.trend.includes("â–²")
+                const trendClass = result.trend.includes("▲")
                   ? "trend-up"
-                  : result.trend.includes("â–¼")
+                  : result.trend.includes("▼")
                   ? "trend-down"
                   : "trend-same";
 
