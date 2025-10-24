@@ -1,0 +1,37 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.champion-card {
+  width: 1100px;
+  height: 400px;
+  border-color: black;
+  border-width: 7px;
+  border-style: solid;
+  border-radius: 35px;
+  display: flex;
+}
+
+.left-box,
+.middle-box,
+.right-box {
+  flex: 1;
+  border-right: 7px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.right-box {
+  border-right: none;
+}
+
+.left-box img,
+.middle-box img {
+  max-width: 75%;
+  max-height: 75%;
+  object-fit: contain;
+  font-family: "VarelaRound";
+}

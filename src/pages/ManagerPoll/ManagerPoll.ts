@@ -233,7 +233,7 @@ const calculatePreviousWeekRankings = async (
   const previousWeekVotes = await getVotesForWeek(previousWeek);
 
   if (previousWeekVotes.length === 0) {
-    if (previousWeek === 5) {
+    if (previousWeek === 7) {
       const rankings: { [id: string]: number } = {};
       managers.forEach((manager) => {
         const rank = WEEK_7_RANKINGS[manager.name];
