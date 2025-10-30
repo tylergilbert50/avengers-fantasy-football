@@ -13,6 +13,7 @@ import Managers from "./pages/Managers/Managers";
 import DraftHistory from "./pages/DraftHistory/DraftHistory.tsx";
 import Records from "./pages/Records/Records.tsx";
 import { DataPreloader } from "./pages/ManagerProfile/DataPreloader";
+import Champions from "./pages/Champions/Champions.tsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -37,6 +38,7 @@ function App() {
         <Route path="/:managerName" element={<ManagerProfile />} />
         <Route path="/draft-history" element={<DraftHistory />} />
         <Route path="/records" element={<Records />} />
+        <Route path="/champions" element={<Champions />} />
       </Routes>
     </Router>
   );

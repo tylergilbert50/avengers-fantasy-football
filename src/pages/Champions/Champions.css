@@ -4,6 +4,21 @@
   align-items: center;
 }
 
+.avengers-text {
+  font-size: 48px;
+  margin-bottom: 30px;
+  letter-spacing: 2px;
+}
+
+.avengers-bottom-text {
+  font-family: "Avengero";
+  font-weight: normal;
+  font-size: 48px;
+  margin-top: 75px;
+  margin-bottom: 30px;
+  letter-spacing: 2px;
+}
+
 .champion-card {
   width: 1100px;
   height: 400px;
@@ -12,6 +27,9 @@
   border-style: solid;
   border-radius: 35px;
   display: flex;
+  background-color: white;
+  overflow: hidden;
+  position: relative;
 }
 
 .left-box,
@@ -26,12 +44,212 @@
 
 .right-box {
   border-right: none;
+  background-color: white;
+  color: black;
 }
 
-.left-box img,
-.middle-box img {
-  max-width: 75%;
-  max-height: 75%;
-  object-fit: contain;
+.left-box {
+  flex-direction: column;
+  padding: 20px;
+}
+
+.hammer-logo {
+  width: 200px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.middle-box {
+  flex-direction: column;
+  gap: 15px;
+}
+
+.manager-image {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid black;
+}
+
+.manager-name {
   font-family: "VarelaRound";
+  font-size: 36px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.statistics-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.statistics-title {
+  width: 100%;
+  background-color: #2d2d2d;
+  color: white;
+  font-size: 32px;
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+  font-weight: normal;
+}
+
+.stat-item {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 0 40px;
+}
+
+.stat-item:first-of-type {
+  margin-top: 30px;
+}
+
+.stat-label {
+  font-family: "VarelaRound";
+  font-weight: bold;
+  font-size: 20px;
+  letter-spacing: 1px;
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.stat-divider {
+  height: 3px;
+  background-color: #666;
+  margin: 8px 0;
+}
+
+.stat-value {
+  font-size: 48px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+}
+
+.confetti-overlay {
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.confetti-left {
+  left: 0;
+}
+
+.confetti-right {
+  right: 0;
+}
+
+.banners-container {
+  display: flex;
+  gap: 30px;
+  margin-top: 40px;
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.championship-banner {
+  width: 200px;
+  height: 300px;
+  background-color: #2d2d2d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
+}
+
+.banner-year {
+  font-family: "VarelaRound";
+  font-size: 16px;
+  font-weight: normal;
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.banner-champion-text {
+  font-weight: bold;
+  font-style: italic;
+  font-size: 30px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.banner-team-name {
+  font-family: "VarelaRound";
+  font-size: 20px;
+  font-weight: normal;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.banner-manager-name {
+  font-size: 19px;
+  font-style: italic;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+.banner-logo {
+  width: 40px;
+  height: auto;
+  margin-top: auto;
+}
+
+/* Responsive styles for mobile */
+@media (max-width: 700px) {
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100vw;
+    position: relative;
+  }
+  .container {
+    padding: 0;
+    overflow-x: visible;
+  }
+  .champion-card {
+    transform: scale(0.35);
+    transform-origin: top center;
+    margin: 0 auto;
+    width: 1100px;
+    height: 400px;
+    min-width: unset;
+    min-height: unset;
+    max-width: unset;
+    max-height: unset;
+    /* Keep all other styles the same */
+  }
+  /* Optionally, reduce margin below the card for mobile */
+  .banners-container {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  .avengers-bottom-text {
+    text-align: center;
+    display: block;
+    width: 100%;
+    margin-top: -200px;
+    margin-bottom: 20px;
+  }
 }

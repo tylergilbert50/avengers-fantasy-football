@@ -102,7 +102,7 @@ export const shouldShowResults = () => {
   const hour = now.getHours();
 
   // Show results from Thursday 10 AM through Monday (all day)
-  if (day === 4 && hour >= 19) return true; // Thursday from 7 PM
+  if (day === 4 && hour >= 10) return true; // Thursday from 10 AM
   if (day === 5 || day === 6 || day === 0 || day === 1) return true; // Friday, Saturday, Sunday, Monday (all day)
   if (day === 2 && hour < 10) return true; // Tuesday until 9:59 AM
 
