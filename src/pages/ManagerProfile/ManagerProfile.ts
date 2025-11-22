@@ -29,6 +29,57 @@ export interface ManagerCareer {
 const ESPN_BASE = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl";
 const START_SEASON = 2021;
 
+const manualFinalStandings: Record<number, string[]> = {
+  2021: [
+    "Connor Bowser", // 1
+    "Jake", // 2
+    "Brett Gilbert", // 3
+    "Tyler Gilbert", // 4
+    "Jeremy Stojakovich", // 5
+    "Drew", // 6
+    "Josh Hartless", // 7
+    "Andrew Casazza", // 8
+    "Daniel Dixon", // 9
+    "Travis", // 10
+  ],
+  2022: [
+    "Danny Stiles", // 1
+    "Jeremy Stojakovich", // 2
+    "Connor Bowser", // 3
+    "Josh Hartless", // 4
+    "Tyler Gilbert", // 5
+    "Andrew Casazza", // 6
+    "Demarco Moore", // 7
+    "Jake", // 8
+    "Daniel Dixon", // 9
+    "Brett Gilbert", // 10
+  ],
+  2023: [
+    "Daniel Dixon", // 1
+    "Danny Stiles", // 2
+    "Tyler Gilbert", // 3
+    "Jeremy Stojakovich", // 4
+    "Connor Bowser", // 5
+    "Josh Hartless", // 6
+    "Jake", // 7
+    "Andrew Casazza", // 8
+    "Demarco Moore", // 9
+    "Brett Gilbert", // 10
+  ],
+  2024: [
+    "Connor Bowser", // 1
+    "Andrew Casazza", // 2
+    "Danny Stiles", // 3
+    "Josh Hartless", // 4
+    "Daniel Dixon", // 5
+    "Brett Gilbert", // 6
+    "Jeremy Stojakovich", // 7
+    "Demarco Moore", // 8
+    "Tyler Gilbert", // 9
+    "Stuart Iverson", // 10
+  ],
+};
+
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const teamManagerMapRaw: Record<string, string> = {
@@ -390,26 +441,29 @@ async function processManagerCareer(
     pW += pw;
     pL += pl;
 
-    const finalRank =
-      my?.rankCalculatedFinal ??
-      my?.rankFinal ??
-      my?.finalStanding ??
-      undefined;
+    // --- HARD-CODED FINAL STANDINGS (your list) + simple fallback ---
 
-    const position =
-      typeof finalRank === "number"
-        ? finalRank
-        : rankTeams(
-            teams.map((t: any) => ({
-              id: t.id,
-              wins: t?.record?.overall?.wins ?? 0,
-              pf: t?.record?.overall?.pointsFor ?? 0,
-            })),
-            my.id
-          );
+    let position: number | undefined;
 
-    if (position === 1) {
-      champ += 1;
+    // 1) Try manual final standings for this year
+    const override = manualFinalStandings[year];
+    if (override) {
+      const idx = override.findIndex((name) =>
+        managerEq(name, managerDisplayName)
+      );
+      if (idx !== -1) {
+        position = idx + 1; // rankings are 1-based
+      }
+    }
+
+    // 2) Fallback: use regular-season rank if no manual entry
+    if (position === undefined) {
+      const rankedTeams = teams.map((t: any) => ({
+        id: t.id,
+        wins: t?.record?.overall?.wins ?? 0,
+        pf: t?.record?.overall?.pointsFor ?? 0,
+      }));
+      position = rankTeams(rankedTeams, my.id);
     }
 
     if (yearData.matchups) {

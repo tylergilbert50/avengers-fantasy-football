@@ -34,8 +34,15 @@
   align-items: center;
   margin-top: 40px;
   margin-bottom: 25px;
+  overflow: hidden;
 }
 
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
 .profile-content {
   display: flex;
   flex-direction: row;
@@ -121,6 +128,13 @@
   z-index: 0;
 }
 
+.stan-lee-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .dashed-line-text {
   font-family: "Lobster", cursive;
   font-size: 28px;
@@ -147,7 +161,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 175px;
   height: 175px;
   flex: 1;
@@ -159,10 +173,6 @@
   font-size: 21px;
   text-align: center;
   margin-bottom: 10px;
-  letter-spacing: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
   line-height: 1.2;
 }
 
@@ -694,15 +704,51 @@
 
 /* Responsive styles for mobile and tablet */
 @media (max-width: 1024px) {
-  /* Tablet adjustments */
-  .profile {
-    max-width: 100%;
-    padding: 15px;
+  .career-finishes-graph {
+    padding: 8px 10px;
+    height: clamp(360px, 75vw, 560px);
   }
 
-  .career-finishes-graph {
-    padding: 15px;
-    overflow-x: auto;
+  .graph-years {
+    grid-template-columns: 40px repeat(10, 1fr);
+    margin-bottom: 6px;
+  }
+
+  .year-label {
+    font-size: 14px;
+  }
+
+  .graph-container {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .position-labels {
+    grid-template-rows: repeat(10, 1fr);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .position-label {
+    font-size: 20px;
+    align-items: center;
+  }
+
+  .graph-grid {
+    grid-template-rows: repeat(10, 1fr);
+  }
+
+  .grid-line {
+    border-bottom: 1.5px solid #ccc;
+  }
+
+  .grid-line:first-child {
+    border-top: 1.5px solid white;
+  }
+
+  .data-point {
+    width: clamp(36px, 8vw, 60px);
+    height: clamp(36px, 8vw, 60px);
+    font-size: clamp(18px, 4vw, 28px);
   }
 }
 

@@ -201,17 +201,13 @@ function ManagerProfile() {
             </div>
 
             <div className="profile-text-section">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div className="profile-header">
                 <span className="profile-title">{meta.nickname}</span>
-                {(slug === 'tyler' || slug === 'andrew') && (
-                  <img 
-                    src="/images/stanleeaward.png" 
-                    alt="Stan Lee Award" 
-                    style={{ 
-                      height: '100px', 
-                      width: 'auto',
-                      objectFit: 'contain'
-                    }} 
+                {(slug === "tyler" || slug === "andrew") && (
+                  <img
+                    className="stan-lee-logo"
+                    src="/images/stanleeaward.png"
+                    alt="Stan Lee Award"
                   />
                 )}
               </div>
