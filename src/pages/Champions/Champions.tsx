@@ -3,7 +3,7 @@ import "./Champions.css";
 function Champions() {
   return (
     <div className="container">
-      <h1 className="avengers-text">2024 CHAMPION</h1>
+      <h1 className="avengers-text">2025 CHAMPION</h1>
       <div className="champion-card-mobile-wrapper">
         <div className="champion-card">
           <div className="left-box">
@@ -12,11 +12,11 @@ function Champions() {
 
           <div className="middle-box">
             <img
-              src="./images/managers/connor.png"
+              src="./images/managers/brett.png"
               alt="Connor"
               className="manager-image"
             />
-            <div className="manager-name">CONNOR</div>
+            <div className="manager-name">BRETT</div>
           </div>
 
           <div className="right-box">
@@ -26,13 +26,13 @@ function Champions() {
               <div className="stat-item">
                 <div className="stat-label">RECORD</div>
                 <div className="stat-divider"></div>
-                <div className="stat-value">7-7</div>
+                <div className="stat-value">6-8</div>
               </div>
 
               <div className="stat-item">
                 <div className="stat-label">POINTS PER WEEK</div>
                 <div className="stat-divider"></div>
-                <div className="stat-value">123.28</div>
+                <div className="stat-value">127.4</div>
               </div>
             </div>
           </div>
@@ -95,6 +95,18 @@ function Champions() {
           <div className="banner-champion-text">Champion</div>
           <div className="banner-team-name">MARVEL JESUS</div>
           <div className="banner-manager-name">Connor Bowser</div>
+          <img
+            src="./images/avengers.png"
+            className="banner-logo"
+            alt="Avengers Logo"
+          />
+        </div>
+
+        <div className="championship-banner">
+          <div className="banner-year">2025</div>
+          <div className="banner-champion-text">Champion</div>
+          <div className="banner-team-name">ANYONE CAN WEAR THE MASK</div>
+          <div className="banner-manager-name">Brett</div>
           <img
             src="./images/avengers.png"
             className="banner-logo"
