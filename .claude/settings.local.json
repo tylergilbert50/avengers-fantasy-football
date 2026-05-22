@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2024/segments/0/leagues/1268500224?view=mTeam\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2024/segments/0/leagues/1268500224?view=mTeam\")",
+      "Bash(curl -s https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/__TRACKED_VAR__/segments/0/leagues/1268500224?view=mTeam)",
+      "Bash(cd /tmp)",
+      "Bash(python3 -c ' *)",
+      "Bash(rm -f m20*.json)",
+      "Bash(npm run *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

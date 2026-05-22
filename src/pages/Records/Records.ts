@@ -48,7 +48,7 @@ const teamManagerMapRaw: { [key: string]: string } = {
   "I Can Do This All Day": "DANIEL",
 
   // 2024 historical names
-  "Marvel Jesus": "DANNY",
+  "Marvel Jesus": "CONNOR",
   "A Friend From Work": "DANNY",
   "Perfectly Balanced": "TYLER",
 
@@ -64,7 +64,7 @@ const teamManagerMapRaw: { [key: string]: string } = {
   "Titletown Touchdowns ": "JAKE",
   "Wanda's OnlyTeams": "ANDREW",
   "Wing-T Demo": "DEMARCO",
-  "On Your Left": "DANIEL",
+  "On Your Left": "CONNOR",
   "Perfectly  Balanced": "TYLER",
 
   // 2021 historical names
