@@ -1,4 +1,4 @@
-// ManagerProfile.tsx
+﻿// ManagerProfile.tsx
 import "./ManagerProfile.css";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -10,6 +10,11 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import {
+  useManagerCareer,
+  useAllManagersRanking,
+  useCurrentTeamName,
+} from "./ManagerProfile";
 
 type FinishPoint = {
   year: number;
@@ -17,29 +22,11 @@ type FinishPoint = {
   color: "gold" | "silver" | "bronze" | "black";
 };
 
-type YearlyStats = {
-  year: number;
-  w: number;
-  l: number;
-  playoff: boolean;
-  avgPts: string;
-  avgPa: string;
-};
+const LEAGUE_ID = "1268500224";
+const START_YEAR = 2021;
 
-type ManagerCareer = {
-  championships: number;
-  playoffAppearances: number;
-  playoffRecord: string;
-  record: string;
-  winPct: string;
-  rank: number;
-  num1Weeks: number;
-  num10Weeks: number;
-  yearly: YearlyStats[];
-  finishes: FinishPoint[];
-};
-
-// Hardcoded manager metadata
+// Static per-manager display info. Nickname (team name) comes live from ESPN;
+// fallbacks below are used only until the network request resolves.
 const displayMeta: Record<
   string,
   { displayName: string; name: string; nickname: string; image: string }
@@ -106,563 +93,6 @@ const displayMeta: Record<
   },
 };
 
-// Hardcoded career data for all managers (2021-2025)
-const managerCareers: Record<string, ManagerCareer> = {
-  connor: {
-    championships: 2,
-    playoffAppearances: 5,
-    playoffRecord: "8-4",
-    record: "49-25",
-    winPct: "66.2%",
-    rank: 1,
-    num1Weeks: 10,
-    num10Weeks: 2,
-    yearly: [
-      {
-        year: 2021,
-        w: 8,
-        l: 6,
-        playoff: true,
-        avgPts: "128.9",
-        avgPa: "133.9",
-      },
-      {
-        year: 2022,
-        w: 11,
-        l: 3,
-        playoff: true,
-        avgPts: "131.3",
-        avgPa: "112.3",
-      },
-      {
-        year: 2023,
-        w: 8,
-        l: 6,
-        playoff: true,
-        avgPts: "129.2",
-        avgPa: "121.6",
-      },
-      {
-        year: 2024,
-        w: 12,
-        l: 2,
-        playoff: true,
-        avgPts: "135.0",
-        avgPa: "115.0",
-      },
-      {
-        year: 2025,
-        w: 10,
-        l: 4,
-        playoff: true,
-        avgPts: "126.9",
-        avgPa: "108.3",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 1, color: "gold" },
-      { year: 2022, position: 3, color: "bronze" },
-      { year: 2023, position: 5, color: "black" },
-      { year: 2024, position: 1, color: "gold" },
-      { year: 2025, position: 2, color: "silver" },
-    ],
-  },
-  tyler: {
-    championships: 0,
-    playoffAppearances: 3,
-    playoffRecord: "1-3",
-    record: "33-37",
-    winPct: "47.1%",
-    rank: 6,
-    num1Weeks: 4,
-    num10Weeks: 7,
-    yearly: [
-      {
-        year: 2021,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "120.0",
-        avgPa: "120.0",
-      },
-      {
-        year: 2022,
-        w: 8,
-        l: 6,
-        playoff: true,
-        avgPts: "123.4",
-        avgPa: "121.5",
-      },
-      {
-        year: 2023,
-        w: 7,
-        l: 7,
-        playoff: true,
-        avgPts: "117.6",
-        avgPa: "124.8",
-      },
-      {
-        year: 2024,
-        w: 5,
-        l: 9,
-        playoff: false,
-        avgPts: "118.0",
-        avgPa: "128.0",
-      },
-      {
-        year: 2025,
-        w: 4,
-        l: 10,
-        playoff: false,
-        avgPts: "112.1",
-        avgPa: "116.5",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 4, color: "black" },
-      { year: 2022, position: 5, color: "black" },
-      { year: 2023, position: 3, color: "bronze" },
-      { year: 2024, position: 9, color: "black" },
-      { year: 2025, position: 9, color: "black" },
-    ],
-  },
-  brett: {
-    championships: 1,
-    playoffAppearances: 3,
-    playoffRecord: "4-2",
-    record: "30-40",
-    winPct: "42.9%",
-    rank: 9,
-    num1Weeks: 6,
-    num10Weeks: 8,
-    yearly: [
-      {
-        year: 2021,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "134.7",
-        avgPa: "123.5",
-      },
-      {
-        year: 2022,
-        w: 3,
-        l: 11,
-        playoff: false,
-        avgPts: "109.0",
-        avgPa: "132.0",
-      },
-      {
-        year: 2023,
-        w: 4,
-        l: 10,
-        playoff: false,
-        avgPts: "122.4",
-        avgPa: "138.8",
-      },
-      {
-        year: 2024,
-        w: 8,
-        l: 6,
-        playoff: true,
-        avgPts: "125.0",
-        avgPa: "122.0",
-      },
-      {
-        year: 2025,
-        w: 6,
-        l: 8,
-        playoff: true,
-        avgPts: "127.4",
-        avgPa: "132.0",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 3, color: "bronze" },
-      { year: 2022, position: 10, color: "black" },
-      { year: 2023, position: 10, color: "black" },
-      { year: 2024, position: 6, color: "black" },
-      { year: 2025, position: 1, color: "gold" },
-    ],
-  },
-  jeremy: {
-    championships: 0,
-    playoffAppearances: 4,
-    playoffRecord: "2-4",
-    record: "39-31",
-    winPct: "55.7%",
-    rank: 3,
-    num1Weeks: 4,
-    num10Weeks: 4,
-    yearly: [
-      {
-        year: 2021,
-        w: 7,
-        l: 7,
-        playoff: true,
-        avgPts: "134.8",
-        avgPa: "128.1",
-      },
-      {
-        year: 2022,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "119.5",
-        avgPa: "112.1",
-      },
-      {
-        year: 2023,
-        w: 7,
-        l: 7,
-        playoff: true,
-        avgPts: "115.7",
-        avgPa: "121.3",
-      },
-      {
-        year: 2024,
-        w: 7,
-        l: 7,
-        playoff: false,
-        avgPts: "120.0",
-        avgPa: "125.0",
-      },
-      {
-        year: 2025,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "129.9",
-        avgPa: "123.5",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 5, color: "black" },
-      { year: 2022, position: 2, color: "silver" },
-      { year: 2023, position: 4, color: "black" },
-      { year: 2024, position: 7, color: "black" },
-      { year: 2025, position: 3, color: "bronze" },
-    ],
-  },
-  danny: {
-    championships: 2,
-    playoffAppearances: 4,
-    playoffRecord: "7-3",
-    record: "40-30",
-    winPct: "57.1%",
-    rank: 3,
-    num1Weeks: 9,
-    num10Weeks: 2,
-    yearly: [
-      {
-        year: 2021,
-        w: 7,
-        l: 7,
-        playoff: true,
-        avgPts: "125.3",
-        avgPa: "120.6",
-      },
-      {
-        year: 2022,
-        w: 7,
-        l: 7,
-        playoff: true,
-        avgPts: "122.9",
-        avgPa: "127.7",
-      },
-      {
-        year: 2023,
-        w: 11,
-        l: 3,
-        playoff: true,
-        avgPts: "143.1",
-        avgPa: "110.6",
-      },
-      {
-        year: 2024,
-        w: 11,
-        l: 3,
-        playoff: true,
-        avgPts: "132.0",
-        avgPa: "118.0",
-      },
-      {
-        year: 2025,
-        w: 4,
-        l: 10,
-        playoff: false,
-        avgPts: "118.6",
-        avgPa: "129.3",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 6, color: "black" },
-      { year: 2022, position: 1, color: "gold" },
-      { year: 2023, position: 2, color: "silver" },
-      { year: 2024, position: 3, color: "bronze" },
-      { year: 2025, position: 8, color: "black" },
-    ],
-  },
-  josh: {
-    championships: 0,
-    playoffAppearances: 4,
-    playoffRecord: "1-4",
-    record: "43-27",
-    winPct: "61.4%",
-    rank: 2,
-    num1Weeks: 7,
-    num10Weeks: 3,
-    yearly: [
-      {
-        year: 2021,
-        w: 6,
-        l: 8,
-        playoff: false,
-        avgPts: "126.2",
-        avgPa: "119.6",
-      },
-      {
-        year: 2022,
-        w: 10,
-        l: 4,
-        playoff: true,
-        avgPts: "136.5",
-        avgPa: "109.0",
-      },
-      {
-        year: 2023,
-        w: 8,
-        l: 6,
-        playoff: true,
-        avgPts: "123.2",
-        avgPa: "130.2",
-      },
-      {
-        year: 2024,
-        w: 10,
-        l: 4,
-        playoff: true,
-        avgPts: "128.0",
-        avgPa: "120.0",
-      },
-      {
-        year: 2025,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "129.2",
-        avgPa: "121.1",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 7, color: "black" },
-      { year: 2022, position: 4, color: "black" },
-      { year: 2023, position: 6, color: "black" },
-      { year: 2024, position: 4, color: "black" },
-      { year: 2025, position: 5, color: "black" },
-    ],
-  },
-  andrew: {
-    championships: 0,
-    playoffAppearances: 2,
-    playoffRecord: "1-2",
-    record: "35-37",
-    winPct: "48.6%",
-    rank: 4,
-    num1Weeks: 4,
-    num10Weeks: 6,
-    yearly: [
-      {
-        year: 2021,
-        w: 6,
-        l: 8,
-        playoff: false,
-        avgPts: "117.9",
-        avgPa: "125.5",
-      },
-      {
-        year: 2022,
-        w: 6,
-        l: 8,
-        playoff: true,
-        avgPts: "124.9",
-        avgPa: "124.1",
-      },
-      {
-        year: 2023,
-        w: 5,
-        l: 9,
-        playoff: false,
-        avgPts: "126.0",
-        avgPa: "121.9",
-      },
-      {
-        year: 2024,
-        w: 11,
-        l: 3,
-        playoff: true,
-        avgPts: "130.0",
-        avgPa: "116.0",
-      },
-      {
-        year: 2025,
-        w: 7,
-        l: 7,
-        playoff: false,
-        avgPts: "121.7",
-        avgPa: "121.0",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 8, color: "black" },
-      { year: 2022, position: 6, color: "black" },
-      { year: 2023, position: 9, color: "black" },
-      { year: 2024, position: 2, color: "silver" },
-      { year: 2025, position: 7, color: "black" },
-    ],
-  },
-  daniel: {
-    championships: 1,
-    playoffAppearances: 2,
-    playoffRecord: "3-1",
-    record: "30-42",
-    winPct: "41.7%",
-    rank: 10,
-    num1Weeks: 5,
-    num10Weeks: 10,
-    yearly: [
-      {
-        year: 2021,
-        w: 5,
-        l: 9,
-        playoff: false,
-        avgPts: "115.7",
-        avgPa: "125.7",
-      },
-      {
-        year: 2022,
-        w: 4,
-        l: 10,
-        playoff: false,
-        avgPts: "104.9",
-        avgPa: "127.4",
-      },
-      {
-        year: 2023,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "140.3",
-        avgPa: "132.8",
-      },
-      {
-        year: 2024,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "126.0",
-        avgPa: "122.0",
-      },
-      {
-        year: 2025,
-        w: 3,
-        l: 11,
-        playoff: false,
-        avgPts: "108.9",
-        avgPa: "130.3",
-      },
-    ],
-    finishes: [
-      { year: 2021, position: 9, color: "black" },
-      { year: 2022, position: 9, color: "black" },
-      { year: 2023, position: 1, color: "gold" },
-      { year: 2024, position: 5, color: "black" },
-      { year: 2025, position: 10, color: "black" },
-    ],
-  },
-  demarco: {
-    championships: 0,
-    playoffAppearances: 1,
-    playoffRecord: "0-1",
-    record: "27-29",
-    winPct: "48.2%",
-    rank: 5,
-    num1Weeks: 3,
-    num10Weeks: 5,
-    yearly: [
-      {
-        year: 2022,
-        w: 6,
-        l: 8,
-        playoff: false,
-        avgPts: "122.8",
-        avgPa: "122.6",
-      },
-      {
-        year: 2023,
-        w: 5,
-        l: 9,
-        playoff: false,
-        avgPts: "117.4",
-        avgPa: "125.3",
-      },
-      {
-        year: 2024,
-        w: 7,
-        l: 7,
-        playoff: false,
-        avgPts: "119.0",
-        avgPa: "124.0",
-      },
-      {
-        year: 2025,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "111.0",
-        avgPa: "113.5",
-      },
-    ],
-    finishes: [
-      { year: 2022, position: 7, color: "black" },
-      { year: 2023, position: 8, color: "black" },
-      { year: 2024, position: 8, color: "black" },
-      { year: 2025, position: 6, color: "black" },
-    ],
-  },
-  stuart: {
-    championships: 0,
-    playoffAppearances: 1,
-    playoffRecord: "0-1",
-    record: "13-15",
-    winPct: "46.4%",
-    rank: 7,
-    num1Weeks: 2,
-    num10Weeks: 4,
-    yearly: [
-      {
-        year: 2024,
-        w: 4,
-        l: 10,
-        playoff: false,
-        avgPts: "115.0",
-        avgPa: "130.0",
-      },
-      {
-        year: 2025,
-        w: 9,
-        l: 5,
-        playoff: true,
-        avgPts: "128.1",
-        avgPa: "118.3",
-      },
-    ],
-    finishes: [
-      { year: 2024, position: 10, color: "black" },
-      { year: 2025, position: 4, color: "black" },
-    ],
-  },
-};
 function ManagerProfile() {
   const { managerName } = useParams<{ managerName: string }>();
   const slug = (managerName || "").toLowerCase();
@@ -676,6 +106,11 @@ function ManagerProfile() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const displayName = meta?.displayName ?? "";
+  const liveCareer = useManagerCareer(LEAGUE_ID, displayName);
+  const rankings = useAllManagersRanking(LEAGUE_ID);
+  const liveTeamName = useCurrentTeamName(LEAGUE_ID, displayName);
+
   if (!meta) {
     return (
       <div className="container">
@@ -684,19 +119,22 @@ function ManagerProfile() {
     );
   }
 
-  const career = managerCareers[slug] || {
-    championships: 0,
-    playoffAppearances: 0,
-    playoffRecord: "-",
-    record: "-",
-    winPct: "-",
-    rank: 0,
-    num1Weeks: 0,
-    num10Weeks: 0,
-    yearly: [],
-    finishes: [],
-  };
+  const career = liveCareer
+    ? { ...liveCareer, rank: rankings[displayName] ?? 0 }
+    : {
+        championships: 0,
+        playoffAppearances: 0,
+        playoffRecord: "-",
+        record: "-",
+        winPct: "-",
+        rank: 0,
+        num1Weeks: 0,
+        num10Weeks: 0,
+        yearly: [],
+        finishes: [],
+      };
 
+  const nickname = (liveTeamName ?? meta.nickname).toUpperCase();
   const chartData: FinishPoint[] = career.finishes;
 
   const CustomDot = (props: any) => {
@@ -735,8 +173,11 @@ function ManagerProfile() {
     );
   };
 
-  const START_YEAR = 2021;
-  const END_YEAR = 2025;
+  const maxFinishYear = chartData.reduce(
+    (mx, d) => (d.year > mx ? d.year : mx),
+    START_YEAR
+  );
+  const END_YEAR = Math.max(maxFinishYear, START_YEAR);
 
   const xTicks = Array.from(
     { length: END_YEAR - START_YEAR + 1 },
@@ -773,8 +214,8 @@ function ManagerProfile() {
 
             <div className="profile-text-section">
               <div className="profile-header">
-                <span className="profile-title">{meta.nickname}</span>
-                {(slug === "tyler" || slug === "andrew") && (
+                <span className="profile-title">{nickname}</span>
+                {(slug === "tyler" || slug === "andrew" || slug === "brett") && (
                   <img
                     className="stan-lee-logo"
                     src="/images/stanleeaward.png"

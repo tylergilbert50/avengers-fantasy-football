@@ -5,8 +5,8 @@ export interface YearRow {
   w: number;
   l: number;
   playoff: boolean;
-  avgPts: number;
-  avgPa: number;
+  avgPts: string;
+  avgPa: string;
 }
 export interface FinishDot {
   year: number;
@@ -29,54 +29,71 @@ export interface ManagerCareer {
 const ESPN_BASE = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl";
 const START_SEASON = 2021;
 
+// Authoritative final standings (1 = champion ... 10 = last). ESPN's bracket
+// data doesn't fully match how this league records finishes (consolation games,
+// non-standard playoff size in some years), so for known years we keep an
+// explicit ordering of manager display names. Years not listed here fall back
+// to the auto-derive in computeFinalStandings.
 const manualFinalStandings: Record<number, string[]> = {
   2021: [
-    "Connor Bowser", // 1
-    "Jake", // 2
-    "Brett Gilbert", // 3
-    "Tyler Gilbert", // 4
-    "Jeremy Stojakovich", // 5
-    "Drew", // 6
-    "Josh Hartless", // 7
-    "Andrew Casazza", // 8
-    "Daniel Dixon", // 9
-    "Travis", // 10
+    "Connor Bowser",
+    "Jake",
+    "Brett Gilbert",
+    "Tyler Gilbert",
+    "Jeremy Stojakovich",
+    "Drew",
+    "Josh Hartless",
+    "Andrew Casazza",
+    "Daniel Dixon",
+    "Travis",
   ],
   2022: [
-    "Danny Stiles", // 1
-    "Jeremy Stojakovich", // 2
-    "Connor Bowser", // 3
-    "Josh Hartless", // 4
-    "Tyler Gilbert", // 5
-    "Andrew Casazza", // 6
-    "Demarco Moore", // 7
-    "Jake", // 8
-    "Daniel Dixon", // 9
-    "Brett Gilbert", // 10
+    "Danny Stiles",
+    "Jeremy Stojakovich",
+    "Connor Bowser",
+    "Josh Hartless",
+    "Tyler Gilbert",
+    "Andrew Casazza",
+    "Demarco Moore",
+    "Jake",
+    "Daniel Dixon",
+    "Brett Gilbert",
   ],
   2023: [
-    "Daniel Dixon", // 1
-    "Danny Stiles", // 2
-    "Tyler Gilbert", // 3
-    "Jeremy Stojakovich", // 4
-    "Connor Bowser", // 5
-    "Josh Hartless", // 6
-    "Jake", // 7
-    "Andrew Casazza", // 8
-    "Demarco Moore", // 9
-    "Brett Gilbert", // 10
+    "Daniel Dixon",
+    "Danny Stiles",
+    "Tyler Gilbert",
+    "Jeremy Stojakovich",
+    "Connor Bowser",
+    "Josh Hartless",
+    "Jake",
+    "Andrew Casazza",
+    "Demarco Moore",
+    "Brett Gilbert",
   ],
   2024: [
-    "Connor Bowser", // 1
-    "Andrew Casazza", // 2
-    "Danny Stiles", // 3
-    "Josh Hartless", // 4
-    "Daniel Dixon", // 5
-    "Brett Gilbert", // 6
-    "Jeremy Stojakovich", // 7
-    "Demarco Moore", // 8
-    "Tyler Gilbert", // 9
-    "Stuart Iverson", // 10
+    "Connor Bowser",
+    "Andrew Casazza",
+    "Danny Stiles",
+    "Josh Hartless",
+    "Daniel Dixon",
+    "Brett Gilbert",
+    "Jeremy Stojakovich",
+    "Demarco Moore",
+    "Tyler Gilbert",
+    "Stuart Iverson",
+  ],
+  2025: [
+    "Brett Gilbert",
+    "Connor Bowser",
+    "Jeremy Stojakovich",
+    "Stuart Iverson",
+    "Josh Hartless",
+    "Demarco Moore",
+    "Andrew Casazza",
+    "Danny Stiles",
+    "Tyler Gilbert",
+    "Daniel Dixon",
   ],
 };
 
@@ -212,6 +229,24 @@ const getOwnerIdForManager = (
   return null;
 };
 
+// Resolve a manager's ESPN ownerId by scanning every available season's team
+// list — not just the current one. Returning the first match means we still
+// identify a manager even when their team has been renamed between seasons,
+// or when the current season's data isn't published yet.
+const findOwnerIdAcrossYears = (
+  dataByYear: Map<number, any>,
+  tsCurrent: any,
+  managerDisplayName: string
+): string | null => {
+  const currentMatch = getOwnerIdForManager(tsCurrent, managerDisplayName);
+  if (currentMatch) return currentMatch;
+  for (const [, yearData] of dataByYear) {
+    const match = getOwnerIdForManager(yearData?.teams, managerDisplayName);
+    if (match) return match;
+  }
+  return null;
+};
+
 const rankTeams = (
   teams: Array<{ id: number; wins: number; pf: number }>,
   id: number
@@ -223,6 +258,61 @@ const rankTeams = (
 
 const finishColor = (pos: number) =>
   pos === 1 ? "gold" : pos === 2 ? "silver" : pos === 3 ? "bronze" : "black";
+
+// Auto-derive final 1-N standings for a season. Only seeds 1-6 make the
+// playoffs, so:
+//   - Teams seeded 7+ keep their pre-playoff seed as their final finish —
+//     consolation games never shuffle them.
+//   - Teams seeded 1-6 take their final 1-6 placement from ESPN's
+//     rankCalculatedFinal (which correctly reflects the playoff bracket
+//     in this league even though playoffTierType isn't tagged).
+//   - If a playoff team's ESPN rank is missing/out-of-range, fall back to
+//     their regular-season seed.
+const PLAYOFF_SPOTS = 6;
+
+const computeFinalStandings = (yearData: any): Map<number, number> => {
+  const teams: any[] = yearData?.teams?.teams ?? [];
+  const result = new Map<number, number>();
+  if (!teams.length) return result;
+
+  for (const t of teams) {
+    const seed = t?.playoffSeed ?? 0;
+    if (seed > PLAYOFF_SPOTS) result.set(t.id, seed);
+  }
+
+  const playoffTeams = teams.filter((t) => {
+    const seed = t?.playoffSeed ?? 0;
+    return seed >= 1 && seed <= PLAYOFF_SPOTS;
+  });
+
+  const espnRanks = new Map<number, number>();
+  for (const t of playoffTeams) {
+    const r = t?.rankCalculatedFinal;
+    if (Number.isInteger(r) && r >= 1 && r <= PLAYOFF_SPOTS) {
+      espnRanks.set(t.id, r);
+    }
+  }
+  const distinctRanks = new Set(espnRanks.values());
+  if (
+    espnRanks.size === playoffTeams.length &&
+    distinctRanks.size === playoffTeams.length
+  ) {
+    for (const [id, rank] of espnRanks) result.set(id, rank);
+    return result;
+  }
+
+  const placedRanks = new Set(result.values());
+  const unplaced = playoffTeams.filter((t) => !result.has(t.id));
+  unplaced.sort((a, b) => (a?.playoffSeed ?? 99) - (b?.playoffSeed ?? 99));
+  let nextRank = 1;
+  for (const t of unplaced) {
+    while (placedRanks.has(nextRank)) nextRank++;
+    result.set(t.id, nextRank);
+    placedRanks.add(nextRank);
+  }
+
+  return result;
+};
 
 const countWeeklyExtremes = (matchupData: any, teamId: number) => {
   const schedule: any[] = matchupData?.schedule ?? [];
@@ -321,9 +411,11 @@ async function processManagerCareer(
   tsCurrent: any,
   currentSeason: number
 ): Promise<ManagerCareer> {
-  const ownerId = tsCurrent
-    ? getOwnerIdForManager(tsCurrent, managerDisplayName)
-    : null;
+  const ownerId = findOwnerIdAcrossYears(
+    dataByYear,
+    tsCurrent,
+    managerDisplayName
+  );
 
   let W = 0,
     L = 0,
@@ -363,8 +455,29 @@ async function processManagerCareer(
     L += l;
 
     const playoffSpots = 6;
-    const madePO =
-      my?.playoffSeed && my.playoffSeed > 0 && my.playoffSeed <= playoffSpots;
+
+    let position: number | undefined;
+    const manual = manualFinalStandings[year];
+    if (manual) {
+      const idx = manual.findIndex((name) =>
+        managerEq(name, managerDisplayName)
+      );
+      if (idx !== -1) position = idx + 1;
+    }
+    if (position === undefined) {
+      const finalStandings = computeFinalStandings(yearData);
+      position = finalStandings.get(my.id);
+    }
+    if (position === undefined) {
+      const rankedTeams = teams.map((t: any) => ({
+        id: t.id,
+        wins: t?.record?.overall?.wins ?? 0,
+        pf: t?.record?.overall?.pointsFor ?? 0,
+      }));
+      position = rankTeams(rankedTeams, my.id);
+    }
+
+    const madePO = position <= playoffSpots;
 
     let pw = 0;
     let pl = 0;
@@ -441,30 +554,7 @@ async function processManagerCareer(
     pW += pw;
     pL += pl;
 
-    // --- HARD-CODED FINAL STANDINGS (your list) + simple fallback ---
-
-    let position: number | undefined;
-
-    // 1) Try manual final standings for this year
-    const override = manualFinalStandings[year];
-    if (override) {
-      const idx = override.findIndex((name) =>
-        managerEq(name, managerDisplayName)
-      );
-      if (idx !== -1) {
-        position = idx + 1; // rankings are 1-based
-      }
-    }
-
-    // 2) Fallback: use regular-season rank if no manual entry
-    if (position === undefined) {
-      const rankedTeams = teams.map((t: any) => ({
-        id: t.id,
-        wins: t?.record?.overall?.wins ?? 0,
-        pf: t?.record?.overall?.pointsFor ?? 0,
-      }));
-      position = rankTeams(rankedTeams, my.id);
-    }
+    if (position === 1) champ += 1;
 
     if (yearData.matchups) {
       const { top, bottom } = countWeeklyExtremes(yearData.matchups, my.id);
@@ -477,8 +567,8 @@ async function processManagerCareer(
       w,
       l,
       playoff: madePO,
-      avgPts: gp ? Number((pf / gp).toFixed(2)) : 0,
-      avgPa: gp ? Number((pa / gp).toFixed(2)) : 0,
+      avgPts: gp ? (pf / gp).toFixed(1) : "0.0",
+      avgPa: gp ? (pa / gp).toFixed(1) : "0.0",
     });
 
     finishes.push({ year, position, color: finishColor(position) });
@@ -491,7 +581,7 @@ async function processManagerCareer(
     playoffAppearances: yearly.filter((y) => y.playoff).length,
     playoffRecord: `${pW}-${pL}`,
     record: `${W}-${L}`,
-    winPct: winPct.toFixed(3).replace(/^0/, ""),
+    winPct: `${(winPct * 100).toFixed(1)}%`,
     rank: 0,
     num1Weeks: n1,
     num10Weeks: n10,
@@ -546,7 +636,7 @@ export function preloadAllManagers(leagueId: string) {
         const cacheKey = `${leagueId}-${managerName}`;
         const career = dataStore.getManagerCareer(cacheKey);
         if (career) {
-          const winPct = parseFloat("0" + career.winPct);
+          const winPct = parseFloat(career.winPct);
           managerStats.push({ name: managerName, winPct });
         }
       }
@@ -652,7 +742,11 @@ export const useAllManagersRanking = (leagueId: string) => {
         for (const [_teamName, managerName] of Object.entries(
           teamManagerMapRaw
         )) {
-          const ownerId = getOwnerIdForManager(tsCurrent, managerName);
+          const ownerId = findOwnerIdAcrossYears(
+            dataByYear,
+            tsCurrent,
+            managerName
+          );
 
           let W = 0,
             L = 0;
@@ -701,4 +795,70 @@ export const useAllManagersRanking = (leagueId: string) => {
   }, [leagueId]);
 
   return rankings;
+};
+
+// Live team name for the manager, pulled from the current ESPN season.
+// Renames in ESPN propagate without code changes as long as the manager's
+// ESPN owner is still resolvable through teamManagerMap or a prior identification.
+export const useCurrentTeamName = (
+  leagueId: string,
+  managerDisplayName: string
+): string | null => {
+  const [teamName, setTeamName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!leagueId || !managerDisplayName) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const now = new Date().getFullYear();
+        const currentSeason = await getCurrentSeason(leagueId, now);
+
+        // Step 1: Find this manager's stable ESPN ownerId by walking from the
+        // current season backwards. We use teamManagerMap to match by name in
+        // any year where the team's name is one we recognize.
+        let ownerId: string | null = null;
+        for (let y = currentSeason; y >= START_SEASON; y--) {
+          const ts = await seasonTeamsAndStandings(leagueId, y).catch(
+            () => null
+          );
+          const teams: any[] = ts?.teams ?? [];
+          if (!teams.length) continue;
+          const team = teams.find((t: any) => {
+            const mapped = teamManagerMap[normalize(t?.name ?? "")];
+            return mapped && managerEq(mapped, managerDisplayName);
+          });
+          if (team?.primaryOwner) {
+            ownerId = team.primaryOwner;
+            break;
+          }
+        }
+        if (!ownerId || cancelled) return;
+
+        // Step 2: With the stable ownerId, find the team's most recent name —
+        // even if the team has since been renamed to something not in the map.
+        for (let y = currentSeason; y >= START_SEASON; y--) {
+          const ts = await seasonTeamsAndStandings(leagueId, y).catch(
+            () => null
+          );
+          const teams: any[] = ts?.teams ?? [];
+          if (!teams.length) continue;
+          const team = teams.find((t: any) => t.primaryOwner === ownerId);
+          if (team?.name) {
+            if (!cancelled) setTeamName(team.name);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [leagueId, managerDisplayName]);
+
+  return teamName;
 };
