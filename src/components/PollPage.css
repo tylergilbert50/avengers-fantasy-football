@@ -1,0 +1,453 @@
+/* Poll-specific styling. The page furniture lives in comic.css; this file sets
+   the palette, the ballot and the results table.
+
+   The palette is sampled from panel-managers-poll-color.webp — orange ground,
+   gold lettering — so the page reads as that panel opened up. */
+
+.page-shell.is-poll {
+  --accent-deep: #241002;
+  --accent-mid: #6b3405;
+  /* Capped at the brightest orange the title and subtitle both still read
+     against: gold clears 3:1 for large text, the subtitle clears 4.5:1. */
+  --accent-hi: #9c4f08;
+  --gold: #ffcb2b;
+  --sub-tint: #f7e3cf;
+  --foot-tint: #edd2bb;
+}
+
+/* ---------- test mode ----------
+   Deliberately ugly. It is a warning, not decoration, and it should be
+   impossible to mistake this page for the real poll while it is showing. */
+
+.pp-test {
+  margin: 0 0 1.25rem;
+  padding: 0.7rem 1rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffe14d 0 14px,
+    #f0c000 14px 28px
+  );
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.pp-test strong {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- the ballot ---------- */
+
+.pp-ballot {
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.pp-ballot-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--ink);
+}
+
+.pp-progress {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pp-choices {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pp-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-top: 2px solid rgba(0, 0, 0, 0.12);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pp-choices li:first-child .pp-choice {
+  border-top: 0;
+}
+
+.pp-choice.is-ranked {
+  background: #fff4cf;
+}
+
+@media (hover: hover) {
+  .pp-choice:hover {
+    background: var(--paper-shade);
+  }
+
+  .pp-choice.is-ranked:hover {
+    background: #ffe9a8;
+  }
+}
+
+.pp-choice:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: -5px;
+}
+
+/* The empty slot is a dashed hole the number drops into, so an unranked row
+   reads as waiting rather than as missing something. */
+.pp-slot {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  flex: none;
+  border: 3px dashed rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.pp-slot.is-filled {
+  border-style: solid;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--gold);
+}
+
+.pp-choice-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.pp-name {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.pp-team {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.pp-error {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-top: 3px solid #6d1616;
+  background: #ffe9e2;
+  color: #6b1d13;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.pp-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.85rem 1rem;
+  border-top: 3px solid var(--ink);
+  background: var(--paper-shade);
+}
+
+.pp-submit,
+.pp-clear {
+  padding: 0.55rem 1.2rem;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 140ms ease;
+  touch-action: manipulation;
+}
+
+.pp-submit {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.pp-clear {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.pp-submit:active:not(:disabled),
+.pp-clear:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+@media (hover: hover) {
+  .pp-submit:hover:not(:disabled),
+  .pp-clear:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+}
+
+.pp-submit:focus-visible,
+.pp-clear:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Kept legible rather than ghosted: it is disabled because the ballot isn't
+   finished, and it has to still say what it is waiting for. */
+.pp-submit:disabled,
+.pp-clear:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* ---------- your ballot, after sending ---------- */
+
+.pp-thanks {
+  margin-bottom: 1.25rem;
+}
+
+.pp-your-ballot {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.pp-your-ballot li {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.5rem 1rem;
+}
+
+.pp-your-ballot li + li {
+  border-top: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+.pp-your-ballot li:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+/* ---------- results ---------- */
+
+.poll-table {
+  --cell-pad-x: 1rem;
+  --edge-pad: 1.4rem;
+
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.poll-table th,
+.poll-table td {
+  padding: 0.7rem var(--cell-pad-x);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.poll-table tr > :last-child { padding-right: var(--edge-pad); }
+.poll-table tr > :first-child { padding-left: var(--edge-pad); }
+
+/* Written `.poll-table .col-x`: a bare class scores below `.poll-table td` and
+   the shared cell rules would win every conflict. */
+.poll-table .col-rank,
+.poll-table .col-num,
+.poll-table thead th {
+  white-space: nowrap;
+}
+
+.poll-table .col-num {
+  text-align: right;
+  font-weight: 700;
+}
+
+.poll-table .col-rank {
+  width: 3.6rem;
+}
+
+.poll-table .col-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.poll-table thead th {
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.poll-table tbody td {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.16);
+}
+
+.poll-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.poll-table tbody tr:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+.pp-points {
+  font-family: var(--display);
+  font-size: 1.25rem;
+}
+
+/* Arrows drawn with borders rather than typed — a Unicode triangle turns into a
+   colour emoji on a phone and stops answering to `color`. */
+.pp-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  font-weight: 800;
+}
+
+.pp-arrow {
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.pp-trend-up {
+  color: #1c6b23;
+}
+
+.pp-trend-up .pp-arrow {
+  border-width: 0 0.32em 0.42em 0.32em;
+  border-color: transparent transparent currentColor transparent;
+}
+
+.pp-trend-down {
+  color: #94231b;
+}
+
+.pp-trend-down .pp-arrow {
+  border-width: 0.42em 0.32em 0 0.32em;
+  border-color: currentColor transparent transparent transparent;
+}
+
+.pp-trend-flat {
+  color: var(--muted);
+}
+
+/* ---------- the standing rule ---------- */
+
+.pp-rule {
+  margin: 1.75rem 0 0;
+  color: var(--foot-tint);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 640px) {
+  .pp-ballot,
+  .pp-your-ballot {
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .pp-ballot-head,
+  .pp-choice,
+  .pp-actions,
+  .pp-your-ballot li {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .pp-actions {
+    justify-content: stretch;
+  }
+
+  .pp-submit,
+  .pp-clear {
+    flex: 1;
+    font-size: 0.92rem;
+  }
+
+  /* The table has to fit rather than scroll sideways, so the numbers are pinned
+     and the name column takes what is left. */
+  .poll-table {
+    table-layout: fixed;
+    font-size: 0.9rem;
+    --cell-pad-x: 0.3rem;
+    --edge-pad: 0.7rem;
+  }
+
+  .poll-table .col-rank { width: 2.9rem; }
+  .poll-table .col-num { width: 3.6rem; }
+
+  .pp-points { font-size: 1.05rem; }
+
+  .poll-table th,
+  .poll-table td {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .poll-table thead th { font-size: 0.78rem; letter-spacing: 0.06em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-submit,
+  .pp-clear {
+    transition: none;
+  }
+
+  .pp-submit:active:not(:disabled),
+  .pp-clear:active:not(:disabled) {
+    transform: none;
+  }
+}

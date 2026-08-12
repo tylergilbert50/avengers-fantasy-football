@@ -1,0 +1,26 @@
+html,
+body,
+#root {
+  margin: 0;
+  background-color: #0a080f;
+}
+
+/* Both of these are set on the root only, never on <body>.
+ *
+ * `overflow-x: hidden` on <body> makes its overflow-y compute from `visible` to
+ * `auto`, which turns <body> into a scroll container. Body always sizes to its
+ * content, so that container has nothing to scroll — and `overscroll-behavior:
+ * none` on it then stops the wheel chaining up to <html>, which is the element
+ * that actually scrolls. The result is a page you can only move by dragging the
+ * scrollbar. The comic escaped it because its content lives in a fixed-position
+ * stage, so the wheel reaches the viewport directly; every normal-flow page did
+ * not.
+ *
+ * The root propagates both properties to the viewport on its own, so setting
+ * them here loses nothing: no rubber-band, no pull-to-refresh, no sideways
+ * scroll from the tilted panels.
+ */
+html {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+}

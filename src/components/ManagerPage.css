@@ -1,0 +1,410 @@
+/* One manager's page. The page furniture lives in comic.css; this file lays out
+   the file the league keeps on each of them, in the same panels-and-keylines
+   language as every other page.
+
+   Same teal as the wall it opens from — a profile is that page zoomed in, not
+   somewhere new. */
+
+.page-shell.is-manager {
+  --accent-deep: #02171c;
+  --accent-mid: #06414f;
+  --accent-hi: #0d6a7d;
+  --gold: #ffc61a;
+  --sub-tint: #d5eef4;
+  --foot-tint: #bfe3ec;
+}
+
+.page-shell.is-manager .page-inner {
+  max-width: 52rem;
+}
+
+/* ---------- who ---------- */
+
+.mp-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px;
+  border: 4px solid var(--ink);
+  border-radius: 16px;
+  background: var(--ink);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.mp-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* A burst behind the portrait, like the panel art. */
+.mp-cell-face {
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1.3px) 0 0 / 6px 6px,
+    radial-gradient(70% 70% at 50% 45%, #fff6d8 0%, #f7e6b4 55%, var(--paper-shade) 100%);
+}
+
+/* The portraits are drawn out to the edge of their own circle on black, so the
+   ring is seating them rather than cropping them. */
+.mp-face {
+  width: clamp(7rem, 22vw, 9.5rem);
+  aspect-ratio: 1;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 0 5px var(--gold), 5px 5px 0 5px rgba(0, 0, 0, 0.35);
+  object-fit: cover;
+}
+
+.mp-face-empty {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 2.4rem;
+  letter-spacing: 0.04em;
+}
+
+.mp-cell-honours {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+}
+
+/* ---------- a stat panel ---------- */
+
+.mp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem 0.85rem;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  text-align: center;
+}
+
+.mp-stat-label {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.mp-stat-value {
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 5.5vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-stat-note {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---------- section headings ---------- */
+
+.mp-section {
+  margin: 2.25rem 0 1.25rem;
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+  text-align: center;
+}
+
+/* ---------- career stats ---------- */
+
+/* `color` is not optional here: the page shell paints its text the colour of
+   paper, so a panel that puts paper behind it has to say otherwise or the
+   numbers go the same colour as the panel. */
+.mp-career {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 0.9rem;
+  align-items: stretch;
+  padding: 1rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+}
+
+.mp-balls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mp-ball {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mp-ball-art {
+  width: 100%;
+  max-width: 7rem;
+}
+
+.mp-ball-value {
+  fill: var(--ink);
+  font-family: var(--display);
+  font-size: 34px;
+}
+
+.mp-ball-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- the season table ---------- */
+
+.mp-table-wrap {
+  margin-top: 1.5rem;
+}
+
+.mp-seasons {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.mp-seasons th,
+.mp-seasons td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.mp-seasons tr > :first-child { padding-left: 1.25rem; }
+.mp-seasons tr > :last-child { padding-right: 1.25rem; }
+
+.mp-seasons thead th {
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mp-seasons tbody td {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+}
+
+.mp-seasons tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mp-seasons tbody tr:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+.mp-num {
+  text-align: right;
+  font-weight: 700;
+}
+
+.mp-year-cell {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+}
+
+.mp-record {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+/* Made the playoffs. Said in words rather than shown as a tick, so it survives
+   being read aloud and doesn't depend on the colour. */
+.mp-yes {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: #7fe3b4;
+  color: #0b3d26;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mp-no {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* The finish disc, borrowed from the standings so a 1 means the same thing on
+   every page of the site. */
+.mp-seasons .rank-badge {
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-left: auto;
+  font-size: 0.95rem;
+}
+
+/* ---------- career finishes ---------- */
+
+.mp-chart-wrap {
+  color: var(--ink);
+  padding: 1rem 0.75rem 0.75rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+}
+
+.mp-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mp-axis {
+  fill: var(--muted);
+  font-family: var(--display);
+  font-size: 16px;
+}
+
+.mp-year {
+  fill: var(--ink);
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: 0.04em;
+}
+
+.mp-dot {
+  font-family: var(--display);
+  font-size: 17px;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 700px) {
+  /* The portrait sits above the honours rather than beside them. */
+  .mp-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mp-career {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mp-balls {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .mp-card,
+  .mp-career,
+  .mp-chart-wrap {
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .mp-cell,
+  .mp-cell-honours {
+    padding: 1rem 0.7rem;
+  }
+
+  .mp-seasons th,
+  .mp-seasons td {
+    padding: 0.5rem;
+  }
+
+  .mp-seasons tr > :first-child { padding-left: 0.7rem; }
+  .mp-seasons tr > :last-child { padding-right: 0.7rem; }
+
+  .mp-stat-label { font-size: 0.68rem; }
+}
+
+@media (max-width: 420px) {
+  .mp-cell-honours {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- awards ----------
+   Given out by the league rather than worked out from the games, so they get
+   their own strip under the card rather than a slot among the numbers. */
+
+.mp-awards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mp-award {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0.9rem 1.1rem;
+  border: 4px solid var(--gold);
+  border-radius: 12px;
+  /* Black, because the award itself is: white line art on a dark ground. */
+  background: #0b0b0b;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  color: var(--paper);
+}
+
+/* The whole icon, not a circle cut out of it — the trophy is the shape, plaque
+   and all, and cropping it to a disc loses the base it stands on. */
+.mp-award-art {
+  width: auto;
+  height: 6.5rem;
+  flex: none;
+  object-fit: contain;
+}
+
+.mp-award-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mp-award-name {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.mp-award-when {
+  color: #cfd6dd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}

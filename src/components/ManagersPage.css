@@ -1,0 +1,158 @@
+/* Managers-specific styling. The page furniture lives in comic.css; this file
+   sets the palette and the wall of faces.
+
+   The palette is sampled from panel-managers-color.webp and pulled towards
+   teal: that panel is blue, and so are Schedule's and the History Sheet's, so
+   three pages a click apart would otherwise read as one page that failed to
+   change. */
+
+.page-shell.is-managers {
+  --accent-deep: #02171c;
+  --accent-mid: #06414f;
+  /* Capped at the brightest teal the title and subtitle both still read
+     against: gold clears 3:1 for large text, the subtitle clears 4.5:1. */
+  --accent-hi: #0d6a7d;
+  --gold: #ffc61a;
+  --sub-tint: #d5eef4;
+  --foot-tint: #bfe3ec;
+}
+
+/* The dashed rule under the title, from the artwork. Drawn as a border rather
+   than a row of characters so it stretches to whatever width it is given. */
+.mg-rule {
+  height: 0;
+  margin: 0 0 2.5rem;
+  border-top: 5px dashed var(--ink);
+  opacity: 0.85;
+}
+
+/* ---------- the wall ---------- */
+
+.mg-wall {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mg-card {
+  display: flex;
+  min-width: 0;
+}
+
+.mg-open {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 120ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .mg-open:hover {
+    transform: translateY(-4px);
+  }
+
+  .mg-open:hover .mg-name {
+    background: var(--gold);
+  }
+}
+
+.mg-open:active {
+  transform: translateY(0);
+}
+
+.mg-open:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-open,
+  .mg-open:hover {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* The portraits are drawn out to the edge of their own circle on black, so the
+   ring here is seating them rather than cropping them. */
+.mg-face {
+  width: 100%;
+  max-width: 9rem;
+  aspect-ratio: 1;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 0 4px var(--gold), 5px 5px 0 4px rgba(0, 0, 0, 0.35);
+  object-fit: cover;
+}
+
+.mg-face-empty {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+}
+
+/* The name plate under each face. */
+.mg-name {
+  padding: 0.35rem 1.1rem;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 3px 3px 0 var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- narrower screens ---------- */
+
+@media (max-width: 900px) {
+  .mg-wall {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.75rem 1rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .mg-wall {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 0.9rem;
+  }
+
+  .mg-rule {
+    margin-bottom: 1.75rem;
+    border-top-width: 4px;
+  }
+
+  .mg-face {
+    max-width: 7.5rem;
+    box-shadow: 0 0 0 3px var(--gold), 4px 4px 0 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .mg-name {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.95rem;
+  }
+}

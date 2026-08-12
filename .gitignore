@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Secrets — ESPN league credentials live here
+.env
+.env.*
+!.env.example
+
+# Netlify CLI
+.netlify
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

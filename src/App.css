@@ -1,0 +1,361 @@
+/* ---------- scroll driver ----------
+   The track exists only to create scroll distance; the stage is pinned to the
+   viewport and reads the document's scroll progress into --p (0 = cover flat,
+   1 = page turned).
+
+   The stage is fixed rather than sticky on purpose: a sticky box sized in vh
+   is taller than the visible area while a mobile address bar is showing, so it
+   drifts as you scroll.
+
+   It is sized in svh — the height with the address bar *shown* — rather than
+   inset: 0, because a fixed box pinned to all four edges resizes continuously
+   as that bar slides away, which shifts everything centred inside it. svh is a
+   static unit, so nothing moves. When the bar does hide, the strip it uncovers
+   is the same colour as the bottom of the stage gradient. */
+
+.track {
+  height: 260vh;
+}
+
+/* Coming back to an already-turned cover: there is no turn left to scroll
+   through, so the track stops making scroll distance and the stage is simply
+   the page. Two class names deep, so it also beats the reduced-motion height
+   further down whatever order the rules land in. */
+.track.is-open {
+  height: 100vh;
+  height: 100svh;
+}
+
+.stage {
+  --p: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* fallback for browsers without svh */
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 40%, #241d2e 0%, #14101b 55%, #0a080f 100%);
+}
+
+/* ---------- the book ---------- */
+
+.book {
+  position: relative;
+  aspect-ratio: 760 / 1148;
+  /* Height-constrained on desktop, so this is what sets the room underneath
+     for the scroll hint. */
+  height: min(80vh, calc(86vw * 1.5105));
+  height: min(80svh, calc(86vw * 1.5105)); /* static — see .stage */
+  perspective: 2000px;
+}
+
+.sheet {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* Page underneath — where the panels live. Fully opaque the whole time: the
+   cover is what hides it, so it uncovers naturally as the paper peels away.
+   The white shows between the panels as the gutters. */
+.sheet-under {
+  background: #ffffff;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The WebGL curl draws over the whole stage in CSS pixels, aligned 1:1 with
+   the book, so the paper can lift outside the book's own bounds. */
+.curl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Once WebGL owns the cover, the DOM copy steps aside. */
+.stage.is-gl .sheet-cover {
+  visibility: hidden;
+}
+
+.stage:not(.is-gl) .sheet-under {
+  opacity: clamp(0, calc(var(--p) * 2.4 - 0.15), 1);
+}
+
+.stage.is-done .curl-canvas {
+  visibility: hidden;
+}
+
+/* ---------- fallback turn (no WebGL, or reduced motion) ---------- */
+
+.sheet-cover {
+  transform-origin: left center;
+  transform: rotateY(calc(var(--p) * -180deg));
+  backface-visibility: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.cover-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.3) 25%,
+    rgba(0, 0, 0, 0) 65%
+  );
+  opacity: clamp(0, calc(var(--p) * 2.2), 1);
+}
+
+.stage.is-gl .cover-shade {
+  opacity: 0;
+}
+
+/* ---------- scroll hint ---------- */
+
+/* Spans the full width rather than anchoring at left: 50%. Anchored, its
+   shrink-to-fit width is capped at the distance to the right edge — half the
+   viewport — which wraps the label onto two lines on a phone. */
+.scroll-hint {
+  position: absolute;
+  bottom: 3%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.72);
+  font: 500 0.72rem/1 system-ui, sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--p) * 5), 1);
+}
+
+/* Only one of the two verbs is ever shown — see the phone block below. */
+.hint-verb-touch {
+  display: none;
+}
+
+.chevron {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  animation: nudge 1.8s ease-in-out infinite;
+}
+
+/* The translate runs in the rotated frame, so (3px, 3px) is always "along the
+   way the arrow points" — down at 45deg, up at 225deg. */
+@keyframes nudge {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); }
+  50% { transform: rotate(45deg) translate(3px, 3px); }
+}
+
+@keyframes nudge-up {
+  0%, 100% { transform: rotate(225deg) translate(0, 0); }
+  50% { transform: rotate(225deg) translate(3px, 3px); }
+}
+
+/* ---------- panel buttons ----------
+   Ten cutouts positioned to reassemble the page. Each one's box is set inline
+   from the measured layout in App.jsx; everything they share lives here. */
+
+.page {
+  position: absolute;
+  inset: 0;
+}
+
+/* Backstop for browsers that don't implement `inert` semantics: the attribute
+   is still on the element, so the clicks are still refused. */
+.page[inert] {
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  /* Panels are slanted, so their boxes overlap. Only the clip-path in App.jsx
+     keeps each button's hit area on its own artwork — without it the boxes
+     would trade clicks along every diagonal edge. */
+  transition: transform 160ms ease-out, filter 160ms ease-out;
+  /* Opts the panel out of double-tap-to-zoom, so the browser has no second
+     gesture to wait for and can treat a touch as a tap straight away. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.panel-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The artwork is decoration; the button is the control. Without this the
+     images are their own touch targets, and on a touch screen the first tap
+     can go to the image — long-press menus, drag-to-save — instead of through
+     to the button underneath. */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* The colour twin, stacked exactly on top of the black-and-white one. Both
+   files are the same pixel size and carry the same alpha silhouette, so this
+   sits in perfect register and the fade can't shift or leak past the edge.
+   Only this panel's own colour layer is revealed — every other panel is a
+   separate button and stays black and white. */
+.panel-art-color {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+/* Colour while being pressed and on keyboard focus. Hover is added separately
+   below, and only where hovering is a thing that exists. */
+.panel:focus-visible .panel-art-color,
+.panel:active .panel-art-color {
+  opacity: 1;
+}
+
+/* Lifts toward the reader. z-index puts the growing panel over its neighbours
+   instead of under them. */
+.panel:focus-visible,
+.panel:active {
+  transform: scale(1.035);
+  z-index: 1;
+}
+
+/* Hover is quarantined behind `hover: hover` — a pointer that can actually
+   rest on something without pressing it.
+
+   A touch screen reports `hover: none`, and if it is offered :hover rules
+   anyway it emulates them: the first tap paints the hover state and swallows
+   the click, so the panel needs tapping twice to open. Withholding the rules
+   is what makes one tap enough. Nothing is lost — a finger can't hover, and
+   :active already covers the press. */
+@media (hover: hover) {
+  .panel:hover .panel-art-color {
+    opacity: 1;
+  }
+
+  .panel:hover {
+    transform: scale(1.035);
+    z-index: 1;
+  }
+}
+
+.panel:focus-visible {
+  outline: 3px solid #1b7fd4;
+  outline-offset: -6px;
+}
+
+/* Reduced motion drops the lift and the fade, but keeps the colour — that's
+   the point of the interaction, not decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel-art-color {
+    transition: none;
+  }
+
+  .panel:focus-visible,
+  .panel:active {
+    transform: none;
+  }
+
+  /* Matches the hover block's specificity so it still wins there. */
+  @media (hover: hover) {
+    .panel:hover {
+      transform: none;
+    }
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- phones ----------
+   The cover is width-constrained here, not height-constrained, so trimming its
+   width is what opens up room under it for the hint. */
+
+@media (max-width: 640px) {
+  /* Trimmed from 80vw/84svh to lift the cover's bottom edge clear of the hint.
+     The book stays centred in the stage either way, which is what the curl
+     shader assumes — it is handed the book's size, never its position. */
+  .book {
+    height: min(80vh, calc(76vw * 1.5105));
+    height: min(80svh, calc(76vw * 1.5105));
+  }
+
+  /* The stack is anchored at its bottom, so a bigger gap pushes the *text* up
+     toward the cover. Dropping `bottom` pays that back and then some. */
+  .scroll-hint {
+    bottom: 3.5%;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    gap: 1.5rem;
+  }
+
+  .hint-verb-pointer {
+    display: none;
+  }
+
+  .hint-verb-touch {
+    display: inline;
+  }
+
+  /* Point the arrow up: on a phone, swiping up is what scrolls the page down.
+     The transform covers the case where the animation is off. */
+  .chevron {
+    transform: rotate(225deg);
+    animation-name: nudge-up;
+  }
+}
+
+/* ---------- reduced motion: crossfade, no turn ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: 180vh;
+  }
+
+  .sheet-cover {
+    transform: none;
+    opacity: clamp(0, calc(1 - var(--p) * 1.4), 1);
+  }
+
+  .cover-shade {
+    opacity: 0;
+  }
+
+  .chevron {
+    animation: none;
+  }
+}

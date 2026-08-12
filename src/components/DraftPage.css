@@ -1,0 +1,280 @@
+/* Draft-specific styling. The page furniture lives in comic.css; this file sets
+   the palette and lays out the season boards.
+
+   The palette is sampled from panel-draft-history-color.webp — red ground, gold
+   lettering — so the page reads as that panel opened up. */
+
+.page-shell.is-draft {
+  --accent-deep: #2b0605;
+  --accent-mid: #7a1512;
+  /* Capped at the brightest red the title and subtitle both still read
+     against: gold clears 3:1 for large text, the subtitle clears 4.5:1. */
+  --accent-hi: #b02824;
+  --gold: #f0b41e;
+  --sub-tint: #f6d9d2;
+  --foot-tint: #efc9c2;
+}
+
+/* ---------- one panel per season ---------- */
+
+.dp-season {
+  margin-bottom: 1.6rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.dp-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  background: var(--ink);
+}
+
+.dp-year {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.dp-meta {
+  margin: 0;
+  color: #cfc4bf;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- the headline pick ---------- */
+
+.dp-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 3px solid var(--ink);
+  /* A burst behind the player, like the panel art. */
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.13) 1px, transparent 1.3px) 0 0 / 6px 6px,
+    radial-gradient(70% 120% at 18% 50%, #ffe9a8 0%, #f6d98c 45%, var(--paper-shade) 100%);
+}
+
+.dp-art {
+  width: 5.5rem;
+  height: 5.5rem;
+  flex: none;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.35));
+}
+
+/* Stand-in until a cutout is dropped into src/assets/draft-picks/. */
+.dp-art-empty {
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+}
+
+.dp-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.dp-hero-label {
+  color: #7a4a12;
+  font-family: var(--display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dp-hero-player {
+  font-size: clamp(1.15rem, 3.4vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.dp-hero-manager {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---------- the board ---------- */
+
+.dp-round-title {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  background: var(--paper-shade);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Slot, player, manager. The slot is fixed so the numbers form a column, and
+   the manager takes what the player name doesn't need. */
+.dp-pick {
+  display: grid;
+  grid-template-columns: 3.1rem minmax(0, 1fr) minmax(0, 8rem);
+  align-items: baseline;
+  gap: 0 0.7rem;
+  padding: 0.38rem 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dp-pick + .dp-pick {
+  border-top: 2px solid rgba(0, 0, 0, 0.09);
+}
+
+.dp-pick:nth-child(even) {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dp-slot {
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+}
+
+.dp-player {
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Deliberately not the display face: Impact is too condensed to read as a
+   two-letter chip at this size. */
+.dp-pos {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.08rem 0.34rem;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 0.1em;
+}
+
+.dp-manager {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- the rest of the board, on ESPN ---------- */
+
+.dp-recap {
+  display: block;
+  padding: 0.6rem 1rem;
+  border-top: 3px solid var(--ink);
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+@media (hover: hover) {
+  .dp-recap:hover {
+    background: #ffd45c;
+  }
+}
+
+.dp-recap:active {
+  background: #e0a410;
+}
+
+.dp-recap:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: -6px;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 640px) {
+  .dp-season {
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .dp-head,
+  .dp-hero,
+  .dp-round-title,
+  .dp-pick,
+  .dp-recap {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .dp-year { font-size: 1.3rem; }
+  .dp-meta { font-size: 0.64rem; }
+
+  .dp-art {
+    width: 4.25rem;
+    height: 4.25rem;
+  }
+
+  /* The manager moves under the player rather than fighting it for width. */
+  .dp-pick {
+    grid-template-columns: 2.7rem minmax(0, 1fr);
+    row-gap: 0.05rem;
+  }
+
+  .dp-manager {
+    grid-column: 2;
+    text-align: left;
+    font-size: 0.74rem;
+  }
+
+  .dp-player { font-size: 0.86rem; }
+  .dp-slot { font-size: 0.76rem; }
+}
+
+@media (max-width: 380px) {
+  .dp-head,
+  .dp-hero,
+  .dp-round-title,
+  .dp-pick,
+  .dp-recap {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .dp-art {
+    width: 3.6rem;
+    height: 3.6rem;
+  }
+
+  .dp-pick { grid-template-columns: 2.4rem minmax(0, 1fr); }
+}

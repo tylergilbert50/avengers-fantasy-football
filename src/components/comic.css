@@ -1,0 +1,315 @@
+/* ---------- shared comic chrome ----------
+   The page furniture every content page behind the cover uses: the burst
+   background, the lettering, the back button, the rank discs and the caption
+   boxes. Each page sets its own palette through the accent variables and gets
+   the rest for free, so Records and Standings can't drift apart.
+
+   Everything is drawn in CSS — no fonts to fetch and no extra images. The
+   halftone and burst are gradients; the comic outline on the title is a ring
+   of hard text shadows. */
+
+.page-shell,
+.page-shell *,
+.page-shell *::before,
+.page-shell *::after {
+  box-sizing: border-box;
+}
+
+.page-shell {
+  /* Overridden per page. Defaults are the Standings green. */
+  --accent-deep: #04200a;
+  --accent-mid: #14561a;
+  --accent-hi: #24721f;
+  --gold: #f0c000;
+  --sub-tint: #d6ecc9;
+  --foot-tint: #cfe6c2;
+
+  --ink: #0b0b0b;
+  --paper: #f3efe1;
+  --paper-shade: #e6e0cd;
+  --muted: #5d5647;
+  --display: "Bangers", Impact, Haettenschweiler, "Franklin Gothic Heavy",
+    "Arial Black", "Helvetica Neue", sans-serif;
+
+  min-height: 100vh;
+  min-height: 100svh;
+  /* Deliberately no `overflow-x: hidden` here. Setting one axis to hidden makes
+     the other compute from `visible` to `auto`, which quietly turns this into a
+     scroll container — the wheel then scrolls *it* (which has nothing to
+     scroll, since it sizes to its content) instead of the document, and the
+     page appears stuck. The rotated panels are already kept off the horizontal
+     scroll by `html, body { overflow-x: hidden }` in index.css. */
+  color: var(--paper);
+  font: 400 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.24) 1px, transparent 1.4px) 0 0 / 7px 7px,
+    repeating-conic-gradient(
+      from 0deg at 50% 16%,
+      rgba(255, 255, 255, 0.05) 0deg 1.5deg,
+      transparent 1.5deg 5deg
+    ),
+    radial-gradient(125% 78% at 50% 14%, var(--accent-hi) 0%, var(--accent-mid) 36%, var(--accent-deep) 78%);
+  background-color: var(--accent-deep);
+  animation: page-in 300ms ease-out both;
+}
+
+.page-inner {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- head ---------- */
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  margin-bottom: 2.25rem;
+}
+
+.title-block {
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 10vw, 5rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--gold);
+  transform: rotate(-1.5deg);
+  /* Eight offsets make the black keyline, the ninth is the drop shadow. */
+  text-shadow:
+    3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 3px 0 var(--ink), 0 -3px 0 var(--ink),
+    3px 3px 0 var(--ink), -3px 3px 0 var(--ink), 3px -3px 0 var(--ink), -3px -3px 0 var(--ink),
+    9px 9px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Flex parts rather than one string, so the separator can be dropped on
+   phones and the words stay correctly spaced by the gap. */
+.page-sub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.5em;
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sub-tint);
+}
+
+/* A comic action button: flat fill, hard keyline, and a shadow it presses into
+   rather than a gradient.
+
+   Phones only. Hidden here and switched on inside the phone breakpoint rather
+   than hidden by a `min-width` rule, so the two states share one breakpoint
+   value and there is no half-pixel width where both or neither apply. */
+.back {
+  display: none;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5rem 1rem;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: rotate(-1.2deg);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 90ms ease, box-shadow 90ms ease, background 140ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A triangle made of borders, so it is a shape rather than a glyph: no font to
+   substitute and no emoji form for a phone to fall into. */
+.back-arrow {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.32em 0.42em 0.32em 0;
+  border-color: transparent currentColor transparent transparent;
+}
+
+.back:active {
+  transform: rotate(-1.2deg) translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.back:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .back:hover {
+    filter: brightness(1.1);
+  }
+}
+
+/* ---------- a table, as a panel pasted on the page ----------
+   Standings, the poll and the history sheet all mount a table this way, so it
+   lives here rather than in whichever page happened to need it first. The
+   horizontal scroll is what saves a wide table on a phone: without it the
+   browser crushes the widest column until the names break a letter per line. */
+
+.table-wrap {
+  overflow-x: auto;
+  /* Stops at the last column rather than rubber-banding past it, which drags
+     the panel's blank paper into view and reads as a gap in the table. It also
+     keeps the swipe from chaining into a page-level back gesture. */
+  overscroll-behavior-x: none;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  transform: rotate(-0.35deg);
+}
+
+/* ---------- rank discs ---------- */
+
+.rank-badge {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.rank-1 { background: var(--gold); color: var(--ink); }
+.rank-2 { background: #ccd1d7; color: var(--ink); }
+.rank-3 { background: #c9813f; color: var(--ink); }
+
+/* ---------- states, as caption boxes ---------- */
+
+.state {
+  margin: 0;
+  padding: 1.1rem 1.25rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-0.4deg);
+}
+
+.state-error {
+  background: #ffe9e2;
+  border-color: #6d1616;
+}
+
+.state-title { margin: 0 0 0.4rem; }
+
+.state-detail {
+  margin: 0 0 0.75rem;
+  color: #6b3a33;
+  font-family: system-ui, sans-serif;
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.retry {
+  padding: 0.4rem 0.9rem;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  touch-action: manipulation;
+}
+
+.retry:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.page-foot {
+  margin-top: 1.5rem;
+  color: var(--foot-tint);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 640px) {
+  .page-inner {
+    padding: 1.6rem 0.7rem 3rem;
+  }
+
+  .back {
+    display: inline-flex;
+  }
+
+  /* The subtitle wraps onto two lines at this width, which leaves the dot
+     dangling at the end of the first one. */
+  .sub-sep {
+    display: none;
+  }
+
+  .state,
+  .table-wrap {
+    transform: none;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 380px) {
+  .page-inner {
+    padding: 1.4rem 0.5rem 2.5rem;
+  }
+}
+
+/* The tilts are decoration, not information. */
+@media (prefers-reduced-motion: reduce) {
+  .page-shell {
+    animation: none;
+  }
+
+  .title,
+  .back,
+  .state,
+  .table-wrap {
+    transform: none;
+  }
+
+  .back:active,
+  .retry:active {
+    transform: none;
+  }
+}

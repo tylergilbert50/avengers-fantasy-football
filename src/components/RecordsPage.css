@@ -1,0 +1,239 @@
+/* Records-specific styling. The page furniture lives in comic.css; this file
+   sets the palette and lays out the twelve record panels.
+
+   The palette is sampled from panel-records-color.webp — purple ground, gold
+   lettering — so the page reads as that panel opened up. */
+
+.page-shell.is-records {
+  --accent-deep: #16042a;
+  --accent-mid: #3a1060;
+  /* Capped at the brightest purple the title and subtitle both still read
+     against: gold clears 3:1 for large text, the subtitle clears 4.5:1. */
+  --accent-hi: #7e439a;
+  --gold: #f0a800;
+  --sub-tint: #e6d5f2;
+  --foot-tint: #d9c6e8;
+}
+
+/* The page is wider than Standings because it carries two columns of panels. */
+.page-shell.is-records .page-inner {
+  max-width: 72rem;
+}
+
+.title-small {
+  display: block;
+  font-size: 0.38em;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- the twelve panels ---------- */
+
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6rem 1.5rem;
+  /* Room for the hard shadows to fall without clipping against the next panel. */
+  padding-bottom: 0.5rem;
+}
+
+.rec-group {
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  transform: rotate(var(--tilt, 0deg));
+  overflow: hidden;
+}
+
+.rec-title {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.98rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* One grid for the whole group. The header and every row are subgrids of it, so
+   each column is measured once across the group rather than once per row — that
+   is what keeps "Score" and "Opponent / Year" sitting over their values, and
+   the values lined up with each other.
+ *
+ * The plain template is declared first as a fallback: a browser without subgrid
+ * drops the second declaration and each row lays itself out as before. */
+.rec-rows {
+  --pad-x: 0.9rem;
+
+  display: grid;
+  grid-template-columns: var(--tpl);
+  /* Both of these belong to the parent. In a subgridded axis the child's own
+     gap is ignored and the parent's gutter is used — and a child's horizontal
+     padding insets its tracks, which eats that gutter until the rank disc is
+     touching the name. So the inset is applied here, once. */
+  column-gap: 0.7rem;
+  padding-inline: var(--pad-x);
+}
+
+.rec-cols,
+.rec-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: var(--tpl);
+  grid-template-columns: subgrid;
+  align-items: center;
+  /* Pulled back out to the panel edge and padded by the same amount, so the
+     banding and hover fill run edge to edge while the tracks stay exactly on
+     the parent's — the two cancel to a net inset of zero. */
+  margin-inline: calc(var(--pad-x) * -1);
+  padding-inline: var(--pad-x);
+}
+
+.rec-cols {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Value headings sit over right-aligned numbers, so they align right too. */
+.rec-cols > :nth-child(n + 3) {
+  text-align: right;
+}
+
+.rec-row {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.rec-row + .rec-row {
+  border-top: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+.rec-row:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+.rec-primary {
+  font-weight: 800;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.rec-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* The trailing value column is context — year, opponent, span — not a number
+   to compare, so it steps back. Every category uses the same treatment, so the
+   years read alike whether or not the row happens to be a link. */
+.rec-context {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.rec-row.is-link {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .rec-row.is-link:hover {
+    background: #fff6cc;
+  }
+}
+
+.rec-row.is-link:active {
+  background: #ffeda3;
+}
+
+.rec-row.is-link:focus-visible {
+  outline: 3px solid var(--accent-hi);
+  outline-offset: -3px;
+}
+
+.rec-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.9rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.rank-badge {
+  width: 1.65rem;
+  height: 1.65rem;
+  border-width: 2px;
+  font-size: 0.85rem;
+}
+
+/* ---------- phones ----------
+   One panel per row: two columns of four value tracks each cannot fit a phone
+   without either scrolling sideways or shrinking the type past reading size. */
+
+@media (max-width: 780px) {
+  .rec-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+
+  .rec-group {
+    transform: none;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 640px) {
+  .rec-title {
+    font-size: 0.88rem;
+    letter-spacing: 0.06em;
+  }
+
+  .rec-rows {
+    --pad-x: 0.6rem;
+    column-gap: 0.5rem;
+  }
+
+  .rec-primary { font-size: 0.88rem; }
+  .rec-cell { font-size: 0.82rem; }
+  .rec-context { font-size: 0.76rem; }
+}
+
+@media (max-width: 380px) {
+  .rec-rows {
+    --pad-x: 0.45rem;
+    column-gap: 0.35rem;
+  }
+
+  .rec-primary { font-size: 0.82rem; }
+  .rec-cell { font-size: 0.76rem; }
+  .rec-context { font-size: 0.71rem; }
+  .rec-cols { font-size: 0.6rem; }
+
+  .rank-badge {
+    width: 1.45rem;
+    height: 1.45rem;
+    font-size: 0.78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-group { transform: none; }
+}

@@ -1,0 +1,393 @@
+/* History-sheet styling. The page furniture lives in comic.css; this file sets
+   the palette, the tabs and the three views of the league's records.
+
+   The palette is sampled from panel-history-sheet-color.webp, pulled towards
+   graphite so it doesn't read as the same page as Schedule — that panel is blue
+   too, and two blue pages a click apart look like one page that failed to
+   change. */
+
+.page-shell.is-history {
+  --accent-deep: #06080f;
+  --accent-mid: #1c2438;
+  /* Capped at the brightest slate the title and subtitle both still read
+     against: gold clears 3:1 for large text, the subtitle clears 4.5:1. */
+  --accent-hi: #3d4f78;
+  --gold: #ffc61a;
+  --sub-tint: #dfe4f2;
+  --foot-tint: #c9d1e6;
+}
+
+/* The all-time table and the head-to-head grid are both wide. */
+.page-shell.is-history .page-inner {
+  max-width: 72rem;
+}
+
+/* ---------- tabs ---------- */
+
+.hs-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.hs-tab {
+  padding: 0.45rem 0.9rem;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 90ms ease, box-shadow 90ms ease, background 140ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The pressed tab sits down into its own shadow, so which view you are on is
+   readable as a shape rather than only as a colour. */
+.hs-tab.is-on {
+  background: var(--gold);
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+@media (hover: hover) {
+  .hs-tab:hover:not(.is-on) {
+    background: var(--paper-shade);
+  }
+}
+
+.hs-tab:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* ---------- tables ---------- */
+
+.hs-table {
+  --cell-pad-x: 0.75rem;
+  --edge-pad: 1.1rem;
+
+  width: 100%;
+  /* Ten columns don't fit a phone, and a table told to fit anyway crushes the
+     name column until it breaks one letter per line. Below this it scrolls
+     inside .table-wrap instead, which is the readable failure. */
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* Fourteen columns rather than ten. */
+.hs-grid {
+  min-width: 52rem;
+}
+
+.hs-table th,
+.hs-table td {
+  padding: 0.55rem var(--cell-pad-x);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.hs-table tr > :last-child { padding-right: var(--edge-pad); }
+.hs-table tr > :first-child { padding-left: var(--edge-pad); }
+
+.hs-table .col-rank,
+.hs-table .col-num,
+.hs-table thead th {
+  white-space: nowrap;
+}
+
+.hs-table .col-num {
+  text-align: right;
+  font-weight: 700;
+}
+
+.hs-table .col-rank { width: 3.4rem; }
+
+.hs-table .col-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.hs-table thead th {
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hs-table tbody td,
+.hs-table tbody th {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+}
+
+.hs-table tbody tr:last-child td,
+.hs-table tbody tr:last-child th {
+  border-bottom: none;
+}
+
+.hs-table tbody tr:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+/* ---------- sortable headings ---------- */
+
+.hs-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .hs-sort:hover {
+    color: #fff;
+  }
+}
+
+.hs-sort:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* A caret drawn with borders — no glyph to substitute, no emoji form. It is the
+   only mark of which column is in force, so the unsorted state is dimmed rather
+   than hidden: a sortable column has to look sortable before it is clicked, and
+   the one doing the sorting has to stand out from the rest. */
+.hs-caret {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0.28em 0.34em 0.28em;
+  border-color: transparent transparent currentColor transparent;
+  opacity: 0.35;
+}
+
+.hs-caret.is-asc {
+  opacity: 1;
+}
+
+.hs-caret.is-desc {
+  border-width: 0.34em 0.28em 0 0.28em;
+  border-color: currentColor transparent transparent transparent;
+  opacity: 1;
+}
+
+.hs-name {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.hs-strong {
+  font-family: var(--display);
+  font-size: 1.1rem;
+}
+
+/* ---------- head to head ---------- */
+
+.hs-grid th[scope='row'] {
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hs-grid td {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.hs-grid thead th abbr {
+  text-decoration: none;
+  cursor: help;
+}
+
+/* Nobody plays themselves. */
+.hs-self {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.07) 0 5px,
+    transparent 5px 10px
+  );
+}
+
+.hs-up { color: #17561d; }
+.hs-down { color: #8c1f18; }
+
+/* ---------- best weeks ---------- */
+
+.hs-panel {
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.hs-weeks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hs-week {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) minmax(0, 8rem) minmax(0, 6rem) 4rem;
+  align-items: baseline;
+  gap: 0 0.7rem;
+  padding: 0.4rem 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hs-week + .hs-week {
+  border-top: 2px solid rgba(0, 0, 0, 0.09);
+}
+
+.hs-week:nth-child(even) {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.hs-week-rank {
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 0.85rem;
+}
+
+.hs-week-player {
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Not the display face: Impact is too condensed to read as a two-letter chip. */
+.hs-pos {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.08rem 0.3rem;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  vertical-align: 0.1em;
+}
+
+.hs-week-owner,
+.hs-week-when {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.hs-week-score {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  text-align: right;
+}
+
+/* ---------- a fold-away panel ---------- */
+
+.hs-more {
+  margin-top: 0.75rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.hs-more > summary {
+  padding: 0.55rem 1rem;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  touch-action: manipulation;
+}
+
+.hs-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A caret drawn with borders — no glyph to substitute, no emoji form. */
+.hs-more > summary::after {
+  content: '';
+  display: inline-block;
+  margin-left: 0.5em;
+  border-style: solid;
+  border-width: 0.34em 0.28em 0 0.28em;
+  border-color: currentColor transparent transparent transparent;
+  vertical-align: 0.15em;
+}
+
+.hs-more[open] > summary::after {
+  border-width: 0 0.28em 0.34em 0.28em;
+  border-color: transparent transparent currentColor transparent;
+}
+
+.hs-more > summary:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: -4px;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 640px) {
+  .hs-table {
+    --cell-pad-x: 0.4rem;
+    --edge-pad: 0.7rem;
+    font-size: 0.86rem;
+  }
+
+  .hs-table thead th { font-size: 0.72rem; letter-spacing: 0.04em; }
+  .hs-table .col-rank { width: 2.6rem; }
+  .hs-name { font-size: 0.88rem; }
+
+  .hs-panel,
+  .hs-more {
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .hs-week,
+  .hs-more > summary {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  /* The owner and the date move under the player rather than fighting it. */
+  .hs-week {
+    grid-template-columns: 2rem minmax(0, 1fr) 4rem;
+    row-gap: 0.1rem;
+  }
+
+  .hs-week-owner { grid-column: 2; }
+  .hs-week-when { grid-column: 2; }
+  .hs-week-score { grid-row: 1 / span 3; grid-column: 3; align-self: center; }
+}
