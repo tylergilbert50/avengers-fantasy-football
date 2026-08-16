@@ -195,14 +195,15 @@ function sortStats(stats, { key, direction }) {
   })
 }
 
-function StatsTable({ stats, sort, onSort }) {
+function StatsTable({ stats, sort, onSort, selected, onSelect }) {
   const rows = useMemo(() => sortStats(stats, sort), [stats, sort])
 
   return (
     <div className="table-wrap th-table-wrap">
       <table className="th-table">
         <caption className="sr-only">
-          Trading record by manager. Every column but the name can be sorted.
+          Trading record by manager. Every column but the name can be sorted, and
+          picking a row filters the trades below to that manager.
         </caption>
         <thead>
           <tr>
@@ -234,18 +235,42 @@ function StatsTable({ stats, sort, onSort }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.manager}>
-              <th scope="row" className="th-name">{row.manager}</th>
-              <td className="th-num">{row.won + row.lost > 0 ? row.record : '—'}</td>
-              <td className="th-num">{percent(row.winPct)}</td>
-              <td className={`th-num th-net${row.net > 0 ? ' is-up' : row.net < 0 ? ' is-down' : ''}`}>
-                {net(row.net)}
-              </td>
-              <td className="th-num">{row.trades}</td>
-              <td className="th-num th-dim">{row.faabDeals || '—'}</td>
-            </tr>
-          ))}
+          {rows.map((row) => {
+            const active = selected === row.manager
+            return (
+              // The whole row is the target — the name is just where the cursor
+              // naturally lands. Clicking the same manager again clears it.
+              <tr
+                key={row.manager}
+                className={`th-row${active ? ' is-selected' : ''}`}
+                onClick={() => onSelect(row.manager)}
+              >
+                <th scope="row" className="th-name">
+                  {/* A real button so the row is reachable by keyboard and
+                      announced as a toggle; its own click stops here rather
+                      than bubbling to the row and undoing itself. */}
+                  <button
+                    type="button"
+                    className="th-row-btn"
+                    aria-pressed={active}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onSelect(row.manager)
+                    }}
+                  >
+                    {row.manager}
+                  </button>
+                </th>
+                <td className="th-num">{row.won + row.lost > 0 ? row.record : '—'}</td>
+                <td className="th-num">{percent(row.winPct)}</td>
+                <td className={`th-num th-net${row.net > 0 ? ' is-up' : row.net < 0 ? ' is-down' : ''}`}>
+                  {net(row.net)}
+                </td>
+                <td className="th-num">{row.trades}</td>
+                <td className="th-num th-dim">{row.faabDeals || '—'}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
@@ -260,6 +285,13 @@ export default function TradesPage({ onBack }) {
   // set from an effect so there is no first paint showing the wrong season.
   const [chosen, setChosen] = useState(null)
   const [sort, setSort] = useState(DEFAULT_SORT)
+  // Null when the list is showing everybody. Set by clicking a row in the
+  // record table; clicking the same row again puts it back.
+  const [manager, setManager] = useState(null)
+
+  const toggleManager = useCallback((name) => {
+    setManager((current) => (current === name ? null : name))
+  }, [])
 
   // A fresh column starts on the way round that flatters it — most of these
   // read as "who has the most" — and clicking the one already sorted flips it.
@@ -275,9 +307,22 @@ export default function TradesPage({ onBack }) {
   const seasons = data?.seasons ?? NO_SEASONS
   const season = chosen ?? (seasons.length ? String(seasons[0]) : 'all')
   const shown = useMemo(
-    () => (season === 'all' ? trades : trades.filter((trade) => trade.season === Number(season))),
-    [trades, season],
+    () =>
+      trades.filter(
+        (trade) =>
+          (season === 'all' || trade.season === Number(season)) &&
+          (manager == null || trade.sides.some((side) => side.manager === manager)),
+      ),
+    [trades, season, manager],
   )
+
+  // "Daniel’s 2019 trades", "Every trade" — the heading has to follow both
+  // filters or it claims more than the list underneath it is showing.
+  const heading = manager
+    ? `${manager}${manager.endsWith('s') ? '’' : '’s'} ${season === 'all' ? 'trades' : `${season} trades`}`
+    : season === 'all'
+      ? 'Every trade'
+      : `${season} trades`
 
   return (
     <div className="page-shell is-trades">
@@ -326,17 +371,33 @@ export default function TradesPage({ onBack }) {
             <Highlights highlights={data.highlights} />
 
             <section className="th-section">
-              <StatsTable stats={data.stats} sort={sort} onSort={toggleSort} />
+              <StatsTable
+                stats={data.stats}
+                sort={sort}
+                onSort={toggleSort}
+                selected={manager}
+                onSelect={toggleManager}
+              />
+              <p className="th-table-hint">Tap a manager to see only their trades.</p>
             </section>
 
             <section className="th-section">
               <div className="th-section-head">
                 {/* The heading follows the filter: "Every trade" over a single
                     season's worth of cards would be claiming too much. */}
-                <h2 className="th-heading">
-                  {season === 'all' ? 'Every trade' : `${season} trades`}
-                </h2>
+                <h2 className="th-heading">{heading}</h2>
                 <div className="th-filter">
+                  {manager && (
+                    <button
+                      type="button"
+                      className="th-clear"
+                      onClick={() => setManager(null)}
+                    >
+                      {manager}
+                      <span className="th-clear-x" aria-hidden="true">×</span>
+                      <span className="sr-only"> — clear manager filter</span>
+                    </button>
+                  )}
                   <label className="sr-only" htmlFor="th-season">Season</label>
                   <select
                     id="th-season"
@@ -352,11 +413,19 @@ export default function TradesPage({ onBack }) {
                 </div>
               </div>
 
-              <div className="th-list">
-                {shown.map((trade) => (
-                  <Trade key={trade.id} trade={trade} />
-                ))}
-              </div>
+              {shown.length === 0 ? (
+                <p className="state">
+                  {manager
+                    ? `No trades for ${manager} in ${season === 'all' ? 'the record' : season}.`
+                    : 'No trades that season.'}
+                </p>
+              ) : (
+                <div className="th-list">
+                  {shown.map((trade) => (
+                    <Trade key={trade.id} trade={trade} />
+                  ))}
+                </div>
+              )}
             </section>
           </>
         )}

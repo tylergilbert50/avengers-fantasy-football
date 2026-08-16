@@ -232,10 +232,91 @@
 .th-net.is-down { color: var(--lost); }
 .th-dim { color: var(--muted); font-weight: 600; }
 
+/* ---------- picking a manager ----------
+   The whole row is the hit target, but the name carries a button so the filter
+   is reachable by keyboard and announced as a toggle. The button is styled to
+   look like the cell it replaced — the row's own hover and cursor are what
+   advertise it as clickable. */
+
+.th-row {
+  cursor: pointer;
+}
+
+.th-row-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.th-row-btn:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .th-table tbody tr.th-row:hover {
+    background: rgba(11, 11, 11, 0.09);
+  }
+}
+
+.th-table tbody tr.th-row.is-selected {
+  background: var(--gold);
+}
+
+/* A shoulder down the selected row, so which manager the list below belongs to
+   survives being read at a glance. */
+.th-table tbody tr.th-row.is-selected > :first-child {
+  box-shadow: inset 6px 0 0 var(--ink);
+}
+
+.th-table-hint {
+  margin: 0.65rem 0 0;
+  color: var(--foot-tint);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 /* ---------- season filter ---------- */
 
 .th-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin-bottom: 1rem;
+}
+
+/* The active manager filter, repeated where it can be dismissed — the table can
+   be scrolled well out of view by the time you want it gone. */
+.th-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  border: 3px solid var(--ink);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.th-clear-x {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+.th-clear:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 .th-select {
