@@ -289,8 +289,15 @@ export default function TradesPage({ onBack }) {
   // record table; clicking the same row again puts it back.
   const [manager, setManager] = useState(null)
 
+  // Picking a manager widens the season filter to every year, since their
+  // record spans all of them and a one-season list would look like a much
+  // thinner trader. Clearing them hands the season back to the default.
   const toggleManager = useCallback((name) => {
-    setManager((current) => (current === name ? null : name))
+    setManager((current) => {
+      const next = current === name ? null : name
+      setChosen(next == null ? null : 'all')
+      return next
+    })
   }, [])
 
   // A fresh column starts on the way round that flatters it — most of these
@@ -391,7 +398,7 @@ export default function TradesPage({ onBack }) {
                     <button
                       type="button"
                       className="th-clear"
-                      onClick={() => setManager(null)}
+                      onClick={() => toggleManager(manager)}
                     >
                       {manager}
                       <span className="th-clear-x" aria-hidden="true">×</span>
