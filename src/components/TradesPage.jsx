@@ -385,7 +385,6 @@ export default function TradesPage({ onBack }) {
                 selected={manager}
                 onSelect={toggleManager}
               />
-              <p className="th-table-hint">Tap a manager to see only their trades.</p>
             </section>
 
             <section className="th-section">

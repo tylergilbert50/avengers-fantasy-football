@@ -465,11 +465,11 @@ export function buildTradeStats(trades = []) {
 
 /**
  * How many decided trades a manager needs before being called the best or the
- * worst of them. Low enough that most of the league qualifies, high enough that
- * one lucky deal in a debut season doesn't take the title off someone with a
- * decade of them.
+ * worst of them. Low enough that anyone who trades at all qualifies — a 1-3
+ * record is a real habit and belongs in the running — high enough that a
+ * manager with a single decided deal can't take a title on that one result.
  */
-export const MIN_DECIDED_FOR_TITLE = 6
+export const MIN_DECIDED_FOR_TITLE = 4
 
 /** The handful of superlatives worth putting above the table. */
 export function tradeHighlights(trades = [], stats = []) {

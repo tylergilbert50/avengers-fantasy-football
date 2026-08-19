@@ -49,7 +49,7 @@ const COLUMNS = [
  * list by manager is half of what anyone opens it to do.
  */
 const PICKUP_COLUMNS = [
-  { key: 'week', label: 'Wk', value: (row) => row.week },
+  { key: 'week', label: 'Week', value: (row) => row.week },
   { key: 'player', label: 'Player', value: (row) => row.player, type: 'text', align: 'left' },
   { key: 'points', label: 'Points', value: (row) => row.points },
   { key: 'started', label: 'Starts', value: (row) => row.started },
@@ -170,7 +170,7 @@ function StatsTable({ stats, sort, onSort }) {
                   <>
                     <span className="wv-best-player">{row.bestPickup.player}</span>
                     <span className="wv-best-line">
-                      {points(row.bestPickup.points)} · {row.bestPickup.season} wk{row.bestPickup.week}
+                      {points(row.bestPickup.points)} · {row.bestPickup.season} week {row.bestPickup.week}
                     </span>
                   </>
                 ) : (
@@ -192,7 +192,7 @@ function Highlights({ highlights }) {
       key: 'best',
       label: 'Best pickup',
       value: bestPickup.player,
-      detail: `${points(bestPickup.points)} for ${bestPickup.manager} · ${bestPickup.season} wk${bestPickup.week}`,
+      detail: `${points(bestPickup.points)} for ${bestPickup.manager} · ${bestPickup.season} week ${bestPickup.week}`,
     },
     busiest && {
       key: 'busy',

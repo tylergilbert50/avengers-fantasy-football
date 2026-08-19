@@ -274,13 +274,6 @@
   box-shadow: inset 6px 0 0 var(--ink);
 }
 
-.th-table-hint {
-  margin: 0.65rem 0 0;
-  color: var(--foot-tint);
-  font-size: 0.85rem;
-  font-style: italic;
-}
-
 /* ---------- season filter ---------- */
 
 .th-filter {
