@@ -6,6 +6,7 @@
  * at the same moment.
  */
 
+import { sideOutcome } from './results.js'
 import { allTimeTable, recordLabel, winPct } from './summary.js'
 
 const PLAYOFF = 'P'
@@ -19,11 +20,11 @@ function round(value, places = 1) {
   return Math.round((Number(value) || 0) * factor) / factor
 }
 
-/** The two sides of a game as (owner, their points, the other side's points). */
+/** The two sides of a game as (which side, owner, their points, the other side's points). */
 function sides(game) {
   return [
-    [game.a, game.ap, game.bp],
-    [game.b, game.bp, game.ap],
+    ['a', game.a, game.ap, game.bp],
+    ['b', game.b, game.bp, game.ap],
   ]
 }
 
@@ -51,7 +52,7 @@ export function weekExtremes(games = [], name) {
   for (const game of games) {
     const id = `${game.season}|${game.week}`
     if (!weeks.has(id)) weeks.set(id, [])
-    for (const [owner, points] of sides(game)) {
+    for (const [, owner, points] of sides(game)) {
       if (points == null) continue
       weeks.get(id).push({ owner, points })
     }
@@ -93,7 +94,7 @@ export function managerSeasons({ games = [], finishes = [], name }) {
   }
 
   for (const game of games) {
-    for (const [owner, forPoints, againstPoints] of sides(game)) {
+    for (const [side, owner, forPoints, againstPoints] of sides(game)) {
       if (key(owner) !== key(name)) continue
 
       const season = entry(game.season)
@@ -107,9 +108,7 @@ export function managerSeasons({ games = [], finishes = [], name }) {
       season.games += 1
       season.pointsFor += forPoints ?? 0
       season.pointsAgainst += againstPoints ?? 0
-      if (forPoints > againstPoints) season.wins += 1
-      else if (forPoints < againstPoints) season.losses += 1
-      else season.ties += 1
+      season[sideOutcome(game, side)] += 1
     }
   }
 

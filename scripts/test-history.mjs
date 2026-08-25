@@ -305,6 +305,53 @@ test('a bracket game is marked as one', () => {
   assert.equal(games.find((entry) => entry.week === 1).type, 'R')
 })
 
+test('a game the score settles carries no verdict of its own', () => {
+  const games = seasonGames(LIVE_SEASON)
+  assert.ok(games.every((entry) => entry.winner === undefined))
+})
+
+test("a game that finished level is settled by ESPN's flag", () => {
+  const level = {
+    season: 2026,
+    teams: LIVE_SEASON.teams,
+    matchups: [
+      { ...matchup(5, 1, 118.36, 2, 118.36), winner: 'HOME' },
+      { ...matchup(6, 1, 100, 2, 100), winner: 'AWAY' },
+      { ...matchup(7, 1, 100, 2, 100), winner: 'TIE' },
+    ],
+  }
+  const [home, away, drawn] = seasonGames(level)
+
+  assert.equal(home.winner, 'a', 'the home side is a')
+  assert.equal(away.winner, 'b', 'the away side is b')
+  assert.equal(drawn.winner, undefined, 'ESPN calling it a tie leaves it one')
+})
+
+test('a level game ESPN has settled is a win and a loss, not a tie', () => {
+  const data = {
+    owners: DATA.owners,
+    games: [
+      {
+        season: 2026, week: 5, type: 'R',
+        a: 'Ann Adams', ap: 118.36, b: 'Bob Brown', bp: 118.36, winner: 'a',
+      },
+    ],
+  }
+  const table = allTimeTable(data)
+  const ann = table.find((row) => row.name === 'Ann Adams')
+  const bob = table.find((row) => row.name === 'Bob Brown')
+
+  assert.deepEqual(ann.regular, { wins: 1, losses: 0, ties: 0 })
+  assert.deepEqual(bob.regular, { wins: 0, losses: 1, ties: 0 })
+  // The score is left alone — it still scored what it scored.
+  assert.equal(ann.pointsFor, 118.36)
+
+  assert.deepEqual(headToHead(data).get('Ann Adams', 'Bob Brown'), {
+    wins: 1, losses: 0, ties: 0,
+  })
+  assert.equal(managerProfile(data, 'Bob Brown').seasons[0].recordLabel, '0-1')
+})
+
 test('the live season is added to the archive rather than replacing it', () => {
   const merged = mergeHistory({ archive: DATA, live: [LIVE_SEASON] })
 

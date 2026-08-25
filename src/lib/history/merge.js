@@ -44,6 +44,19 @@ function sideKey(season, week, name) {
 }
 
 /**
+ * ESPN's verdict on a game the score doesn't settle.
+ *
+ * Only consulted when the two totals are equal, so the flag can never
+ * contradict a score — it only breaks a draw. See results.js.
+ */
+function decided(matchup) {
+  if (matchup.home?.points !== matchup.away?.points) return null
+  if (matchup.winner === 'HOME') return 'a'
+  if (matchup.winner === 'AWAY') return 'b'
+  return null
+}
+
+/**
  * One season of ESPN matchups as history games.
  *
  * Only games that have been played: a fixture with no result yet is on the
@@ -55,15 +68,19 @@ export function seasonGames({ season, teams = [], matchups = [] }) {
   return matchups
     .filter((matchup) => matchup.isComplete && !matchup.isBye)
     .filter((matchup) => matchup.playoffTier === 'NONE' || matchup.playoffTier === PLAYOFF_TIER)
-    .map((matchup) => ({
-      season,
-      week: matchup.week,
-      type: matchup.playoffTier === PLAYOFF_TIER ? 'P' : 'R',
-      a: owner.get(matchup.home?.teamId) ?? null,
-      ap: matchup.home?.points ?? null,
-      b: owner.get(matchup.away?.teamId) ?? null,
-      bp: matchup.away?.points ?? null,
-    }))
+    .map((matchup) => {
+      const winner = decided(matchup)
+      return {
+        season,
+        week: matchup.week,
+        type: matchup.playoffTier === PLAYOFF_TIER ? 'P' : 'R',
+        a: owner.get(matchup.home?.teamId) ?? null,
+        ap: matchup.home?.points ?? null,
+        b: owner.get(matchup.away?.teamId) ?? null,
+        bp: matchup.away?.points ?? null,
+        ...(winner ? { winner } : {}),
+      }
+    })
 }
 
 /**

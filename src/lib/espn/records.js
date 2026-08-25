@@ -184,14 +184,28 @@ function gameRow(game, { rank, valueCells }) {
 export function streaks(games, outcome) {
   const perManager = new Map()
   for (const game of games) {
-    const tie = game.winner === 'TIE' || game.home.points === game.away.points
+    // A game that finished level is whatever ESPN says it is: 2021 week 6 was
+    // 118.36 apiece and ESPN awards it to the home team, so it extends a run
+    // here the same way it does in the history log. See history/results.js.
+    const decided =
+      game.home.points !== game.away.points
+        ? null
+        : game.winner === 'HOME'
+          ? game.home
+          : game.winner === 'AWAY'
+            ? game.away
+            : null
+    const tie = !decided && game.home.points === game.away.points
+
     for (const [side, other] of [[game.home, game.away], [game.away, game.home]]) {
       const key = side.ownerId ?? `team:${side.teamId}`
       if (!perManager.has(key)) perManager.set(key, { label: side.short, games: [] })
       perManager.get(key).games.push({
         season: game.season,
         week: game.week,
-        result: tie ? 'T' : side.points > other.points ? 'W' : 'L',
+        result: decided
+          ? decided === side ? 'W' : 'L'
+          : tie ? 'T' : side.points > other.points ? 'W' : 'L',
       })
     }
   }
