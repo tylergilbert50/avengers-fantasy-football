@@ -24,6 +24,15 @@
 .track.is-open {
   height: 100vh;
   height: 100svh;
+  /* And it arrives the way a page does — the same fade, so leaving a page and
+     coming home read as one move rather than a swap. Only on the way back:
+     a first visit has the cover to turn, which is its own arrival. */
+  animation: home-in 300ms ease-out both;
+}
+
+@keyframes home-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .stage {
@@ -233,16 +242,20 @@
 }
 
 /* Colour while being pressed and on keyboard focus. Hover is added separately
-   below, and only where hovering is a thing that exists. */
+   below, and only where hovering is a thing that exists.
+
+   `.is-pressed` is set from App.jsx rather than read off `:active`, so that
+   coming back to this page can't arrive with the last panel already lit — see
+   the comment on the state itself. */
 .panel:focus-visible .panel-art-color,
-.panel:active .panel-art-color {
+.panel.is-pressed .panel-art-color {
   opacity: 1;
 }
 
 /* Lifts toward the reader. z-index puts the growing panel over its neighbours
    instead of under them. */
 .panel:focus-visible,
-.panel:active {
+.panel.is-pressed {
   transform: scale(1.035);
   z-index: 1;
 }
@@ -252,10 +265,15 @@
 
    A touch screen reports `hover: none`, and if it is offered :hover rules
    anyway it emulates them: the first tap paints the hover state and swallows
-   the click, so the panel needs tapping twice to open. Withholding the rules
-   is what makes one tap enough. Nothing is lost — a finger can't hover, and
-   :active already covers the press. */
-@media (hover: hover) {
+   the click, so the panel needs tapping twice to open. Worse, that emulated
+   hover stays parked where the finger last was, so returning to this page
+   repaints the panel that was tapped. Withholding the rules is what makes one
+   tap enough. Nothing is lost — a finger can't hover, and the press is covered.
+
+   `pointer: fine` is the second half of the guard: a phone that claims
+   `hover: hover` anyway still reports a coarse pointer, and needs excluding
+   for the same reason. */
+@media (hover: hover) and (pointer: fine) {
   .panel:hover .panel-art-color {
     opacity: 1;
   }
@@ -280,12 +298,12 @@
   }
 
   .panel:focus-visible,
-  .panel:active {
+  .panel.is-pressed {
     transform: none;
   }
 
   /* Matches the hover block's specificity so it still wins there. */
-  @media (hover: hover) {
+  @media (hover: hover) and (pointer: fine) {
     .panel:hover {
       transform: none;
     }
@@ -306,6 +324,12 @@
    width is what opens up room under it for the hint. */
 
 @media (max-width: 640px) {
+  /* No fade coming home either — the pages don't have one here, and this is
+     the other half of the same move. */
+  .track.is-open {
+    animation: none;
+  }
+
   /* Trimmed from 80vw/84svh to lift the cover's bottom edge clear of the hint.
      The book stays centred in the stage either way, which is what the curl
      shader assumes — it is handed the book's size, never its position. */
@@ -344,6 +368,10 @@
 @media (prefers-reduced-motion: reduce) {
   .track {
     height: 180vh;
+  }
+
+  .track.is-open {
+    animation: none;
   }
 
   .sheet-cover {

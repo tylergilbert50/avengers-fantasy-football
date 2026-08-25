@@ -212,7 +212,7 @@ function Receipt({ managers, ballot, closesAt }) {
   )
 }
 
-export default function PollPage({ onBack }) {
+export default function PollPage() {
   const { data, error, isLoading, refresh } = usePoll()
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(null)
@@ -241,10 +241,6 @@ export default function PollPage({ onBack }) {
     <div className="page-shell is-poll">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">
               <span className="title-small">{week ? `Week ${week}` : 'The'}</span> Managers’ Poll

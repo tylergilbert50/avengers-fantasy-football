@@ -29,3 +29,27 @@ export function portraitFor(name) {
   if (!slug) return null
   return FILES[slug] ?? FILES[slug.split('-')[0]] ?? null
 }
+
+/**
+ * Pulls every portrait into the browser cache ahead of time.
+ *
+ * They are a couple of hundred kilobytes all told, and the managers wall is a
+ * wall of faces — fetching them while the cover is still up means the wall
+ * arrives whole instead of filling in. Idle-time work: it must never compete
+ * with the page turn.
+ */
+export function warmPortraits() {
+  if (typeof Image === 'undefined') return
+
+  const load = () => {
+    for (const src of Object.values(FILES)) {
+      const image = new Image()
+      if ('fetchPriority' in image) image.fetchPriority = 'low'
+      image.decoding = 'async'
+      image.src = src
+    }
+  }
+
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(load, { timeout: 3000 })
+  else setTimeout(load, 1000)
+}

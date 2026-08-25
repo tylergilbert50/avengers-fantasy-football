@@ -250,7 +250,8 @@
   }
 }
 
-/* Border triangles rather than a glyph, the way .back-arrow is drawn. */
+/* Border triangles rather than a glyph: no font to substitute, and no emoji
+   form for a phone to fall into. */
 .wv-sort-arrow {
   width: 0;
   height: 0;

@@ -83,7 +83,7 @@ export function DraftSeason({ draft }) {
   )
 }
 
-export default function DraftPage({ onBack }) {
+export default function DraftPage() {
   const { data, error, isLoading, refresh } = useDraft()
   const drafts = data?.drafts ?? []
 
@@ -91,10 +91,6 @@ export default function DraftPage({ onBack }) {
     <div className="page-shell is-draft">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">Draft History</h1>
             <p className="page-sub">

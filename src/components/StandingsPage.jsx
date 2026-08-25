@@ -59,7 +59,7 @@ export function StandingsTable({ standings }) {
   )
 }
 
-export default function StandingsPage({ onBack }) {
+export default function StandingsPage() {
   const { data, error, isLoading, refresh } = useLeague()
   const standings = data?.standings ?? []
 
@@ -67,14 +67,6 @@ export default function StandingsPage({ onBack }) {
     <div className="page-shell is-standings">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            {/* Drawn with borders rather than typed as a character. Every
-                left-pointing triangle in Unicode has an emoji presentation,
-                and phones reach for it — the glyph turns into a colour emoji
-                that ignores the button's own colour. A CSS triangle can't. */}
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             {/* The word gets its comic outline from a ring of hard text-shadows
                 rather than -webkit-text-stroke, which centres the stroke on the

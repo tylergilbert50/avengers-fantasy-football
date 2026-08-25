@@ -277,7 +277,7 @@ function StatsTable({ stats, sort, onSort, selected, onSelect }) {
   )
 }
 
-export default function TradesPage({ onBack }) {
+export default function TradesPage() {
   const { data, error, isLoading, refresh } = useTrades()
 
   // Null until someone picks: the page opens on the newest season with trades
@@ -335,10 +335,6 @@ export default function TradesPage({ onBack }) {
     <div className="page-shell is-trades">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">Trade History</h1>
             <p className="page-sub">

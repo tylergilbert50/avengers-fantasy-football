@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import coverImg from './assets/cover.jpg'
 import { createPageCurl } from './lib/pageCurl'
 import { createTapRecognizer } from './lib/tap.js'
+import { prefetchLeague } from './hooks/useEspn.js'
+import { warmPortraits } from './lib/portraits.js'
 import StandingsPage from './components/StandingsPage.jsx'
 import RecordsPage from './components/RecordsPage.jsx'
 import DraftPage from './components/DraftPage.jsx'
@@ -97,6 +99,31 @@ function ComicBook({ onOpen, coverTurned }) {
       }),
     [onOpen],
   )
+
+  // Which panel is under a finger right now, and the only thing that paints the
+  // pressed look.
+  //
+  // `:active` would be the obvious way to write this, but on a touch screen the
+  // press states the browser owns — :active, an emulated :hover, focus — can
+  // outlive the panel that earned them and get handed to the fresh one that
+  // takes its place on the way back. React state can't: coming back mounts a
+  // new ComicBook and this starts at null, so the page always arrives cold.
+  const [pressed, setPressed] = useState(null)
+
+  // Cleared from the window rather than the panel, so a release that lands
+  // somewhere else still ends the press: a finger that slides off the artwork
+  // before lifting, a mouse released outside, or a touch the browser takes back
+  // for a scroll.
+  useEffect(() => {
+    if (pressed == null) return undefined
+    const clear = () => setPressed(null)
+    window.addEventListener('pointerup', clear)
+    window.addEventListener('pointercancel', clear)
+    return () => {
+      window.removeEventListener('pointerup', clear)
+      window.removeEventListener('pointercancel', clear)
+    }
+  }, [pressed])
 
   useEffect(() => {
     // Nothing to drive when the cover isn't there: no sheet to peel, no canvas
@@ -217,12 +244,24 @@ function ComicBook({ onOpen, coverTurned }) {
                 <button
                   key={panel.id}
                   type="button"
-                  className="panel"
+                  className={`panel${pressed === panel.id ? ' is-pressed' : ''}`}
                   style={{ ...panel.rect, clipPath: panel.clip }}
                   data-panel={panel.id}
-                  onPointerDown={tap.pointerDown}
-                  onPointerUp={(event) => tap.pointerUp(event, panel)}
-                  onPointerCancel={tap.pointerCancel}
+                  onPointerDown={(event) => {
+                    setPressed(panel.id)
+                    tap.pointerDown(event)
+                  }}
+                  onPointerUp={(event) => {
+                    // The press is over and the panel is about to be replaced by
+                    // the page it opens. Dropping focus here means there is no
+                    // focused panel for the browser to restore this view to.
+                    event.currentTarget.blur()
+                    tap.pointerUp(event, panel)
+                  }}
+                  onPointerCancel={(event) => {
+                    setPressed(null)
+                    tap.pointerCancel(event)
+                  }}
                   onClick={() => tap.click(panel)}
                 >
                   <img className="panel-art" src={panel.src} alt="" />
@@ -300,6 +339,15 @@ function App() {
     return () => window.removeEventListener('hashchange', onPop)
   }, [])
 
+  // Warmed the moment the app boots, while the cover is still being turned.
+  // The league payload is what the managers wall and the standings are drawn
+  // from, so paying for it during the arrival means neither page has to wait
+  // for it when it's opened.
+  useEffect(() => {
+    prefetchLeague()
+    warmPortraits()
+  }, [])
+
   const open = useCallback((next) => {
     // Leaving the comic means the cover is already behind you. Recorded here
     // rather than when the turn finishes, so it can't flip mid-view and take
@@ -317,47 +365,47 @@ function App() {
   }, [view])
 
   if (view === 'standings') {
-    return <StandingsPage onBack={() => open('comic')} />
+    return <StandingsPage />
   }
 
   if (view === 'records') {
-    return <RecordsPage onBack={() => open('comic')} />
+    return <RecordsPage />
   }
 
   if (view === 'draft-history') {
-    return <DraftPage onBack={() => open('comic')} />
+    return <DraftPage />
   }
 
   if (view === 'champions') {
-    return <ChampionsPage onBack={() => open('comic')} />
+    return <ChampionsPage />
   }
 
   if (view === 'managers-poll') {
-    return <PollPage onBack={() => open('comic')} />
+    return <PollPage />
   }
 
   if (view === 'schedule') {
-    return <SchedulePage onBack={() => open('comic')} />
+    return <SchedulePage />
   }
 
   if (view === 'history-sheet') {
-    return <HistoryPage onBack={() => open('comic')} />
+    return <HistoryPage />
   }
 
   if (view === 'trade-history') {
-    return <TradesPage onBack={() => open('comic')} />
+    return <TradesPage />
   }
 
   if (view === 'waiver-history') {
-    return <WaiversPage onBack={() => open('comic')} />
+    return <WaiversPage />
   }
 
   if (view === 'managers') {
-    return <ManagersPage onBack={() => open('comic')} onOpen={open} />
+    return <ManagersPage onOpen={open} />
   }
 
   if (view === 'manager') {
-    return <ManagerPage slug={slug} onBack={() => open('managers')} />
+    return <ManagerPage slug={slug} />
   }
 
   return <ComicBook onOpen={open} coverTurned={coverTurned} />

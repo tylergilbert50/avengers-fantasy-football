@@ -144,7 +144,7 @@ export function ChampionCover({ champion }) {
   )
 }
 
-export default function ChampionsPage({ onBack }) {
+export default function ChampionsPage() {
   const { data, error, isLoading, refresh } = useChampions()
   const champions = data?.champions ?? []
   // The list arrives newest first, so the reigning champion is the headline and
@@ -156,10 +156,6 @@ export default function ChampionsPage({ onBack }) {
     <div className="page-shell is-champions">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">{reigning ? `${reigning.season} Champion` : 'Champions'}</h1>
             <p className="page-sub">

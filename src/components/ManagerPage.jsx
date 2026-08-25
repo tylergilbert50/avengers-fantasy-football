@@ -167,7 +167,7 @@ export function CareerFinishes({ finishes, places = 10 }) {
   )
 }
 
-export default function ManagerPage({ slug, onBack }) {
+export default function ManagerPage({ slug }) {
   const { data: history, error, isLoading, refresh } = useHistory()
   const { data: league } = useLeague()
 
@@ -196,10 +196,6 @@ export default function ManagerPage({ slug, onBack }) {
     <div className="page-shell is-manager">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Managers
-          </button>
           <div className="title-block">
             <h1 className="title">{profile ? firstName(profile.name) : 'Manager'}</h1>
             <p className="page-sub">

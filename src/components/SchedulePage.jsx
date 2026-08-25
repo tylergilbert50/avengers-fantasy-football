@@ -112,7 +112,7 @@ export function ScheduleWeek({ entry }) {
   )
 }
 
-export default function SchedulePage({ onBack }) {
+export default function SchedulePage() {
   const { data: league, error: leagueError, isLoading: leagueLoading, refresh } = useLeague()
   const { data: schedule, error: scheduleError, isLoading: scheduleLoading } = useMatchups()
 
@@ -145,10 +145,6 @@ export default function SchedulePage({ onBack }) {
     <div className="page-shell is-schedule">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">Schedule</h1>
             <p className="page-sub">

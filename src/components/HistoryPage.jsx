@@ -183,7 +183,7 @@ const SECTIONS = [
   { id: 'weeks', label: 'Best weeks' },
 ]
 
-export default function HistoryPage({ onBack }) {
+export default function HistoryPage() {
   const [section, setSection] = useState('all-time')
   const { data, error, isLoading, refresh } = useHistory()
 
@@ -208,10 +208,6 @@ export default function HistoryPage({ onBack }) {
     <div className="page-shell is-history">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">
               <span className="title-small">The</span> History Sheet

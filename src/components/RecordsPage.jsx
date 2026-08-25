@@ -88,7 +88,7 @@ export function RecordGroup({ group, tilt = 0 }) {
   )
 }
 
-export default function RecordsPage({ onBack }) {
+export default function RecordsPage() {
   const { data, error, isLoading, refresh } = useRecords()
   const groups = data?.groups ?? []
 
@@ -103,10 +103,6 @@ export default function RecordsPage({ onBack }) {
     <div className="page-shell is-records">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">
               <span className="title-small">The Hall of</span> Records

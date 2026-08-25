@@ -262,7 +262,7 @@ function PickupTable({ pickups, sort, onSort }) {
   )
 }
 
-export default function WaiversPage({ onBack }) {
+export default function WaiversPage() {
   const { data, error, isLoading, refresh } = useWaivers()
 
   // Null until someone picks, so the page can open on the newest season without
@@ -290,10 +290,6 @@ export default function WaiversPage({ onBack }) {
     <div className="page-shell is-waivers">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">Waiver History</h1>
             <p className="page-sub">

@@ -109,60 +109,6 @@
   color: var(--sub-tint);
 }
 
-/* A comic action button: flat fill, hard keyline, and a shadow it presses into
-   rather than a gradient.
-
-   Phones only. Hidden here and switched on inside the phone breakpoint rather
-   than hidden by a `min-width` rule, so the two states share one breakpoint
-   value and there is no half-pixel width where both or neither apply. */
-.back {
-  display: none;
-  align-self: flex-start;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.5rem 1rem;
-  border: 3px solid var(--ink);
-  border-radius: 7px;
-  background: var(--gold);
-  color: var(--ink);
-  font-family: var(--display);
-  font-size: 1rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transform: rotate(-1.2deg);
-  box-shadow: 4px 4px 0 var(--ink);
-  transition: transform 90ms ease, box-shadow 90ms ease, background 140ms ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* A triangle made of borders, so it is a shape rather than a glyph: no font to
-   substitute and no emoji form for a phone to fall into. */
-.back-arrow {
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0.32em 0.42em 0.32em 0;
-  border-color: transparent currentColor transparent transparent;
-}
-
-.back:active {
-  transform: rotate(-1.2deg) translate(4px, 4px);
-  box-shadow: 0 0 0 var(--ink);
-}
-
-.back:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .back:hover {
-    filter: brightness(1.1);
-  }
-}
-
 /* ---------- a table, as a panel pasted on the page ----------
    Standings, the poll and the history sheet all mount a table this way, so it
    lives here rather than in whichever page happened to need it first. The
@@ -268,12 +214,16 @@
 /* ---------- phones ---------- */
 
 @media (max-width: 640px) {
-  .page-inner {
-    padding: 1.6rem 0.7rem 3rem;
+  /* No fade-in on a phone. A page fills the whole screen here, so there is
+     nothing for it to read as a transition *from* — it just delays the words
+     by a beat, and between two pages that share a layout it reads as a
+     flicker. Every page opens straight away. */
+  .page-shell {
+    animation: none;
   }
 
-  .back {
-    display: inline-flex;
+  .page-inner {
+    padding: 1.6rem 0.7rem 3rem;
   }
 
   /* The subtitle wraps onto two lines at this width, which leaves the dot
@@ -302,13 +252,11 @@
   }
 
   .title,
-  .back,
   .state,
   .table-wrap {
     transform: none;
   }
 
-  .back:active,
   .retry:active {
     transform: none;
   }

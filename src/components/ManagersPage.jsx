@@ -51,7 +51,7 @@ export function ManagerCard({ manager, onOpen }) {
   )
 }
 
-export default function ManagersPage({ onBack, onOpen }) {
+export default function ManagersPage({ onOpen }) {
   const { data, error, isLoading, refresh } = useLeague()
 
   // Whoever has a team this season, A to Z by the name they go by — so the
@@ -69,10 +69,6 @@ export default function ManagersPage({ onBack, onOpen }) {
     <div className="page-shell is-managers">
       <div className="page-inner">
         <header className="page-head">
-          <button type="button" className="back" onClick={onBack}>
-            <span className="back-arrow" aria-hidden="true" />
-            Back
-          </button>
           <div className="title-block">
             <h1 className="title">Managers</h1>
             <p className="page-sub">
