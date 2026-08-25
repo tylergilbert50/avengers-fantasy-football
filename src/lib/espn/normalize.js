@@ -124,15 +124,49 @@ export function normalizeTeam(team, membersById = new Map()) {
 }
 
 /**
+ * Has anything actually been played yet?
+ *
+ * A preseason payload has every record at 0-0 with nothing scored, which is the
+ * state the league sits in from the draft until week 1 kicks off.
+ */
+export function hasPlayedGames(teams = []) {
+  return teams.some((team) => team.record?.gamesPlayed > 0 || team.record?.pointsFor > 0)
+}
+
+/** Sorts after everyone with a place, without producing NaN against itself. */
+const UNPLACED = Number.MAX_SAFE_INTEGER
+
+/** Where this team's manager finished last season, by whichever owner we know. */
+function priorRank(team, rankByOwner) {
+  for (const manager of team.managers ?? []) {
+    const rank = rankByOwner.get(manager.id)
+    if (rank != null) return rank
+  }
+  return rankByOwner.get(team.primaryOwnerId) ?? UNPLACED
+}
+
+/**
  * ESPN's `playoffSeed` is the league's own live ranking and already applies the
  * league's configured tiebreakers, so prefer it. Some payloads leave it at 0
  * (preseason, or history endpoints) — fall back to win% then points for.
+ *
+ * `priorFinish` covers the case none of those can: before week 1, every record
+ * is 0-0 and every seed is 0, so all three rules tie and the table falls back
+ * to ESPN's team-id order — an arbitrary list that still reads like a ranking.
+ * Handed last season's finishing places, the preseason table stands in those
+ * instead, and the first played week takes the order back.
  */
-export function sortStandings(teams) {
+export function sortStandings(teams, { priorFinish } = {}) {
   const seeded = teams.every((team) => team.playoffSeed > 0)
+  const carried = priorFinish?.rankByOwner?.size ? priorFinish.rankByOwner : null
   const sorted = [...teams]
 
   sorted.sort((a, b) => {
+    // A manager who wasn't here last season has no place to hold and goes to
+    // the bottom, in name order alongside anyone else new.
+    if (carried) {
+      return priorRank(a, carried) - priorRank(b, carried) || a.name.localeCompare(b.name)
+    }
     if (seeded) return a.playoffSeed - b.playoffSeed
     if (b.record.winPct !== a.record.winPct) return b.record.winPct - a.record.winPct
     return b.record.pointsFor - a.record.pointsFor
@@ -172,15 +206,23 @@ export function normalizeStatus(raw) {
 /**
  * The main entry point: raw ESPN league -> everything the site needs.
  *
+ * `priorFinish` is last season's finishing order — `{ season, rankByOwner }` —
+ * and is only used while nothing has been played, to stop the preseason table
+ * from presenting ESPN's team-id order as a standing. See sortStandings.
+ *
  * @returns {{
  *   leagueId: number, season: number, settings: object, status: object,
- *   managers: object[], teams: object[], standings: object[], fetchedAt: string
+ *   managers: object[], teams: object[], standings: object[],
+ *   standingsFrom: number|null, fetchedAt: string
  * }}
  */
-export function normalizeLeague(raw) {
+export function normalizeLeague(raw, { priorFinish } = {}) {
   const membersById = indexMembers(raw)
   const teams = (raw?.teams ?? []).map((team) => normalizeTeam(team, membersById))
-  const standings = sortStandings(teams)
+
+  const carried =
+    !hasPlayedGames(teams) && priorFinish?.rankByOwner?.size ? priorFinish : null
+  const standings = sortStandings(teams, { priorFinish: carried })
 
   // Managers get their team stapled on, so a "meet the managers" view doesn't
   // have to cross-reference two lists.
@@ -213,6 +255,8 @@ export function normalizeLeague(raw) {
     managers,
     teams,
     standings,
+    // The season the order was borrowed from, when it isn't this one's results.
+    standingsFrom: carried?.season ?? null,
     fetchedAt: new Date().toISOString(),
   }
 }

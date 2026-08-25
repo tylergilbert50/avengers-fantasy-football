@@ -54,6 +54,62 @@ test('standings fall back to win% then points for when seeds are absent', () => 
   )
 })
 
+/** The fixture as it sits between the draft and week 1: no seeds, no results. */
+const preseason = {
+  ...fixture,
+  teams: fixture.teams.map((team) => ({ ...team, points: 0, playoffSeed: 0, record: {} })),
+}
+
+/** Last season, by owner: Jo won it, Tyler second, Sam & co third. */
+const priorFinish = {
+  season: 2024,
+  rankByOwner: new Map([['{DDD}', 1], ['{AAA}', 2], ['{BBB}', 3]]),
+}
+
+test("the preseason table stands in last season's finishing order", () => {
+  const league = normalizeLeague(preseason, { priorFinish })
+  assert.deepEqual(
+    league.standings.map((t) => t.id),
+    [3, 1, 2, 4],
+  )
+  assert.deepEqual(
+    league.standings.map((t) => t.rank),
+    [1, 2, 3, 4],
+  )
+  // The unclaimed team's owner never finished anywhere, so it goes last.
+  assert.equal(league.standings[3].id, 4)
+  assert.equal(league.standingsFrom, 2024)
+})
+
+test('managers who were not here last season sort together, by name', () => {
+  const league = normalizeLeague(preseason, {
+    priorFinish: { season: 2024, rankByOwner: new Map([['{DDD}', 1]]) },
+  })
+  assert.deepEqual(
+    league.standings.map((t) => t.name),
+    ['THR', "Cap's Shield", 'Unclaimed Squad', "Widow's Bite"],
+  )
+})
+
+test('the first played week takes the order back from last season', () => {
+  const league = normalizeLeague(fixture, { priorFinish })
+  // Seeded and played, so ESPN's own ranking wins and nothing is borrowed.
+  assert.deepEqual(
+    league.standings.map((t) => t.id),
+    [2, 1, 3, 4],
+  )
+  assert.equal(league.standingsFrom, null)
+})
+
+test("a preseason with nothing to borrow keeps ESPN's order", () => {
+  const league = normalizeLeague(preseason)
+  assert.equal(league.standingsFrom, null)
+  assert.deepEqual(
+    league.standings.map((t) => t.id),
+    [1, 2, 3, 4],
+  )
+})
+
 test('records carry wins, points for, points against and differential', () => {
   const { standings } = normalizeLeague(fixture)
   const cap = standings.find((t) => t.id === 1)

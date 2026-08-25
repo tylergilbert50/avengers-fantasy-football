@@ -10,14 +10,14 @@
 import { assertConfigured, isValidSeason, readEspnEnv } from './config.js'
 import { LEAGUE_VIEWS, MATCHUP_VIEWS } from './endpoints.js'
 import { fetchLeagueRaw, fetchPlayerNames, fetchPlayerWeek } from './fetchLeague.js'
-import { normalizeLeague, normalizeMatchups } from './normalize.js'
+import { hasPlayedGames, normalizeLeague, normalizeMatchups } from './normalize.js'
 import { buildRecords } from './records.js'
 import { buildChampions } from './champions.js'
 import { normalizeDraft } from './draft.js'
 import { HISTORY_VIEWS, loadLeague, memoized, resolveSeason } from './season.js'
 import { handlePoll, handlePollVote } from '../poll/handlers.js'
 import archive from '../history/archive.js'
-import { mergeHistory } from '../history/merge.js'
+import { mergeHistory, seasonFinishes } from '../history/merge.js'
 import { bestWeeks, playedWeeks, seasonsToFetch, weekEntries } from '../history/players.js'
 import tradeArchive from '../trades/archive.js'
 import { buildTradeStats, sortTrades, tradeHighlights } from '../trades/build.js'
@@ -45,10 +45,79 @@ function resolveWeek(params) {
   return week
 }
 
+/**
+ * Where everyone finished the season before this one, keyed by owner.
+ *
+ * The league's own finishing order, not ESPN's `rankCalculatedFinal` — the two
+ * disagree, and seasonFinishes in history/merge.js is the side the league is
+ * on. Keyed by owner rather than by team so a manager who renamed their team
+ * over the summer still carries their place.
+ *
+ * @returns {Promise<{ season: number, rankByOwner: Map<string, number> }|null>}
+ */
+async function loadPriorFinish({ config, raw }) {
+  const previous = (raw?.status?.previousSeasons ?? []).filter(isValidSeason)
+  if (previous.length === 0) return null
+  const season = Math.max(...previous)
+
+  try {
+    // The same key /api/history uses, so this is usually already in the memo.
+    const prior = await memoized(`${config.leagueId}:${season}:${HISTORY_VIEWS.join(',')}`, () =>
+      fetchLeagueRaw({
+        leagueId: config.leagueId,
+        season,
+        views: HISTORY_VIEWS,
+        espnS2: config.espnS2,
+        swid: config.swid,
+      }),
+    )
+
+    const league = normalizeLeague(prior)
+    const finishes = seasonFinishes({
+      season,
+      teams: league.teams,
+      matchups: normalizeMatchups(prior),
+    })
+    // A season whose bracket ESPN no longer serves settled nobody.
+    if (finishes.length === 0) return null
+
+    // seasonFinishes names owners; the standings match on SWID.
+    const rankByName = new Map(finishes.map((entry) => [entry.owner, entry.rank]))
+    const rankByOwner = new Map()
+    for (const team of league.teams) {
+      const rank = rankByName.get(team.managerNames)
+      if (rank == null) continue
+      for (const manager of team.managers) rankByOwner.set(manager.id, rank)
+    }
+
+    return rankByOwner.size > 0 ? { season, rankByOwner } : null
+  } catch {
+    // Last season being unreadable is not worth failing this season's page for.
+    return null
+  }
+}
+
 /** GET /api/league — managers, standings, records, points for/against. */
 export async function handleLeague({ env, params }) {
-  const { raw } = await loadLeague({ env, params, views: LEAGUE_VIEWS })
-  return { status: 200, body: normalizeLeague(raw), cacheSeconds: CACHE_SECONDS }
+  const { raw, config } = await loadLeague({ env, params, views: LEAGUE_VIEWS })
+  const league = normalizeLeague(raw)
+
+  // Between the draft and week 1 there is nothing to rank on: every record is
+  // 0-0, so the table lands in ESPN's team-id order and reads as a standing it
+  // isn't. Stand everyone where they finished last season until a week is
+  // played and the real order takes over.
+  if (!hasPlayedGames(league.teams)) {
+    const priorFinish = await loadPriorFinish({ config, raw })
+    if (priorFinish) {
+      return {
+        status: 200,
+        body: normalizeLeague(raw, { priorFinish }),
+        cacheSeconds: CACHE_SECONDS,
+      }
+    }
+  }
+
+  return { status: 200, body: league, cacheSeconds: CACHE_SECONDS }
 }
 
 /** GET /api/matchups?week=3 — the schedule, scored. */
