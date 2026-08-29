@@ -77,6 +77,21 @@ function useResource(loader, deps, cacheKey = null) {
 
 /** Cache keys. One per distinct payload, so a season change is its own entry. */
 const leagueKey = (season) => `league:${season ?? 'current'}`
+const historyKey = (season) => `history:${season ?? 'current'}`
+
+/**
+ * Fetches a payload nobody has asked for yet and files it, so the page that
+ * wants it later finds it already there.
+ *
+ * Failures are swallowed on purpose: the page that needs the data asks for it
+ * itself and reports the failure properly. A request already in the air is
+ * joined rather than repeated, so warming something twice costs nothing.
+ */
+function warm(key, load) {
+  shared(key, load)
+    .then((data) => writeCache(key, data))
+    .catch(() => {})
+}
 
 /**
  * League overview: managers, standings, records, PF/PA.
@@ -98,10 +113,21 @@ export function useLeague({ season } = {}) {
  * will ask again and report it properly.
  */
 export function prefetchLeague({ season } = {}) {
-  const key = leagueKey(season)
-  shared(key, () => fetchLeague({ season }))
-    .then((data) => writeCache(key, data))
-    .catch(() => {})
+  warm(leagueKey(season), () => fetchLeague({ season }))
+}
+
+/**
+ * Starts the history fetch before anything asks for it.
+ *
+ * Every manager's profile is cut from this one payload, and it is the slowest
+ * thing the site fetches — a handful of seasons of games with the best player
+ * weeks read out of them. Asking for it on the way in means a face on the
+ * managers wall opens onto a finished page instead of "Pulling the file…",
+ * which is also why the first profile used to be the only slow one: it paid for
+ * the fetch that every later profile then read out of the cache.
+ */
+export function prefetchHistory({ season } = {}) {
+  warm(historyKey(season), () => fetchHistory({ season }))
 }
 
 /** Scored matchups. Omit `week` for the full season schedule. */
@@ -142,11 +168,7 @@ export function useChampions({ season } = {}) {
 
 /** The league's whole record — every game, live, with the archive underneath. */
 export function useHistory({ season } = {}) {
-  return useResource(
-    (signal) => fetchHistory({ season, signal }),
-    [season],
-    `history:${season ?? 'current'}`,
-  )
+  return useResource((signal) => fetchHistory({ season, signal }), [season], historyKey(season))
 }
 
 /** Waiver activity: exact counts and FAAB, plus the pickups we can name. */
