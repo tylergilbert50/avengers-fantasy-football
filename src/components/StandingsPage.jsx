@@ -107,14 +107,9 @@ export default function StandingsPage() {
 
         {standings.length > 0 && <StandingsTable standings={standings} />}
 
-        {data && (
+        {data && !data.standingsFrom && (
           <p className="page-foot">
-            {/* Before week 1 the rows are all 0-0 and the order is last
-                season's finish, which is worth saying out loud — otherwise it
-                looks like this season has somehow already been decided. */}
-            {data.standingsFrom
-              ? `Standing as they finished ${data.standingsFrom} — until week 1 is played`
-              : `Through ${standings[0]?.record?.gamesPlayed ?? 0} games`}
+            {`Through ${standings[0]?.record?.gamesPlayed ?? 0} games`}
           </p>
         )}
       </div>
