@@ -121,8 +121,6 @@ export default function RecordsPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Digging through the archives…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the records.</p>

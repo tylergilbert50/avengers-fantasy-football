@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import coverImg from './assets/cover.jpg'
 import { createPageCurl } from './lib/pageCurl'
 import { createTapRecognizer } from './lib/tap.js'
-import { prefetchHistory, prefetchLeague } from './hooks/useEspn.js'
+import { prefetchAll } from './hooks/useEspn.js'
 import { warmPortraits } from './lib/portraits.js'
 import StandingsPage from './components/StandingsPage.jsx'
 import RecordsPage from './components/RecordsPage.jsx'
@@ -339,14 +339,12 @@ function App() {
     return () => window.removeEventListener('hashchange', onPop)
   }, [])
 
-  // Warmed the moment the app boots, while the cover is still being turned.
-  // The league payload is what the managers wall and the standings are drawn
-  // from, and the history is every manager's profile and the history sheet —
-  // the slowest fetch the site makes. Paying for both during the arrival means
-  // none of those pages has to wait for one when it's opened.
+  // Every payload the site draws is warmed the moment the app boots, while the
+  // cover is still being turned. Turning it and reading the panels is several
+  // seconds; a fetch is under one. Spending the arrival on them is what lets
+  // every page open on its content instead of on a loading line.
   useEffect(() => {
-    prefetchLeague()
-    prefetchHistory()
+    prefetchAll()
     warmPortraits()
   }, [])
 

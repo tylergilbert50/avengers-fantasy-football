@@ -228,8 +228,6 @@ export default function HistoryPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Opening the ledger…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the history.</p>

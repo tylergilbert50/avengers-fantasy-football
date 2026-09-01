@@ -88,8 +88,6 @@ export default function ManagersPage({ onOpen }) {
         {/* The dashed rule from the artwork, drawn rather than imported. */}
         <div className="mg-rule" aria-hidden="true" />
 
-        {isLoading && <p className="state">Rounding everyone up…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the managers.</p>
@@ -98,6 +96,10 @@ export default function ManagersPage({ onOpen }) {
               Try again
             </button>
           </div>
+        )}
+
+        {!isLoading && !error && managers.length === 0 && (
+          <p className="state">Nobody has a team this season yet.</p>
         )}
 
         {managers.length > 0 && (

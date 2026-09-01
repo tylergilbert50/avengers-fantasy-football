@@ -163,8 +163,6 @@ export default function SchedulePage() {
 
         <KeyDates dates={dates} />
 
-        {isLoading && <p className="state">Pinning up the fixtures…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the schedule.</p>

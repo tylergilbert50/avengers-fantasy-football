@@ -214,8 +214,6 @@ export default function ManagerPage({ slug }) {
           </div>
         </header>
 
-        {isLoading && <p className="state">Pulling the file…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load this manager.</p>

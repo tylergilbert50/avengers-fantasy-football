@@ -213,7 +213,7 @@ function Receipt({ managers, ballot, closesAt }) {
 }
 
 export default function PollPage() {
-  const { data, error, isLoading, refresh } = usePoll()
+  const { data, error, refresh } = usePoll()
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(null)
   const [voteError, setVoteError] = useState(null)
@@ -277,8 +277,6 @@ export default function PollPage() {
             and the season. Ballots cast here are real rows in week {poll.week}.
           </p>
         )}
-
-        {isLoading && <p className="state">Counting the ballots…</p>}
 
         {error && (
           <div className="state state-error" role="alert">

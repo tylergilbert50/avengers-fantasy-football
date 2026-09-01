@@ -310,8 +310,6 @@ export default function WaiversPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Checking the wire…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the waiver history.</p>

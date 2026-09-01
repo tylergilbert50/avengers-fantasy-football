@@ -89,8 +89,6 @@ export default function StandingsPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Loading standings…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the standings.</p>

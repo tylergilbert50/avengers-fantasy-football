@@ -172,8 +172,6 @@ export default function ChampionsPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Polishing the trophy…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the champions.</p>
@@ -184,6 +182,10 @@ export default function ChampionsPage() {
           </div>
         )}
 
+        {/* No loading line: the shelf is warmed during the arrival, so it is
+            all but always drawn from the cache the moment the page opens. On
+            the rare cold read the header stands on its own for a beat, which
+            reads better than a page that announces it is working. */}
         {!isLoading && !error && champions.length === 0 && (
           <p className="state">No title has been settled yet.</p>
         )}

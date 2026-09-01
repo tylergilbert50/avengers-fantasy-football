@@ -353,8 +353,6 @@ export default function TradesPage() {
           </div>
         </header>
 
-        {isLoading && <p className="state">Working the phones…</p>}
-
         {error && (
           <div className="state state-error" role="alert">
             <p className="state-title">Couldn’t load the trades.</p>
