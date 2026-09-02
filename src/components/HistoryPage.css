@@ -83,9 +83,10 @@
   color: var(--ink);
 }
 
-/* Fourteen columns rather than ten. */
+/* Fourteen columns rather than ten, and set a step larger than the all-time
+   table — a record like 7-3 is the whole cell, so it can afford the size. */
 .hs-grid {
-  min-width: 52rem;
+  min-width: 58rem;
 }
 
 .hs-table th,
@@ -205,14 +206,18 @@
 
 /* ---------- head to head ---------- */
 
+.hs-grid thead th {
+  font-size: 0.98rem;
+}
+
 .hs-grid th[scope='row'] {
-  font-size: 0.82rem;
+  font-size: 0.98rem;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .hs-grid td {
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   text-align: center;
 }
 
@@ -367,6 +372,9 @@
   }
 
   .hs-table thead th { font-size: 0.72rem; letter-spacing: 0.04em; }
+  .hs-grid thead th { font-size: 0.86rem; }
+  .hs-grid th[scope='row'] { font-size: 0.86rem; }
+  .hs-grid td { font-size: 0.85rem; }
   .hs-table .col-rank { width: 2.6rem; }
   .hs-name { font-size: 0.88rem; }
 
