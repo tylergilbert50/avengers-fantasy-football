@@ -283,15 +283,30 @@ export default function HeadToHeadPage({ pair }) {
                         ? weekScoreboardUrl(where)
                         : boxscoreUrl({ ...where, teamId: game.teamId })
 
+                    // Every cell carries its own overlay of the same link, so a
+                    // click lands on the row it was aimed at. Only the year's
+                    // copy is reachable — the rest are hidden from the
+                    // accessibility tree and skipped by tab.
+                    const fill = link ? (
+                      <a
+                        className="h2h-open-fill"
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      />
+                    ) : null
+
                     return (
                       <tr
                         key={`${game.season}-${game.week}`}
                         className={link ? 'h2h-log-row is-link' : 'h2h-log-row'}
                       >
-                        {/* One link per row rather than one per cell: it is
-                            stretched over the whole row in CSS, so the row is the
-                            target while a screen reader is still offered a single
-                            link that says where it goes. */}
+                        {/* The link a screen reader and the keyboard get:
+                            one per row, named with the meeting it opens. It is
+                            stretched over its own cell in CSS, and the silent
+                            copies below cover the rest of the row. */}
                         <td className="h2h-year-cell">
                           {link ? (
                             <a
@@ -310,20 +325,26 @@ export default function HeadToHeadPage({ pair }) {
                             game.season
                           )}
                         </td>
-                        <td className="h2h-week-cell">{game.week}</td>
+                        <td className="h2h-week-cell">
+                          {game.week}
+                          {fill}
+                        </td>
                         {/* The winning score is the heavier of the two and the
                             losing one steps back, so a result reads down the
                             column without a wash of colour behind it. */}
                         <td className={`h2h-num ${game.won === 'a' ? 'h2h-won' : 'h2h-lost'}`}>
                           {game.points.toFixed(1)}
                           {game.won === 'a' && <span className="sr-only"> — won</span>}
+                          {fill}
                         </td>
                         <td className={`h2h-num ${game.won === 'b' ? 'h2h-won' : 'h2h-lost'}`}>
                           {game.against.toFixed(1)}
                           {game.won === 'b' && <span className="sr-only"> — won</span>}
+                          {fill}
                         </td>
                         <td className="h2h-num h2h-margin">
                           {game.won === null ? 'tie' : game.margin.toFixed(1)}
+                          {fill}
                         </td>
                       </tr>
                     )

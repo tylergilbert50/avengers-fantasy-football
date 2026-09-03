@@ -214,9 +214,8 @@
   width: 100%;
   min-width: 28rem;
   /* Separate rather than collapsed, with the spacing taken back out: a
-     collapsed table has its rows' `position: relative` ignored, which let the
-     stretched row link below escape the row and cover the page — the stats
-     above it included. */
+     collapsed table's cells are unreliable containing blocks, and the row
+     links below are stretched over their cells. */
   border-collapse: separate;
   border-spacing: 0;
   font-variant-numeric: tabular-nums;
@@ -268,15 +267,19 @@
 }
 
 /* ---------- opening a meeting on ESPN ----------
-   One anchor sits in the year cell and is stretched over the whole row, so the
-   row is the hit target while the accessibility tree still sees a single link
-   that names where it goes. The row is the containing block for it, which is
-   the only reason it is positioned — and the only reason the table is not
-   collapsed, since a collapsed table drops that containing block. */
+   The whole row opens its meeting, built out of one stretched link per cell.
+   A `tr` cannot hold them: relative positioning on a table row is undefined,
+   so the row is not reliably a containing block, and the stretched links fall
+   through to the panel instead — every row's link covering the whole log, with
+   the last meeting on top of all of them. A cell is a containing block
+   everywhere, so each link is scoped to the cell it sits in. */
 
 .h2h-log-row.is-link {
-  position: relative;
   cursor: pointer;
+}
+
+.h2h-log-row.is-link td {
+  position: relative;
 }
 
 .h2h-open {
@@ -284,10 +287,31 @@
   text-decoration: none;
 }
 
+/* The row is what you are clicking, so the row is what has to light up. A
+   browser highlights the link it actually hit, and each link is one cell wide,
+   which flashes a box around a single score instead. Both highlights are
+   dropped and the wash below carries the feedback for the whole row. */
+.h2h-open,
+.h2h-open-fill {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h2h-open-fill:focus {
+  outline: none;
+}
+
+/* `content` belongs to the pseudo-element alone: on a real element it replaces
+   the element's contents, which sizes the overlay anchors to nothing and leaves
+   the year the only cell you can click. */
 .h2h-open::after {
   content: '';
+}
+
+.h2h-open::after,
+.h2h-open-fill {
   position: absolute;
   inset: 0;
+  display: block;
 }
 
 @media (hover: hover) {
@@ -298,7 +322,11 @@
   }
 }
 
-.h2h-log-row.is-link:active {
+/* Held down, the whole row darkens — on a phone this is the only feedback
+   there is, since there is no hover to have shown the row first. */
+.h2h-log-row.is-link:active,
+.h2h-log-row.is-link:has(.h2h-open:active),
+.h2h-log-row.is-link:has(.h2h-open-fill:active) {
   background: rgba(11, 11, 11, 0.16);
 }
 
