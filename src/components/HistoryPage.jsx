@@ -95,7 +95,7 @@ export function AllTime({ rows }) {
   )
 }
 
-/** Who has beaten whom, everything ever played. */
+/** Who has beaten whom, over the regular season — the bracket is left out. */
 export function HeadToHead({ owners, records, onOpen }) {
   // Danny Stiles and Drew Sherrow are both "DS" on initials alone, so the
   // heads are widened until every column is its own.

@@ -149,8 +149,10 @@ test('a head-to-head is the mirror of its opposite', () => {
   assert.deepEqual(h2h.get('Bob Brown', 'Ann Adams'), { wins: 0, losses: 2, ties: 0 })
 })
 
-test('playoff meetings count in the head-to-head', () => {
-  assert.deepEqual(h2h.get('Ann Adams', 'Cal Clark'), { wins: 1, losses: 1, ties: 0 })
+test('playoff meetings are left out of the head-to-head', () => {
+  // Ann beat Cal in the 2021 bracket and lost to her in week 2. Only the week
+  // counts: the grid answers the same question the matchup page does.
+  assert.deepEqual(h2h.get('Ann Adams', 'Cal Clark'), { wins: 0, losses: 1, ties: 0 })
 })
 
 test('a tie shows on both sides', () => {

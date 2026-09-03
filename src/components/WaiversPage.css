@@ -176,6 +176,48 @@
 .wv-points { color: var(--money); }
 .wv-dim { color: var(--muted); font-weight: 600; }
 
+/* ---------- picking a manager ----------
+   The whole row is the hit target, but the name carries a button so the filter
+   is reachable by keyboard and announced as a toggle. The button is styled to
+   look like the cell it replaced — the row's own hover and cursor are what
+   advertise it as clickable. The same arrangement the trade history uses. */
+
+.wv-row {
+  cursor: pointer;
+}
+
+.wv-row-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wv-row-btn:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .wv-table tbody tr.wv-row:hover {
+    background: rgba(11, 11, 11, 0.09);
+  }
+}
+
+.wv-table tbody tr.wv-row.is-selected {
+  background: var(--gold);
+}
+
+/* A shoulder down the selected row, so which manager the list below belongs to
+   survives being read at a glance. */
+.wv-table tbody tr.wv-row.is-selected > :first-child {
+  box-shadow: inset 6px 0 0 var(--ink);
+}
+
 /* Two lines in one cell: the player, then what and when underneath. */
 .wv-best {
   display: table-cell;
@@ -271,7 +313,39 @@
 /* ---------- season filter ---------- */
 
 .wv-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin-bottom: 1rem;
+}
+
+/* The active manager filter, repeated where it can be dismissed — the table can
+   be scrolled well out of view by the time you want it gone. */
+.wv-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  border: 3px solid var(--ink);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.wv-clear-x {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+.wv-clear:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 .wv-select {

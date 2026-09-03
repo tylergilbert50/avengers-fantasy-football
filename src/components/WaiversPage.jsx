@@ -131,7 +131,7 @@ function SortHeader({ column, sort, onSort }) {
   )
 }
 
-function StatsTable({ stats, sort, onSort }) {
+function StatsTable({ stats, sort, onSort, selected, onSelect }) {
   const rows = useMemo(
     () =>
       sortRows({
@@ -147,7 +147,8 @@ function StatsTable({ stats, sort, onSort }) {
     <div className="table-wrap wv-table-wrap">
       <table className="wv-table">
         <caption className="sr-only">
-          Waiver activity by manager. Every column but the name can be sorted.
+          Waiver activity by manager. Every column but the name can be sorted, and
+          picking a row filters the pickups below to that manager.
         </caption>
         <thead>
           <tr>
@@ -158,27 +159,52 @@ function StatsTable({ stats, sort, onSort }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.manager}>
-              <th scope="row" className="wv-name">{row.manager}</th>
-              <td className="wv-num">{row.adds}</td>
-              <td className="wv-num wv-dim">{row.drops}</td>
-              <td className="wv-num">{money(row.spent)}</td>
-              <td className="wv-num">{percent(row.spentPct)}</td>
-              <td className="wv-best">
-                {row.bestPickup ? (
-                  <>
-                    <span className="wv-best-player">{row.bestPickup.player}</span>
-                    <span className="wv-best-line">
-                      {points(row.bestPickup.points)} · {row.bestPickup.season} week {row.bestPickup.week}
-                    </span>
-                  </>
-                ) : (
-                  <span className="wv-dim">—</span>
-                )}
-              </td>
-            </tr>
-          ))}
+          {rows.map((row) => {
+            const active = selected === row.manager
+            return (
+              // The whole row is the target — the name is just where the cursor
+              // naturally lands. Clicking the same manager again clears it.
+              <tr
+                key={row.manager}
+                className={`wv-row${active ? ' is-selected' : ''}`}
+                onClick={() => onSelect(row.manager)}
+              >
+                <th scope="row" className="wv-name">
+                  {/* A real button so the row is reachable by keyboard and
+                      announced as a toggle; its own click stops here rather
+                      than bubbling to the row and undoing itself. */}
+                  <button
+                    type="button"
+                    className="wv-row-btn"
+                    aria-pressed={active}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onSelect(row.manager)
+                    }}
+                  >
+                    {row.manager}
+                  </button>
+                </th>
+                <td className="wv-num">{row.adds}</td>
+                <td className="wv-num wv-dim">{row.drops}</td>
+                <td className="wv-num">{money(row.spent)}</td>
+                <td className="wv-num">{percent(row.spentPct)}</td>
+                <td className="wv-best">
+                  {row.bestPickup ? (
+                    <>
+                      <span className="wv-best-player">{row.bestPickup.player}</span>
+                      <span className="wv-best-line">
+                        {points(row.bestPickup.points)} · {row.bestPickup.season} week{' '}
+                        {row.bestPickup.week}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="wv-dim">—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
@@ -270,6 +296,20 @@ export default function WaiversPage() {
   const [chosen, setChosen] = useState(null)
   const [sort, setSort] = useState(DEFAULT_SORT)
   const [pickupSort, setPickupSort] = useState(DEFAULT_PICKUP_SORT)
+  // Null when the list is showing everybody. Set by clicking a row in the
+  // activity table; clicking the same row again puts it back.
+  const [manager, setManager] = useState(null)
+
+  // Picking a manager widens the season filter to every year, since their
+  // activity spans all of them and a one-season list would look like a much
+  // quieter wire. Clearing them hands the season back to the default.
+  const toggleManager = useCallback((name) => {
+    setManager((current) => {
+      const next = current === name ? null : name
+      setChosen(next == null ? null : 'all')
+      return next
+    })
+  }, [])
 
   const toggleSort = useCallback((key) => setSort((current) => nextSort(current, key, COLUMNS)), [])
   const togglePickupSort = useCallback(
@@ -282,9 +322,22 @@ export default function WaiversPage() {
   const season = chosen ?? (seasons.length ? String(seasons[0]) : 'all')
 
   const shown = useMemo(
-    () => (season === 'all' ? pickups : pickups.filter((pickup) => pickup.season === Number(season))),
-    [pickups, season],
+    () =>
+      pickups.filter(
+        (pickup) =>
+          (season === 'all' || pickup.season === Number(season)) &&
+          (manager == null || pickup.manager === manager),
+      ),
+    [pickups, season, manager],
   )
+
+  // "Daniel’s 2019 pickups", "Every pickup" — the heading has to follow both
+  // filters or it claims more than the list underneath it is showing.
+  const heading = manager
+    ? `${manager}${manager.endsWith('s') ? '’' : '’s'} ${season === 'all' ? 'pickups' : `${season} pickups`}`
+    : season === 'all'
+      ? 'Every pickup'
+      : `${season} pickups`
 
   return (
     <div className="page-shell is-waivers">
@@ -329,15 +382,32 @@ export default function WaiversPage() {
             <Highlights highlights={data.highlights} />
 
             <section className="wv-section">
-              <StatsTable stats={data.stats} sort={sort} onSort={toggleSort} />
+              <StatsTable
+                stats={data.stats}
+                sort={sort}
+                onSort={toggleSort}
+                selected={manager}
+                onSelect={toggleManager}
+              />
             </section>
 
             <section className="wv-section">
               <div className="wv-section-head">
-                <h2 className="wv-heading">
-                  {season === 'all' ? 'Every pickup' : `${season} pickups`}
-                </h2>
+                {/* The heading follows the filter: "Every pickup" over one
+                    manager's worth of rows would be claiming too much. */}
+                <h2 className="wv-heading">{heading}</h2>
                 <div className="wv-filter">
+                  {manager && (
+                    <button
+                      type="button"
+                      className="wv-clear"
+                      onClick={() => toggleManager(manager)}
+                    >
+                      {manager}
+                      <span className="wv-clear-x" aria-hidden="true">×</span>
+                      <span className="sr-only"> — clear manager filter</span>
+                    </button>
+                  )}
                   <label className="sr-only" htmlFor="wv-season">Season</label>
                   <select
                     id="wv-season"
@@ -356,7 +426,11 @@ export default function WaiversPage() {
               {shown.length > 0 ? (
                 <PickupTable pickups={shown} sort={pickupSort} onSort={togglePickupSort} />
               ) : (
-                <p className="state">Nothing started off the wire that season.</p>
+                <p className="state">
+                  {manager
+                    ? `${manager} started nothing off the wire${season === 'all' ? '' : ` in ${season}`}.`
+                    : 'Nothing started off the wire that season.'}
+                </p>
               )}
             </section>
           </>
