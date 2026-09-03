@@ -233,6 +233,11 @@
   width: 100%;
   aspect-ratio: 2 / 3;
   border-bottom: 4px solid var(--ink);
+  /* The frame under the artwork. Covers are warmed during the arrival and are
+     all but always drawn from the cache, but a deep link straight to this page
+     can beat the warm — and an empty frame the colour of the paper flashes
+     white against a dark red page. Inked, the wait reads as an unlit cover. */
+  background: var(--accent-deep);
   object-fit: cover;
   object-position: top center;
 }

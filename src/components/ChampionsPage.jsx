@@ -1,55 +1,9 @@
 import { useChampions } from '../hooks/useEspn.js'
 import hammerImg from '../assets/hammer.webp'
 import { portraitFor } from '../lib/portraits.js'
+import { coverFor, COVER_SIZES } from '../lib/covers.js'
 import './comic.css'
 import './ChampionsPage.css'
-
-/**
- * Championship comic covers, keyed by the season they were cut for —
- * src/assets/champion-covers/2024-800.webp is 2024's. A season can ship one
- * file (2024.webp) or the same artwork at several widths (2024-200.webp,
- * 2024-400.webp, 2024-800.webp), which become a srcset so a desktop at 1x
- * downloads a cover already its own size instead of asking the browser to
- * squeeze a 800px scan into 190px — the squeeze is what looked pixelated.
- * Seasons whose cover hasn't been drawn yet fall back to a blank issue, so the
- * shelf stays full.
- */
-const COVERS = (() => {
-  const shelf = {}
-
-  for (const [path, src] of Object.entries(
-    import.meta.glob('../assets/champion-covers/*.{webp,png,jpg,jpeg}', {
-      eager: true,
-      import: 'default',
-    }),
-  )) {
-    const name = path.split('/').pop().replace(/\.[^.]+$/, '')
-    const [, season, width] = /^(\d{4})(?:-(\d+))?$/.exec(name) ?? []
-    if (!season) continue
-    ;(shelf[season] ??= []).push({ src, width: Number(width) || 0 })
-  }
-
-  return Object.fromEntries(
-    Object.entries(shelf).map(([season, files]) => {
-      // Widest last: it is both the default src for a browser that ignores
-      // srcset and the top of the ladder for one that doesn't.
-      const sized = files.filter((f) => f.width).sort((a, b) => a.width - b.width)
-      const widest = sized.at(-1) ?? files[0]
-      return [
-        season,
-        {
-          src: widest.src,
-          srcSet: sized.length > 1 ? sized.map((f) => `${f.src} ${f.width}w`).join(', ') : undefined,
-        },
-      ]
-    }),
-  )
-})()
-
-/* What a cover actually measures on screen, so the browser can pick a width
-   before it knows the layout: two to a row on a phone, three on a tablet, and
-   a fifth of the 66rem shelf — about 190px — on a desktop. */
-const COVER_SIZES = '(max-width: 560px) 45vw, (max-width: 900px) 30vw, 190px'
 
 /**
  * Confetti, thrown once here rather than randomly per render so it lands in the
@@ -153,7 +107,7 @@ export function ChampionHero({ champion }) {
 
 /** One issue on the shelf: the cover cut for that title, and who it was for. */
 export function ChampionCover({ champion }) {
-  const cover = COVERS[String(champion.season)]
+  const cover = coverFor(champion.season)
 
   return (
     <li className="ch-issue">

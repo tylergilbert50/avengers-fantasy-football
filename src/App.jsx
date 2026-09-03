@@ -4,6 +4,7 @@ import { createPageCurl } from './lib/pageCurl'
 import { createTapRecognizer } from './lib/tap.js'
 import { prefetchAll } from './hooks/useEspn.js'
 import { warmPortraits } from './lib/portraits.js'
+import { warmCovers } from './lib/covers.js'
 import StandingsPage from './components/StandingsPage.jsx'
 import RecordsPage from './components/RecordsPage.jsx'
 import DraftPage from './components/DraftPage.jsx'
@@ -359,6 +360,7 @@ function App() {
   useEffect(() => {
     prefetchAll()
     warmPortraits()
+    warmCovers()
   }, [])
 
   /**
