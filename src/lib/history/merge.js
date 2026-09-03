@@ -78,6 +78,11 @@ export function seasonGames({ season, teams = [], matchups = [] }) {
         ap: matchup.home?.points ?? null,
         b: owner.get(matchup.away?.teamId) ?? null,
         bp: matchup.away?.points ?? null,
+        // Kept only so a game can be opened on ESPN, which needs a side to open
+        // the box score on. The workbook seasons have none, and nothing counts
+        // with them — teams are identified by their manager everywhere else.
+        ...(matchup.home?.teamId != null ? { at: matchup.home.teamId } : {}),
+        ...(matchup.away?.teamId != null ? { bt: matchup.away.teamId } : {}),
         ...(winner ? { winner } : {}),
       }
     })

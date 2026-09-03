@@ -56,6 +56,9 @@ export function meetings(games = [], nameA, nameB) {
       return {
         season: game.season,
         week: game.week,
+        // The first manager's team that year, when the season came from ESPN
+        // rather than the workbook. Only ESPN's own box score wants it.
+        teamId: (side === 'a' ? game.at : game.bt) ?? null,
         points: points ?? 0,
         against: against ?? 0,
         margin: round(Math.abs((points ?? 0) - (against ?? 0)), 2),

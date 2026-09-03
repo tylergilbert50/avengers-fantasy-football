@@ -45,6 +45,23 @@ export function boxscoreUrl({ leagueId, season, week, teamId }) {
 }
 
 /**
+ * ESPN's scoreboard for one week — every matchup in it, rather than one.
+ *
+ * Where a game is opened from and no side can be named — the seasons the
+ * workbook carries store scores and owners but no team ids — this is the honest
+ * link: a box score with no `teamId` opens on whoever is signed in, which is
+ * usually the wrong game entirely.
+ */
+export function weekScoreboardUrl({ leagueId, season, week }) {
+  if (!leagueId || !season || !week) return null
+  const url = new URL('https://fantasy.espn.com/football/league/scoreboard')
+  url.searchParams.set('leagueId', String(leagueId))
+  url.searchParams.set('matchupPeriodId', String(week))
+  url.searchParams.set('seasonId', String(season))
+  return url.toString()
+}
+
+/**
  * Manager display names, shortened to first names where that is unambiguous
  * and first name + last initial where it isn't. Record tables are narrow and
  * the same people appear over and over.

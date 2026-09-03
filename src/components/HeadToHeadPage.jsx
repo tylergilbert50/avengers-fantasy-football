@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useHistory } from '../hooks/useEspn.js'
 import { playerSlug } from '../lib/espn/draft.js'
+import { boxscoreUrl, weekScoreboardUrl } from '../lib/espn/records.js'
 import { headToHeadSeries } from '../lib/history/matchup.js'
 import { portraitFor } from '../lib/portraits.js'
 import './comic.css'
@@ -269,26 +270,64 @@ export default function HeadToHeadPage({ pair }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {series.games.map((game) => (
-                    <tr key={`${game.season}-${game.week}`}>
-                      <td className="h2h-year-cell">{game.season}</td>
-                      <td className="h2h-week-cell">{game.week}</td>
-                      {/* The winning score is the heavier of the two and the
-                          losing one steps back, so a result reads down the
-                          column without a wash of colour behind it. */}
-                      <td className={`h2h-num ${game.won === 'a' ? 'h2h-won' : 'h2h-lost'}`}>
-                        {game.points.toFixed(1)}
-                        {game.won === 'a' && <span className="sr-only"> — won</span>}
-                      </td>
-                      <td className={`h2h-num ${game.won === 'b' ? 'h2h-won' : 'h2h-lost'}`}>
-                        {game.against.toFixed(1)}
-                        {game.won === 'b' && <span className="sr-only"> — won</span>}
-                      </td>
-                      <td className="h2h-num h2h-margin">
-                        {game.won === null ? 'tie' : game.margin.toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
+                  {series.games.map((game) => {
+                    const where = {
+                      leagueId: history?.leagueId,
+                      season: game.season,
+                      week: game.week,
+                    }
+                    // The box score when a side can be named, and that week's
+                    // scoreboard when it can't — see weekScoreboardUrl.
+                    const link =
+                      game.teamId == null
+                        ? weekScoreboardUrl(where)
+                        : boxscoreUrl({ ...where, teamId: game.teamId })
+
+                    return (
+                      <tr
+                        key={`${game.season}-${game.week}`}
+                        className={link ? 'h2h-log-row is-link' : 'h2h-log-row'}
+                      >
+                        {/* One link per row rather than one per cell: it is
+                            stretched over the whole row in CSS, so the row is the
+                            target while a screen reader is still offered a single
+                            link that says where it goes. */}
+                        <td className="h2h-year-cell">
+                          {link ? (
+                            <a
+                              className="h2h-open"
+                              href={link}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                            >
+                              {game.season}
+                              <span className="sr-only">
+                                {' '}
+                                week {game.week} — open this matchup on ESPN
+                              </span>
+                            </a>
+                          ) : (
+                            game.season
+                          )}
+                        </td>
+                        <td className="h2h-week-cell">{game.week}</td>
+                        {/* The winning score is the heavier of the two and the
+                            losing one steps back, so a result reads down the
+                            column without a wash of colour behind it. */}
+                        <td className={`h2h-num ${game.won === 'a' ? 'h2h-won' : 'h2h-lost'}`}>
+                          {game.points.toFixed(1)}
+                          {game.won === 'a' && <span className="sr-only"> — won</span>}
+                        </td>
+                        <td className={`h2h-num ${game.won === 'b' ? 'h2h-won' : 'h2h-lost'}`}>
+                          {game.against.toFixed(1)}
+                          {game.won === 'b' && <span className="sr-only"> — won</span>}
+                        </td>
+                        <td className="h2h-num h2h-margin">
+                          {game.won === null ? 'tie' : game.margin.toFixed(1)}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
