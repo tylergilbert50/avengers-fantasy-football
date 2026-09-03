@@ -154,13 +154,15 @@
 }
 
 @media (hover: hover) {
+  /* The same wash a trade-history row and a head-to-head record take on hover,
+     so a row you can open looks the same wherever the site offers one. */
   .rec-row.is-link:hover {
-    background: #fff6cc;
+    background: rgba(11, 11, 11, 0.09);
   }
 }
 
 .rec-row.is-link:active {
-  background: #ffeda3;
+  background: rgba(11, 11, 11, 0.16);
 }
 
 .rec-row.is-link:focus-visible {

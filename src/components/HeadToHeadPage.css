@@ -73,9 +73,11 @@
 }
 
 /* The portraits are drawn out to the edge of their own circle on black, so the
-   ring is seating them rather than cropping them. */
+   ring is seating them rather than cropping them. Sized to take up the room the
+   name plate used to leave empty either side of them — a face is the only thing
+   in its corner now, so it gets the corner. */
 .h2h-face {
-  width: clamp(5.5rem, 20vw, 8rem);
+  width: clamp(5.5rem, 26vw, 14rem);
   aspect-ratio: 1;
   border: 4px solid var(--ink);
   border-radius: 50%;
@@ -89,25 +91,10 @@
   place-items: center;
   color: var(--gold);
   font-family: var(--display);
-  font-size: 2.1rem;
+  /* Initials grow with the circle they sit in, or a bigger face just buys a
+     small pair of letters more black around them. */
+  font-size: clamp(2.1rem, 9vw, 4.5rem);
   letter-spacing: 0.04em;
-}
-
-/* A name plate, the shape the artwork letters names in. Paper rather than a
-   colour of its own: the face above it is already ringed in gold, and a third
-   fill would make a corner into a badge. */
-.h2h-corner-name {
-  margin-top: 0.25rem;
-  padding: 0.2rem 0.8rem;
-  border: 3px solid var(--ink);
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--display);
-  font-size: clamp(1rem, 3.4vw, 1.35rem);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
 }
 
 .h2h-versus {

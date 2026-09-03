@@ -287,10 +287,7 @@ export default function HistoryPage({ section = 'all-time', onOpen }) {
 
             {showing === 'all-time' && <AllTime rows={table} />}
             {showing === 'h2h' && (
-              <>
-                <p className="hs-hint">Tap any record for the full matchup.</p>
-                <HeadToHead owners={owners} records={records} onOpen={onOpen} />
-              </>
+              <HeadToHead owners={owners} records={records} onOpen={onOpen} />
             )}
             {showing === 'weeks' && <BestWeeks players={history.topPlayers} />}
 

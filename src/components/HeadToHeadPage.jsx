@@ -76,20 +76,19 @@ function VersusBurst() {
  * them — the record between them is one figure, not two — so it all sits in the
  * middle or below. A corner only has to say who is standing in it.
  */
-function Corner({ name, label }) {
+function Corner({ name }) {
   const portrait = portraitFor(name)
 
   return (
     <div className="h2h-corner">
       {portrait ? (
-        // Decorative: the name is right underneath in real text.
+        // Decorative: the sr-only name below says who this is.
         <img className="h2h-face" src={portrait} alt="" />
       ) : (
         <span className="h2h-face h2h-face-empty" aria-hidden="true">
           {initials(name)}
         </span>
       )}
-      <span className="h2h-corner-name">{label}</span>
       <span className="sr-only">{name}</span>
     </div>
   )
@@ -188,7 +187,7 @@ export default function HeadToHeadPage({ pair }) {
             {/* Cells separated by the card's own black showing through the gap,
                 so the dividers survive the card narrowing on a phone. */}
             <div className="h2h-card">
-              <Corner name={nameA} label={labelA} />
+              <Corner name={nameA} />
 
               {/* The one number the whole page is about, read left to right in
                   the order the two of them are stood in. */}
@@ -203,7 +202,7 @@ export default function HeadToHeadPage({ pair }) {
                 </span>
               </div>
 
-              <Corner name={nameB} label={labelB} />
+              <Corner name={nameB} />
             </div>
 
             {played === 0 && (

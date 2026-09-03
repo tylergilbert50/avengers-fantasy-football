@@ -256,8 +256,10 @@
 }
 
 @media (hover: hover) {
+  /* The same wash a trade-history row takes on hover, so a hoverable row of
+     records reads the same on both sheets. */
   .hs-h2h:hover {
-    background: var(--gold);
+    background: rgba(11, 11, 11, 0.09);
   }
 }
 
@@ -270,17 +272,6 @@
    it can be. */
 .hs-none {
   color: var(--muted);
-}
-
-/* Says the grid is a way in, above the grid rather than under it — a caption
-   nobody scrolls to is a caption nobody reads. */
-.hs-hint {
-  margin: -0.75rem 0 0.9rem;
-  color: var(--sub-tint);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 /* Nobody plays themselves. */
