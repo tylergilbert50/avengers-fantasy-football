@@ -204,10 +204,21 @@
 
 /* ---------- every meeting ---------- */
 
+/* A backstop for the stretched row link: whatever a browser makes of the row
+   as a containing block, nothing the log paints can reach past the panel. */
+.h2h-table-wrap {
+  position: relative;
+}
+
 .h2h-log {
   width: 100%;
   min-width: 28rem;
-  border-collapse: collapse;
+  /* Separate rather than collapsed, with the spacing taken back out: a
+     collapsed table has its rows' `position: relative` ignored, which let the
+     stretched row link below escape the row and cover the page — the stats
+     above it included. */
+  border-collapse: separate;
+  border-spacing: 0;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
@@ -260,7 +271,8 @@
    One anchor sits in the year cell and is stretched over the whole row, so the
    row is the hit target while the accessibility tree still sees a single link
    that names where it goes. The row is the containing block for it, which is
-   the only reason it is positioned. */
+   the only reason it is positioned — and the only reason the table is not
+   collapsed, since a collapsed table drops that containing block. */
 
 .h2h-log-row.is-link {
   position: relative;
@@ -330,8 +342,14 @@
 /* ---------- phones ---------- */
 
 @media (max-width: 700px) {
+  /* Two columns filled downwards rather than across, so each one reads as a
+     list: highest score, meetings and biggest margin on the left; lowest
+     score, active streak and lowest margin on the right. The source order is
+     already that order, which is what a screen reader keeps. */
   .h2h-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
   }
 }
 
