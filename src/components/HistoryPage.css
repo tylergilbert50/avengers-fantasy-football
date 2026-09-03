@@ -226,6 +226,63 @@
   cursor: help;
 }
 
+/* A cell you can open. The button carries the cell's padding rather than the
+   cell doing it, so the whole box is the target — on a phone the record itself
+   is four characters wide, and a tap that misses by a letter should still land
+   on the matchup rather than on nothing. */
+.hs-table td.hs-cell { padding: 0; }
+.hs-table tr > td.hs-cell:last-child { padding-right: 0; }
+
+.hs-cell > * {
+  display: block;
+  width: 100%;
+  padding: 0.55rem var(--cell-pad-x);
+}
+
+.hs-table tr > td.hs-cell:last-child > * {
+  padding-right: var(--edge-pad);
+}
+
+.hs-h2h {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background 120ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .hs-h2h:hover {
+    background: var(--gold);
+  }
+}
+
+.hs-h2h:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: -3px;
+}
+
+/* A pairing that has never met: nothing to open, so nothing that looks like
+   it can be. */
+.hs-none {
+  color: var(--muted);
+}
+
+/* Says the grid is a way in, above the grid rather than under it — a caption
+   nobody scrolls to is a caption nobody reads. */
+.hs-hint {
+  margin: -0.75rem 0 0.9rem;
+  color: var(--sub-tint);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 /* Nobody plays themselves. */
 .hs-self {
   background: repeating-linear-gradient(

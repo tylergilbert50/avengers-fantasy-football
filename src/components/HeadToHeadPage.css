@@ -1,0 +1,323 @@
+/* One pairing's own page. The page furniture lives in comic.css; this file sets
+   the corners the two managers meet in, the series between them and the log of
+   every meeting.
+
+   Same slate as the history sheet it opens from — a matchup is that page's grid
+   zoomed in on one cell, not somewhere new, exactly as a manager's profile is
+   the wall zoomed in on one face. */
+
+.page-shell.is-h2h {
+  --accent-deep: #06080f;
+  --accent-mid: #1c2438;
+  --accent-hi: #3d4f78;
+  --gold: #ffc61a;
+  --sub-tint: #dfe4f2;
+  --foot-tint: #c9d1e6;
+}
+
+.page-shell.is-h2h .page-inner {
+  max-width: 58rem;
+}
+
+/* ---------- the title ---------- */
+
+/* Two names and the word between them, rather than one long line: at the
+   title's size a phone can't hold "Brett vs Connor" on one, and a title that
+   wraps mid-name reads as a mistake. */
+.h2h-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 0.35em;
+}
+
+.h2h-title-vs {
+  font-size: 0.45em;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- the two corners ---------- */
+
+/* Cells separated by the card's own black showing through the gap, so the
+   dividers survive them stacking on a phone — the same trick a manager's card
+   uses. */
+.h2h-card {
+  display: grid;
+  /* The middle column is sized by the tally rather than left to the burst, so
+     a 10-8-1 doesn't squeeze the two faces to make room for itself. */
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, auto) minmax(0, 1fr);
+  gap: 4px;
+  border: 4px solid var(--ink);
+  border-radius: 16px;
+  background: var(--ink);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.h2h-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Centred rather than stacked from the top: the middle cell is the taller of
+     the three, and a face pinned to the ceiling of a short column beside it
+     reads as a layout that ran out of content. */
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1.3px) 0 0 / 6px 6px,
+    radial-gradient(75% 70% at 50% 40%, #fff6d8 0%, #f7e6b4 55%, var(--paper-shade) 100%);
+  color: var(--ink);
+  text-align: center;
+}
+
+/* The portraits are drawn out to the edge of their own circle on black, so the
+   ring is seating them rather than cropping them. */
+.h2h-face {
+  width: clamp(5.5rem, 20vw, 8rem);
+  aspect-ratio: 1;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 0 5px var(--gold), 5px 5px 0 5px rgba(0, 0, 0, 0.35);
+  object-fit: cover;
+}
+
+.h2h-face-empty {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 2.1rem;
+  letter-spacing: 0.04em;
+}
+
+/* A name plate, the shape the artwork letters names in. Paper rather than a
+   colour of its own: the face above it is already ringed in gold, and a third
+   fill would make a corner into a badge. */
+.h2h-corner-name {
+  margin-top: 0.25rem;
+  padding: 0.2rem 0.8rem;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: clamp(1rem, 3.4vw, 1.35rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.h2h-versus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.h2h-burst {
+  width: clamp(3rem, 10vw, 4.4rem);
+  height: auto;
+}
+
+/* The series in one figure, and the biggest thing on the page after the title.
+   Paper on black rather than gold: the burst above it is the gold, and two
+   golds stacked is a badge rather than a scoreboard. */
+.h2h-tally {
+  font-family: var(--display);
+  font-size: clamp(2rem, 8vw, 3.1rem);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.h2h-burst-text {
+  fill: var(--ink);
+  font-family: var(--display);
+  font-size: 30px;
+  letter-spacing: 0.02em;
+}
+
+.h2h-empty {
+  margin-top: 1.25rem;
+}
+
+/* ---------- section headings ---------- */
+
+.h2h-section {
+  margin: 2.25rem 0 1.25rem;
+  font-size: clamp(1.4rem, 5vw, 2.1rem);
+  text-align: center;
+}
+
+/* ---------- the series at a glance ---------- */
+
+/* Six panels, three across: the top row is the series at its best — the
+   highest score, how often they meet, the widest anyone has won by — and the
+   bottom row is the same three questions the other way up. */
+.h2h-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  /* Not optional: the page shell paints its text the colour of paper, so a
+     panel that puts paper behind it has to say otherwise. */
+  color: var(--ink);
+}
+
+.h2h-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  padding: 0.7rem 0.4rem 0.8rem;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.h2h-stat-label {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.h2h-stat-value {
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.h2h-stat-note {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* ---------- every meeting ---------- */
+
+.h2h-log {
+  width: 100%;
+  min-width: 28rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.h2h-log th,
+.h2h-log td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.h2h-log tr > :first-child { padding-left: 1.25rem; }
+.h2h-log tr > :last-child { padding-right: 1.25rem; }
+
+.h2h-log thead th {
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.h2h-log tbody td {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+}
+
+.h2h-log tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.h2h-log tbody tr:nth-child(even) {
+  background: var(--paper-shade);
+}
+
+.h2h-log .h2h-num {
+  text-align: right;
+  font-weight: 700;
+}
+
+.h2h-year-cell {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.h2h-week-cell {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Which of the two scores won, said with weight rather than with a fill. Seven
+   rows of red and blue blocks turn a log into a heat map, and the thing being
+   read here is the scores — the winner is the taller number, and the type
+   should be saying so rather than the background. */
+.h2h-log .h2h-won {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  /* The display face has one weight, and asking for a bolder one only gets a
+     synthesised smear of it. */
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.h2h-log .h2h-lost {
+  color: var(--muted);
+}
+
+.h2h-margin {
+  color: var(--muted);
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 700px) {
+  .h2h-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .h2h-card,
+  .h2h-stats {
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .h2h-corner {
+    padding: 1rem 0.6rem;
+  }
+
+  .h2h-log th,
+  .h2h-log td {
+    padding: 0.5rem;
+  }
+
+  .h2h-log tr > :first-child { padding-left: 0.7rem; }
+  .h2h-log tr > :last-child { padding-right: 0.7rem; }
+}

@@ -12,6 +12,7 @@ import test from 'node:test'
 import ARCHIVE from '../src/lib/history/archive.js'
 import { awardsFor, STAN_LEE_AWARD } from '../src/lib/history/awards.js'
 import { managerProfile, weekExtremes } from '../src/lib/history/manager.js'
+import { headToHeadSeries, meetings } from '../src/lib/history/matchup.js'
 import { mergeHistory, seasonFinishes, seasonGames } from '../src/lib/history/merge.js'
 import {
   bestWeeks,
@@ -159,6 +160,84 @@ test('a tie shows on both sides', () => {
 test('nobody plays themselves, and an unmet pair is 0-0', () => {
   assert.equal(h2h.get('Ann Adams', 'Ann Adams'), null)
   assert.deepEqual(h2h.get('Ann Adams', 'Nobody At All'), { wins: 0, losses: 0, ties: 0 })
+})
+
+// ---------- one pairing's series ----------
+
+const series = headToHeadSeries(DATA, 'Ann Adams', 'Bob Brown')
+
+test('a series is oriented on whoever was asked for first', () => {
+  // The log stores whichever of them ESPN called home, so 2022 has Bob first.
+  // Both meetings still come back as Ann's points against Bob's.
+  assert.deepEqual(
+    meetings(DATA.games, 'Ann Adams', 'Bob Brown').map((entry) => [entry.points, entry.against]),
+    [[120, 100], [130, 80]],
+  )
+  assert.deepEqual(
+    meetings(DATA.games, 'Bob Brown', 'Ann Adams').map((entry) => [entry.points, entry.against]),
+    [[100, 120], [80, 130]],
+  )
+})
+
+test('the record is counted once and mirrored, so the two halves cannot disagree', () => {
+  assert.equal(series.played, 2)
+  assert.equal(series.a.recordLabel, '2-0')
+  assert.equal(series.b.recordLabel, '0-2')
+  assert.equal(series.a.wins, series.b.losses)
+  assert.equal(series.a.losses, series.b.wins)
+  assert.equal(series.a.ties, series.b.ties)
+})
+
+test('the extremes belong to the series, and say whose they are', () => {
+  assert.deepEqual(series.highestScore, { side: 'a', points: 130, season: 2022, week: 1 })
+  assert.deepEqual(series.lowestScore, { side: 'b', points: 80, season: 2022, week: 1 })
+  assert.equal(series.widest.margin, 50)
+  assert.equal(series.widest.won, 'a')
+  assert.equal(series.closest.margin, 20)
+  assert.equal(series.closest.season, 2021)
+})
+
+test('the series as a whole', () => {
+  assert.deepEqual(series.seasons, [2021, 2022])
+  assert.deepEqual(series.streak, { side: 'a', count: 2 })
+  // Newest first: the page reads the series back from the last meeting.
+  assert.deepEqual(series.games.map((game) => game.season), [2022, 2021])
+})
+
+test('a bracket meeting is not part of a series', () => {
+  // Ann and Cal met twice: once in the regular season and once in the
+  // playoffs. Only the first is the rivalry.
+  const bracket = headToHeadSeries(DATA, 'Ann Adams', 'Cal Clark')
+  assert.equal(bracket.played, 1)
+  assert.equal(bracket.a.recordLabel, '0-1')
+  assert.equal(bracket.b.recordLabel, '1-0')
+  assert.equal(bracket.games[0].week, 2)
+})
+
+test('a tie is nobody’s streak and nobody’s closest game', () => {
+  const drawn = headToHeadSeries(DATA, 'Bob Brown', 'Cal Clark')
+  assert.equal(drawn.a.recordLabel, '0-0-1')
+  assert.equal(drawn.b.recordLabel, '0-0-1')
+  assert.equal(drawn.streak, null)
+  // The only meeting was drawn, so no margin was won by anyone.
+  assert.equal(drawn.closest, null)
+  assert.equal(drawn.widest, null)
+})
+
+test('a pairing that has never met is an empty series, not a missing one', () => {
+  const never = headToHeadSeries(DATA, 'Ann Adams', 'Nobody At All')
+  assert.equal(never.played, 0)
+  assert.equal(never.a.recordLabel, '0-0')
+  assert.equal(never.highestScore, null)
+  assert.equal(never.closest, null)
+  assert.equal(never.streak, null)
+  assert.deepEqual(never.games, [])
+})
+
+test('nobody plays themselves, and half a pairing is no pairing', () => {
+  assert.equal(headToHeadSeries(DATA, 'Ann Adams', 'Ann Adams'), null)
+  assert.equal(headToHeadSeries(DATA, 'Ann Adams', null), null)
+  assert.equal(headToHeadSeries(), null)
 })
 
 // ---------- short labels ----------

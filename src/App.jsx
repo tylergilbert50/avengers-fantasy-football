@@ -11,6 +11,7 @@ import ChampionsPage from './components/ChampionsPage.jsx'
 import PollPage from './components/PollPage.jsx'
 import SchedulePage from './components/SchedulePage.jsx'
 import HistoryPage from './components/HistoryPage.jsx'
+import HeadToHeadPage from './components/HeadToHeadPage.jsx'
 import ManagersPage from './components/ManagersPage.jsx'
 import ManagerPage from './components/ManagerPage.jsx'
 import TradesPage from './components/TradesPage.jsx'
@@ -310,8 +311,12 @@ function ComicBook({ onOpen, coverTurned }) {
 const VIEWS = new Set(['standings', 'records', 'draft-history', 'champions', 'managers-poll', 'schedule', 'history-sheet', 'managers', 'trade-history', 'waiver-history'])
 
 /**
- * The one view that carries something with it: `#/managers/brett-gilbert` is a
- * manager's own page, and the slug is how it knows whose.
+ * The views that carry something with them.
+ *
+ * `#/managers/brett-gilbert` is a manager's own page, and the slug is how it
+ * knows whose. The history sheet carries which of its three views is showing —
+ * so a matchup opened from the grid comes back to the grid — and under that,
+ * `#/history-sheet/h2h/brett-gilbert/connor-bowser` is one pairing's own page.
  */
 function readHash() {
   const hash = window.location.hash.replace(/^#\/?/, '')
@@ -320,12 +325,20 @@ function readHash() {
   if (head === 'managers' && rest.length > 0 && rest[0]) {
     return { view: 'manager', slug: rest.join('/') }
   }
+
+  if (head === 'history-sheet' && rest.length > 0 && rest[0]) {
+    if (rest[0] === 'h2h' && rest[1] && rest[2]) {
+      return { view: 'head-to-head', pair: [rest[1], rest[2]] }
+    }
+    return { view: 'history-sheet', section: rest[0] }
+  }
+
   return { view: VIEWS.has(hash) ? hash : 'comic', slug: null }
 }
 
 function App() {
   const [route, setRoute] = useState(readHash)
-  const { view, slug } = route
+  const { view, slug, section, pair } = route
 
   // Turning the cover is an arrival, not navigation — you do it once on the way
   // in and coming back from a page shouldn't ask for it again. Held in plain
@@ -348,12 +361,21 @@ function App() {
     warmPortraits()
   }, [])
 
-  const open = useCallback((next) => {
+  /**
+   * @param {string} next  the route to open
+   * @param {boolean} [options.replace]  stand in for the current entry rather
+   *   than adding one, for a move that isn't somewhere new — switching between
+   *   the history sheet's own tabs, where back should leave the page rather
+   *   than walk the tabs you tried.
+   */
+  const open = useCallback((next, { replace = false } = {}) => {
     // Leaving the comic means the cover is already behind you. Recorded here
     // rather than when the turn finishes, so it can't flip mid-view and take
     // the cover off the screen while it's still being read.
     if (next !== 'comic') setCoverTurned(true)
-    window.location.hash = next === 'comic' ? '' : `/${next}`
+    const hash = next === 'comic' ? '' : `/${next}`
+    if (replace) window.history.replaceState(null, '', `#${hash}`)
+    else window.location.hash = hash
     setRoute(readHash())
   }, [])
 
@@ -389,7 +411,11 @@ function App() {
   }
 
   if (view === 'history-sheet') {
-    return <HistoryPage />
+    return <HistoryPage section={section} onOpen={open} />
+  }
+
+  if (view === 'head-to-head') {
+    return <HeadToHeadPage pair={pair} />
   }
 
   if (view === 'trade-history') {

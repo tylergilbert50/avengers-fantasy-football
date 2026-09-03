@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useHistory } from '../hooks/useEspn.js'
+import { playerSlug } from '../lib/espn/draft.js'
 import {
   allTimeTable,
   headToHead,
@@ -95,10 +96,13 @@ export function AllTime({ rows }) {
 }
 
 /** Who has beaten whom, everything ever played. */
-export function HeadToHead({ owners, records }) {
+export function HeadToHead({ owners, records, onOpen }) {
   // Danny Stiles and Drew Sherrow are both "DS" on initials alone, so the
   // heads are widened until every column is its own.
   const labels = shortLabels(owners)
+
+  const open = (owner, opponent) =>
+    onOpen(`history-sheet/h2h/${playerSlug(owner)}/${playerSlug(opponent)}`)
 
   return (
     <div className="table-wrap">
@@ -130,9 +134,25 @@ export function HeadToHead({ owners, records }) {
                 return (
                   <td
                     key={opponent}
-                    className={`col-num${winning ? ' hs-up' : ''}${losing ? ' hs-down' : ''}`}
+                    className={`col-num hs-cell${winning ? ' hs-up' : ''}${losing ? ' hs-down' : ''}`}
                   >
-                    {played === 0 ? '—' : recordLabel(record)}
+                    {/* A pair who have never met have no matchup to open, so
+                        that cell stays a dash rather than a button onto an
+                        empty page. */}
+                    {played === 0 ? (
+                      <span className="hs-none">—</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="hs-h2h"
+                        onClick={() => open(owner, opponent)}
+                      >
+                        <span aria-hidden="true">{recordLabel(record)}</span>
+                        <span className="sr-only">
+                          {owner} against {opponent}, {recordLabel(record)} — open the matchup
+                        </span>
+                      </button>
+                    )}
                   </td>
                 )
               })}
@@ -183,8 +203,13 @@ const SECTIONS = [
   { id: 'weeks', label: 'Best weeks' },
 ]
 
-export default function HistoryPage() {
-  const [section, setSection] = useState('all-time')
+/**
+ * @param {string} section  which of the three views is showing, read off the
+ *   hash rather than held here — so a matchup opened from the grid comes back
+ *   to the grid rather than to the all-time table.
+ */
+export default function HistoryPage({ section = 'all-time', onOpen }) {
+  const showing = SECTIONS.some((entry) => entry.id === section) ? section : 'all-time'
   const { data, error, isLoading, refresh } = useHistory()
 
   // Every view is folded from the one payload — a few hundred games — rather
@@ -248,18 +273,26 @@ export default function HistoryPage() {
                 <button
                   key={entry.id}
                   type="button"
-                  className={`hs-tab${section === entry.id ? ' is-on' : ''}`}
-                  aria-pressed={section === entry.id}
-                  onClick={() => setSection(entry.id)}
+                  className={`hs-tab${showing === entry.id ? ' is-on' : ''}`}
+                  aria-pressed={showing === entry.id}
+                  // Replaced rather than pushed: the tabs are one page being
+                  // read three ways, not three places you have been, and back
+                  // out of the last one should leave the history sheet.
+                  onClick={() => onOpen(`history-sheet/${entry.id}`, { replace: true })}
                 >
                   {entry.label}
                 </button>
               ))}
             </nav>
 
-            {section === 'all-time' && <AllTime rows={table} />}
-            {section === 'h2h' && <HeadToHead owners={owners} records={records} />}
-            {section === 'weeks' && <BestWeeks players={history.topPlayers} />}
+            {showing === 'all-time' && <AllTime rows={table} />}
+            {showing === 'h2h' && (
+              <>
+                <p className="hs-hint">Tap any record for the full matchup.</p>
+                <HeadToHead owners={owners} records={records} onOpen={onOpen} />
+              </>
+            )}
+            {showing === 'weeks' && <BestWeeks players={history.topPlayers} />}
 
           </>
         )}
