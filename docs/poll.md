@@ -1,9 +1,37 @@
 # The managers' poll
 
-A weekly power-ranking vote. Every manager ranks all ten of them, best first,
-and the points make a table.
+A power-ranking vote. Every manager ranks all ten of them, best first, and the
+points make a table. It runs twice over: once before the season starts, then
+every week of it.
 
-## The rules, as built
+## The preseason poll
+
+The season opens with one ballot, cast before a game has been played. It exists
+because the weekly poll can't run yet — ranking ten managers at 0-0 is ranking
+them on nothing — but the league's guess at the pecking order is worth having
+on the record precisely because nothing has happened to justify it.
+
+| | |
+| --- | --- |
+| **Opens** | The morning after the draft — before that there are no rosters to rank, only names |
+| **Closes** | 12:00 PM the Wednesday before the season's first kickoff |
+| **Filed as** | Week 1 |
+| **Then** | The table stands until the first weekly poll opens, the Tuesday after week 1 is played |
+
+Both dates are league fixtures, so they live with the draft and the trade
+deadline in `src/lib/schedule/calendar.js` as `PRESEASON_POLL`. **They have to
+be moved when the season rolls over**, the same as `WEEK_1` — and `npm test`
+fails if they aren't: it checks the deadline still falls on a Wednesday at noon,
+after the draft, in week 1's own week. Left stale, the poll would close before
+anybody could vote in it.
+
+**Filing it under week 1 is deliberate.** The weekly poll never uses that week,
+and putting the preseason ballot there is what gives the week 2 table its trend
+column: managers move against the league's preseason guess rather than against
+nothing. The preseason table itself has no Trend column — there is no poll
+behind it to have moved from, and filling that in would be inventing the data.
+
+## The weekly poll: the rules, as built
 
 | | |
 | --- | --- |
@@ -11,12 +39,13 @@ and the points make a table.
 | **Closes** | Thursday 12:00 PM, league time |
 | **League time** | `America/Chicago` unless `POLL_TIMEZONE` says otherwise |
 | **Weeks** | The week 2 poll through the last regular season week |
-| **Not week 1** | A ballot cast before any games have been played would rank ten managers at 0-0 on nothing, so the season's first poll is the one that opens after week 1 |
+| **Not week 1** | A ballot cast before any games have been played would rank ten managers at 0-0 on nothing, so the first *weekly* poll is the one that opens after week 1 — the stretch before it belongs to the preseason poll above |
 | **Ballot** | All ten managers, by real name, A–Z |
 | **Scoring** | A first-place vote is worth 10 points, a last-place vote 1 |
 | **Ties** | Broken on first-place votes, then on name |
 | **While open** | You see the ballot, or your own ballot back if you've voted |
 | **Once closed** | You see the table, until the next poll opens on Tuesday |
+| **The table** | Rank, manager, and poll points — plus Trend, places moved since last week's poll. Records are the standings' job; `recordLabel` is still on every row of the response, just not drawn |
 
 The week a ballot counts for is decided by the server from ESPN's current
 matchup period, stepping past it when that week's games are all final — which
@@ -125,8 +154,11 @@ browser's, and nothing else changes.
 {
   "season": 2026, "week": 2,
   "isOpen": false,
-  // 'open' | 'closed' | 'not-started' (before week 1 is played) | 'season-over'
+  // 'open' | 'closed' | 'not-started' (before the preseason poll opens) | 'season-over'
   "phase": "closed",
+  // The season's opening ballot rather than a weekly one. The page drops the
+  // Trend column on it, and names it "Preseason" instead of "Week 1".
+  "isPreseason": false,
   "opensAt": "2026-09-15T05:00:00.000Z",   // next Tuesday, when closed
   "closesAt": "2026-09-17T17:00:00.000Z",
   "timezone": "CDT",
@@ -159,13 +191,14 @@ Answers with the same shape as the GET, plus a `Set-Cookie`. The refusals:
 | --- | --- |
 | 400 | The ballot isn't all ten managers, exactly once each |
 | 405 | Anything other than POST |
-| 409 | Voting is closed, week 1 hasn't been played, the season is over, or this voter has already voted |
+| 409 | Voting is closed, the preseason poll hasn't opened yet, the season is over, or this voter has already voted |
 | 503 | The database isn't configured |
 
 ## Testing
 
-`npm test` covers the window (including a daylight-saving week), which week a
-ballot is for, and the scoring. No network and no database, so it runs in CI.
+`npm test` covers both windows (including a daylight-saving week and the
+preseason handover to the first weekly poll), which week a ballot is for, and
+the scoring. No network and no database, so it runs in CI.
 
 The parts that need a database were checked against a stand-in PostgREST server
 rather than mocks — worth repeating if the store changes.

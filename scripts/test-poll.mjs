@@ -11,12 +11,16 @@ import test from 'node:test'
 
 import {
   FIRST_POLL_WEEK,
+  PRESEASON_WEEK,
   pollWindow,
+  preseasonWindow,
   resolvePollWeek,
   upcomingWeek,
   zonedParts,
 } from '../src/lib/poll/schedule.js'
 import { ballotManagers, tally, validateBallot, withTrend } from '../src/lib/poll/ballot.js'
+import { KEY_DATES, PRESEASON_POLL, WEEK_1 } from '../src/lib/schedule/calendar.js'
+import { leagueMoment } from '../src/lib/time.js'
 
 const CT = 'America/Chicago'
 
@@ -89,6 +93,63 @@ test('a week is 24 hours of Tuesday, 24 of Wednesday and 12 of Thursday', () => 
   const window = pollWindow(central('2025-09-02T06:00:00Z'), CT)
   const hours = (new Date(window.closesAt) - new Date(window.opensAt)) / 3_600_000
   assert.equal(hours, 60)
+})
+
+// ---------- the preseason poll ----------
+
+const PRESEASON_OPENS = leagueMoment(PRESEASON_POLL.opens.date, PRESEASON_POLL.opens.time, CT)
+const PRESEASON_CLOSES = leagueMoment(PRESEASON_POLL.closes.date, PRESEASON_POLL.closes.time, CT)
+
+test('the preseason poll is shut before the draft and open after it', () => {
+  const draft = KEY_DATES.find((entry) => entry.id === 'draft')
+  const draftAt = leagueMoment(draft.date, draft.time, CT)
+
+  assert.ok(PRESEASON_OPENS > draftAt, 'opens after the draft, not before it')
+  assert.equal(preseasonWindow(new Date(draftAt.getTime() - 60_000), CT).phase, 'not-started')
+  assert.equal(preseasonWindow(new Date(PRESEASON_OPENS.getTime() - 60_000), CT).phase, 'not-started')
+  assert.equal(preseasonWindow(PRESEASON_OPENS, CT).phase, 'open')
+})
+
+test('the preseason poll closes at noon, and not a minute before', () => {
+  assert.equal(preseasonWindow(new Date(PRESEASON_CLOSES.getTime() - 60_000), CT).isOpen, true)
+  assert.equal(preseasonWindow(PRESEASON_CLOSES, CT).isOpen, false)
+  assert.equal(preseasonWindow(PRESEASON_CLOSES, CT).phase, 'closed')
+
+  const closes = zonedParts(PRESEASON_CLOSES, CT)
+  assert.equal(closes.weekday, 3, 'a Wednesday')
+  assert.equal(closes.hour, 12)
+  assert.equal(closes.minute, 0)
+})
+
+test('the deadline sits in the gap between the draft and week 1', () => {
+  // The guard on a season rolled forward: if WEEK_1 moves and the preseason
+  // dates do not, the poll would close after games had been played (or, worse,
+  // have closed already) and this is what says so.
+  const week1 = leagueMoment(WEEK_1, '00:00', CT)
+  const days = (week1 - PRESEASON_CLOSES) / 86_400_000
+
+  assert.ok(PRESEASON_CLOSES < week1, 'the poll shuts before week 1')
+  assert.ok(days <= 7, `the deadline is week 1's own week, not an earlier one (${days} days)`)
+  assert.ok(PRESEASON_OPENS < PRESEASON_CLOSES, 'opens before it closes')
+})
+
+test('a shut preseason poll points at the first weekly one, not another preseason', () => {
+  const after = preseasonWindow(new Date(PRESEASON_CLOSES.getTime() + 3_600_000), CT)
+  const opens = zonedParts(new Date(after.opensAt), CT)
+
+  assert.equal(opens.weekday, 2, 'Tuesday')
+  assert.equal(opens.hour, 0)
+  // The Tuesday after the one the deadline fell in — the Tuesday that follows
+  // week 1's Monday night game, not the one two days after the poll shut.
+  assert.ok(new Date(after.opensAt) > leagueMoment(WEEK_1, '00:00', CT), 'after week 1 is played')
+  assert.equal(zonedParts(new Date(after.closesAt), CT).weekday, 4, 'shutting Thursday')
+  assert.equal(zonedParts(new Date(after.closesAt), CT).hour, 12)
+})
+
+test('the preseason ballot is filed under week 1, which the weekly poll never uses', () => {
+  // So the week 2 table has something to show movement against.
+  assert.equal(PRESEASON_WEEK, 1)
+  assert.ok(PRESEASON_WEEK < FIRST_POLL_WEEK)
 })
 
 // ---------- which week ----------

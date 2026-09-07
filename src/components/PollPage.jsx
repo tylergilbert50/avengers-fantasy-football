@@ -28,21 +28,28 @@ function whenLabel(iso) {
   }).format(new Date(iso))
 }
 
-/** The results table, once voting has shut. */
-export function PollResults({ rows, week, voteCount }) {
+/**
+ * The results table, once voting has shut.
+ *
+ * Records are the standings' job, not the poll's — the poll is what the league
+ * thinks, and putting the results beside it invites reading one as a verdict on
+ * the other. The preseason table drops the Trend column too, since there is no
+ * poll behind it to have moved from.
+ */
+export function PollResults({ rows, week, voteCount, isPreseason = false }) {
   return (
     <>
       <div className="table-wrap">
         <table className="poll-table">
           <caption className="sr-only">
-            Week {week} managers’ poll, from {voteCount} {voteCount === 1 ? 'ballot' : 'ballots'}
+            {isPreseason ? 'Preseason' : `Week ${week}`} managers’ poll, from {voteCount}{' '}
+            {voteCount === 1 ? 'vote' : 'votes'}
           </caption>
           <thead>
             <tr>
               <th scope="col" className="col-rank">#</th>
               <th scope="col" className="col-name">Manager</th>
-              <th scope="col" className="col-num">Record</th>
-              <th scope="col" className="col-num">Trend</th>
+              {!isPreseason && <th scope="col" className="col-num">Trend</th>}
               <th scope="col" className="col-num">Poll pts</th>
             </tr>
           </thead>
@@ -61,10 +68,11 @@ export function PollResults({ rows, week, voteCount }) {
                   <span className="pp-name">{row.name}</span>
                   <span className="pp-team">{row.teamName}</span>
                 </td>
-                <td className="col-num">{row.recordLabel}</td>
-                <td className="col-num">
-                  <Trend value={row.trend} />
-                </td>
+                {!isPreseason && (
+                  <td className="col-num">
+                    <Trend value={row.trend} />
+                  </td>
+                )}
                 <td className="col-num pp-points">{row.points}</td>
               </tr>
             ))}
@@ -74,8 +82,8 @@ export function PollResults({ rows, week, voteCount }) {
 
       <p className="page-foot">
         {voteCount === 0
-          ? 'Nobody voted this week'
-          : `${voteCount} ${voteCount === 1 ? 'ballot' : 'ballots'} counted`}
+          ? `Nobody voted${isPreseason ? '' : ' this week'}`
+          : `${voteCount} ${voteCount === 1 ? 'vote' : 'votes'} submitted`}
       </p>
     </>
   )
@@ -236,6 +244,10 @@ export default function PollPage() {
   // the year is still the one on the page — so the heading follows the table.
   const week = poll?.week ?? poll?.resultsWeek ?? null
   const hasVoted = Boolean(poll?.hasVoted)
+  // The season's opening ballot is filed under week 1, but calling it that on
+  // the page would be a lie: it is cast before week 1 is played.
+  const isPreseason = Boolean(poll?.isPreseason)
+  const eyebrow = isPreseason ? 'Preseason' : week ? `Week ${week}` : 'The'
 
   return (
     <div className="page-shell is-poll">
@@ -243,7 +255,7 @@ export default function PollPage() {
         <header className="page-head">
           <div className="title-block">
             <h1 className="title">
-              <span className="title-small">{week ? `Week ${week}` : 'The'}</span> Managers’ Poll
+              <span className="title-small">{eyebrow}</span> Managers’ Poll
             </h1>
             {/* Nothing under the title before the season starts — the caption
                 box below already says it, and out of season the open/close
@@ -289,7 +301,7 @@ export default function PollPage() {
         )}
 
         {poll?.phase === 'not-started' && (
-          <p className="state">The first poll opens once week 1 has been played.</p>
+          <p className="state">The preseason poll opens the morning after the draft.</p>
         )}
 
         {poll?.phase === 'season-over' && (
@@ -308,10 +320,17 @@ export default function PollPage() {
         )}
 
         {!poll?.isOpen && poll?.results && (
-          <PollResults rows={poll.results} week={poll.resultsWeek} voteCount={poll.voteCount} />
+          <PollResults
+            rows={poll.results}
+            week={poll.resultsWeek}
+            voteCount={poll.voteCount}
+            isPreseason={isPreseason}
+          />
         )}
 
-        {poll && (
+        {/* The preseason poll says nothing here: its deadline is already in the
+            subhead above, and the weekly rule isn't its rule. */}
+        {poll && !isPreseason && (
           <p className="pp-rule">
             Every week, the poll opens Tuesday at 12:00 AM and closes Thursday at 12:00 PM{' '}
             {poll.timezone}.

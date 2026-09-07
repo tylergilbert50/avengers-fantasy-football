@@ -178,10 +178,15 @@ that season's trades and pickups will be missing from the page until it's run.
 
 ## The managers' poll
 
-The one part of the site that isn't read-only. Managers rank the league between
-Tuesday midnight and Thursday noon, starting the week after week 1 is played,
-and the results stand until the next poll opens. Votes live in Supabase; set
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `POLL_IP_SALT` to switch it on.
+The one part of the site that isn't read-only. The season opens with a
+**preseason poll** — one ballot, from the morning after the draft to noon the
+Wednesday before kickoff — and then goes weekly: managers rank the league
+between Tuesday midnight and Thursday noon, and the results stand until the next
+poll opens. Votes live in Supabase; set `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY` and `POLL_IP_SALT` to switch it on.
+
+The preseason dates are league fixtures in `src/lib/schedule/calendar.js` and
+move with the season, like `WEEK_1`. `npm test` fails if they're left behind.
 
 **See [docs/poll.md](docs/poll.md)** for the schema, the setup steps, and an
 honest account of what the double-vote check does and doesn't stop.

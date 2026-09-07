@@ -13,7 +13,9 @@ import { ballotManagers, tally, validateBallot, withTrend } from './ballot.js'
 import { assertPollConfigured, readPollEnv, VOTER_COOKIE, VOTER_COOKIE_MAX_AGE } from './config.js'
 import {
   FIRST_POLL_WEEK,
+  PRESEASON_WEEK,
   pollWindow,
+  preseasonWindow,
   resolvePollWeek,
   timezoneLabel,
   upcomingWeek,
@@ -57,7 +59,6 @@ async function pollState({ env, params }) {
   const matchups = normalizeMatchups(raw)
 
   const now = new Date()
-  const window = pollWindow(now, config.timeZone)
   const regularSeasonWeeks = league.settings?.regularSeasonMatchups
   const schedule = {
     currentMatchupPeriod: league.status?.currentMatchupPeriod,
@@ -65,19 +66,27 @@ async function pollState({ env, params }) {
     regularSeasonWeeks,
   }
 
-  // Both ends of the season leave us without a week to vote in, and the page
-  // has to say which end it is standing at.
-  const realWeek = resolvePollWeek(schedule)
-  const realPhase =
-    realWeek != null
+  // Both ends of the season leave the weekly poll without a week to vote in.
+  // The early end isn't empty, though — it belongs to the preseason poll, which
+  // runs on its own deadline and is filed under week 1. Test mode pins a week
+  // and drives the weekly poll, so it is never the preseason one.
+  const testing = config.testWeek != null
+  const weeklyWeek = resolvePollWeek(schedule)
+  const isPreseason =
+    !testing && weeklyWeek == null && upcomingWeek(schedule) < FIRST_POLL_WEEK
+
+  const window = isPreseason
+    ? preseasonWindow(now, config.timeZone)
+    : pollWindow(now, config.timeZone)
+
+  const realWeek = isPreseason ? PRESEASON_WEEK : weeklyWeek
+  const realPhase = isPreseason
+    ? window.phase
+    : realWeek != null
       ? window.isOpen
         ? 'open'
         : 'closed'
-      : upcomingWeek(schedule) < FIRST_POLL_WEEK
-        ? 'not-started'
-        : 'season-over'
-
-  const testing = config.testWeek != null
+      : 'season-over'
 
   return {
     config,
@@ -85,6 +94,7 @@ async function pollState({ env, params }) {
     week: testing ? config.testWeek : realWeek,
     phase: testing ? config.testPhase : realPhase,
     testing,
+    isPreseason,
     window,
     league,
     lastRegularWeek: Number(regularSeasonWeeks) || null,
@@ -140,6 +150,9 @@ function payload({ state, hasVoted, yourBallot, results, shownWeek = null }) {
     phase: state.phase,
     // Drives the banner. Never quietly true: see POLL_TEST_WEEK.
     testing: state.testing,
+    // The season's opening ballot rather than a weekly one: no records to show,
+    // nothing to trend against, and a one-off deadline instead of a cycle.
+    isPreseason: state.isPreseason,
     opensAt: state.window.opensAt,
     closesAt: state.window.closesAt,
     timezone: state.timezone,
@@ -193,13 +206,18 @@ export async function handlePollVote({ env, params, method, body, headers = {}, 
   const state = await pollState({ env, params })
 
   if (state.phase === 'not-started') {
-    throw badRequest('The season’s first poll opens once week 1 has been played.', 409)
+    throw badRequest('The preseason poll opens the morning after the draft.', 409)
   }
   if (state.phase === 'season-over') {
     throw badRequest('The regular season is over — there is no poll to vote in.', 409)
   }
   if (state.phase !== 'open') {
-    throw badRequest('Voting is closed. The poll reopens Tuesday at midnight.', 409)
+    throw badRequest(
+      state.isPreseason
+        ? 'The preseason poll has closed. The weekly poll opens Tuesday at midnight.'
+        : 'Voting is closed. The poll reopens Tuesday at midnight.',
+      409,
+    )
   }
 
   const check = validateBallot(body?.ballot, state.managers)

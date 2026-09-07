@@ -1,17 +1,21 @@
 /**
  * When the poll is open, and which week it is for.
  *
- * The window is Tuesday 00:00 to Thursday 12:00 in the league's own timezone —
- * the gap between one NFL week ending on Monday night and the next kicking off
- * on Thursday. It is deliberately *not* the viewer's timezone: the poll has to
- * open and close at one moment for everybody, not at ten different ones.
+ * The weekly window is Tuesday 00:00 to Thursday 12:00 in the league's own
+ * timezone — the gap between one NFL week ending on Monday night and the next
+ * kicking off on Thursday. It is deliberately *not* the viewer's timezone: the
+ * poll has to open and close at one moment for everybody, not at ten different
+ * ones.
+ *
+ * The preseason poll is the exception, and `preseasonWindow` is where it lives:
+ * one ballot a year, on a fixed deadline rather than a repeating rule.
  *
  * Pure functions over a clock you pass in, so every edge (a Thursday at 11:59,
  * a Sunday, a DST week) is testable without waiting for one.
  */
 
-import { upcomingWeek } from '../schedule/calendar.js'
-import { fromZoned, LEAGUE_TIMEZONE, zonedParts } from '../time.js'
+import { PRESEASON_POLL, upcomingWeek } from '../schedule/calendar.js'
+import { fromZoned, LEAGUE_TIMEZONE, leagueMoment, zonedParts } from '../time.js'
 
 export { timezoneLabel, zonedParts } from '../time.js'
 // Which week is next is a fact about the season, not about the poll — the
@@ -75,11 +79,55 @@ export function pollWindow(now = new Date(), timeZone = DEFAULT_TIMEZONE) {
 }
 
 /**
+ * The week the preseason ballot is filed under.
+ *
+ * Week 1 is free — the weekly poll's first ballot is week 2, for the reason
+ * below — and it is the right drawer rather than merely an empty one: filing
+ * the preseason there is what makes the week 2 table show movement against the
+ * league's preseason guess instead of against nothing at all.
+ */
+export const PRESEASON_WEEK = 1
+
+/**
+ * The preseason poll's state right now.
+ *
+ * Deliberately not a cycle. There is one of these a season and it has to be
+ * shut before kickoff, so it is a pair of instants read off the league
+ * calendar — and, once it has closed, a pointer at the first *weekly* poll,
+ * since the preseason one never comes round again.
+ *
+ * @returns {{ phase: 'not-started'|'open'|'closed', isOpen: boolean,
+ *             opensAt: string, closesAt: string }}
+ */
+export function preseasonWindow(now = new Date(), timeZone = DEFAULT_TIMEZONE) {
+  const opens = leagueMoment(PRESEASON_POLL.opens.date, PRESEASON_POLL.opens.time, timeZone)
+  const closes = leagueMoment(PRESEASON_POLL.closes.date, PRESEASON_POLL.closes.time, timeZone)
+  const span = { opensAt: opens.toISOString(), closesAt: closes.toISOString() }
+
+  // Before the draft there are no rosters to rank, only names.
+  if (now.getTime() < opens.getTime()) return { phase: 'not-started', isOpen: false, ...span }
+  if (now.getTime() < closes.getTime()) return { phase: 'open', isOpen: true, ...span }
+
+  // Shut. What comes next is not another preseason poll but the first weekly
+  // one, which opens the Tuesday after week 1 has been played — and since the
+  // preseason closes on the Wednesday before kickoff, that is exactly the
+  // Tuesday after the one it closed in.
+  const nextOpens = nextCycle(cycleStart(closes, timeZone), timeZone)
+  return {
+    phase: 'closed',
+    isOpen: false,
+    opensAt: nextOpens.toISOString(),
+    closesAt: closesFor(nextOpens, timeZone).toISOString(),
+  }
+}
+
+/**
  * The first week there is anything to vote on.
  *
- * Week 1's poll would be cast before a single game had been played — ten
- * managers at 0-0, ranked on nothing. The season's first ballot is the one that
- * opens once week 1 is in the books, which is the week 2 poll.
+ * A *weekly* poll for week 1 would be cast before a single game had been
+ * played — ten managers at 0-0, ranked on nothing. So the first weekly ballot
+ * is the one that opens once week 1 is in the books, the week 2 poll, and the
+ * stretch before it belongs to the preseason poll above.
  */
 export const FIRST_POLL_WEEK = 2
 

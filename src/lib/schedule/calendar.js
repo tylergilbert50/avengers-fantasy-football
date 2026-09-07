@@ -44,6 +44,26 @@ export const KEY_DATES = [
   },
 ]
 
+/**
+ * The preseason poll.
+ *
+ * The weekly poll can't run before week 1 is played — it would rank ten
+ * managers at 0-0 on nothing — so the season opens with a single ballot
+ * instead: one vote on the pecking order, on the record before a game can move
+ * it. It opens the morning after the draft, because before that there are no
+ * rosters to rank, and closes at noon the day before the season's first
+ * kickoff.
+ *
+ * Written out rather than counted back from `WEEK_1`, whose meaning is already
+ * hedged above — a deadline derived from an ambiguous date is one that lands on
+ * the wrong day quietly. `npm test` checks these against the draft and `WEEK_1`
+ * instead, so a season rolled forward without them fails loudly.
+ */
+export const PRESEASON_POLL = Object.freeze({
+  opens: { date: '2026-08-30', time: '00:00' },
+  closes: { date: '2026-09-09', time: '12:00' },
+})
+
 const DAY_MS = 86_400_000
 
 /** "2026-09-14" -> a UTC midnight, purely as a way to count days. */
