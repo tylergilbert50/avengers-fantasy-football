@@ -202,12 +202,12 @@ export function Ballot({ managers, onSubmit, isSending, error }) {
 }
 
 /** What you sent, once you've sent it. */
-function Receipt({ managers, ballot, closesAt }) {
+function Receipt({ managers, ballot }) {
   const byId = new Map(managers.map((manager) => [manager.id, manager]))
 
   return (
     <div className="pp-receipt">
-      <p className="state pp-thanks">Ballot in. Results post {whenLabel(closesAt)}.</p>
+      <p className="state pp-thanks">Vote casted.</p>
       <ol className="pp-your-ballot">
         {ballot.map((id, index) => (
           <li key={id}>
@@ -319,7 +319,7 @@ export default function PollPage() {
         )}
 
         {poll?.isOpen && hasVoted && (
-          <Receipt managers={poll.managers} ballot={poll.yourBallot ?? []} closesAt={poll.closesAt} />
+          <Receipt managers={poll.managers} ballot={poll.yourBallot ?? []} />
         )}
 
         {!poll?.isOpen && poll?.results && (
