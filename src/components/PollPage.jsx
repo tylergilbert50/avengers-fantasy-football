@@ -14,10 +14,10 @@ function ordinal(n) {
 /**
  * A deadline in the reader's own timezone.
  *
- * The rule is written in league time — "Tuesday to Thursday noon, Central" —
- * but the moment it lands is the same everywhere, so the clock beside it is the
- * reader's. A manager in another state should see the hour their own phone will
- * agree with, not do the conversion themselves.
+ * The rule is written in league time — "Wednesday 10am to Thursday noon,
+ * Central" — but the moment it lands is the same everywhere, so the clock
+ * beside it is the reader's. A manager in another state should see the hour
+ * their own phone will agree with, not do the conversion themselves.
  */
 function whenLabel(iso) {
   if (!iso) return ''
@@ -221,24 +221,27 @@ function Receipt({ managers, ballot, closesAt }) {
 }
 
 export default function PollPage() {
-  const { data, error, refresh } = usePoll()
+  const { data: poll, error, refresh, replace } = usePoll()
   const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(null)
   const [voteError, setVoteError] = useState(null)
 
-  const poll = sent ?? data
-
-  const cast = useCallback(async (ballot) => {
-    setSending(true)
-    setVoteError(null)
-    try {
-      setSent(await submitBallot({ ballot }))
-    } catch (failure) {
-      setVoteError(failure.message)
-    } finally {
-      setSending(false)
-    }
-  }, [])
+  // The vote endpoint answers with the poll as it now stands, so the reply to
+  // a ballot *is* the page. Filing it rather than holding it in a state of its
+  // own is what makes leaving and coming back show the receipt.
+  const cast = useCallback(
+    async (ballot) => {
+      setSending(true)
+      setVoteError(null)
+      try {
+        replace(await submitBallot({ ballot }))
+      } catch (failure) {
+        setVoteError(failure.message)
+      } finally {
+        setSending(false)
+      }
+    },
+    [replace],
+  )
 
   // Once the season is over there is no week to vote in, but the last poll of
   // the year is still the one on the page — so the heading follows the table.
@@ -259,7 +262,7 @@ export default function PollPage() {
             </h1>
             {/* Nothing under the title before the season starts — the caption
                 box below already says it, and out of season the open/close
-                clock is meaningless anyway: the next calendar Tuesday isn't
+                clock is meaningless anyway: the next calendar Wednesday isn't
                 when the poll comes back. */}
             {poll?.phase !== 'not-started' && (
               <p className="page-sub">
@@ -332,7 +335,7 @@ export default function PollPage() {
             subhead above, and the weekly rule isn't its rule. */}
         {poll && !isPreseason && (
           <p className="pp-rule">
-            Every week, the poll opens Tuesday at 12:00 AM and closes Thursday at 12:00 PM{' '}
+            Every week, the poll opens Wednesday at 10:00 AM and closes Thursday at 12:00 PM{' '}
             {poll.timezone}.
           </p>
         )}

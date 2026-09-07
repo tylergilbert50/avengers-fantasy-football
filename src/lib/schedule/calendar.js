@@ -39,7 +39,7 @@ export const KEY_DATES = [
   {
     id: 'trade-deadline',
     label: 'Trade Deadline',
-    date: '2026-11-26',
+    date: '2026-12-02',
     time: '11:00',
   },
 ]

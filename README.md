@@ -181,8 +181,8 @@ that season's trades and pickups will be missing from the page until it's run.
 The one part of the site that isn't read-only. The season opens with a
 **preseason poll** — one ballot, from the morning after the draft to noon the
 Wednesday before kickoff — and then goes weekly: managers rank the league
-between Tuesday midnight and Thursday noon, and the results stand until the next
-poll opens. Votes live in Supabase; set `SUPABASE_URL`,
+between Wednesday morning and Thursday noon, and the results stand until the
+next poll opens. Votes live in Supabase; set `SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY` and `POLL_IP_SALT` to switch it on.
 
 The preseason dates are league fixtures in `src/lib/schedule/calendar.js` and

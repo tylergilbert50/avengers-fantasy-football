@@ -79,8 +79,8 @@ test('draft night is 7:30 in the evening, league time', () => {
 test('the trade deadline is 11:00 in the morning, after the clocks change', () => {
   const deadline = keyDates().find((entry) => entry.id === 'trade-deadline')
   const parts = zonedParts(new Date(deadline.at), CT)
-  assert.deepEqual([parts.month, parts.day, parts.hour, parts.minute], [11, 26, 11, 0])
-  // Central Standard by late November, so 11:00 local is 17:00 UTC.
+  assert.deepEqual([parts.month, parts.day, parts.hour, parts.minute], [12, 2, 11, 0])
+  // Central Standard by December, so 11:00 local is 17:00 UTC.
   assert.equal(new Date(deadline.at).getUTCHours(), 17)
 })
 

@@ -1,11 +1,11 @@
 /**
  * When the poll is open, and which week it is for.
  *
- * The weekly window is Tuesday 00:00 to Thursday 12:00 in the league's own
+ * The weekly window is Wednesday 10:00 to Thursday 12:00 in the league's own
  * timezone — the gap between one NFL week ending on Monday night and the next
- * kicking off on Thursday. It is deliberately *not* the viewer's timezone: the
- * poll has to open and close at one moment for everybody, not at ten different
- * ones.
+ * kicking off on Thursday, less the Tuesday it takes to see the dust settle.
+ * It is deliberately *not* the viewer's timezone: the poll has to open and
+ * close at one moment for everybody, not at ten different ones.
  *
  * The preseason poll is the exception, and `preseasonWindow` is where it lives:
  * one ballot a year, on a fixed deadline rather than a repeating rule.
@@ -25,34 +25,44 @@ export { upcomingWeek } from '../schedule/calendar.js'
 /** Override with POLL_TIMEZONE if the league ever moves. */
 export const DEFAULT_TIMEZONE = LEAGUE_TIMEZONE
 
-const OPENS_WEEKDAY = 2 // Tuesday
+const OPENS_WEEKDAY = 3 // Wednesday
+const OPENS_HOUR = 10
 const CLOSES_WEEKDAY = 4 // Thursday
 const CLOSES_HOUR = 12
 
-/** The Tuesday 00:00 that opened the cycle `now` sits in. */
+/** The Wednesday 10:00 that opened the cycle `now` sits in. */
 function cycleStart(now, timeZone) {
   const parts = zonedParts(now, timeZone)
-  const sinceTuesday = (parts.weekday - OPENS_WEEKDAY + 7) % 7
-  const day = new Date(Date.UTC(parts.year, parts.month - 1, parts.day - sinceTuesday))
+  let sinceWednesday = (parts.weekday - OPENS_WEEKDAY + 7) % 7
+  // Wednesday morning still belongs to the week before: the hour has to come
+  // round as well as the day, or 9am would be counted as already inside a
+  // window that has not opened.
+  if (sinceWednesday === 0 && parts.hour < OPENS_HOUR) sinceWednesday = 7
+  const day = new Date(Date.UTC(parts.year, parts.month - 1, parts.day - sinceWednesday))
 
   return fromZoned(
-    { year: day.getUTCFullYear(), month: day.getUTCMonth() + 1, day: day.getUTCDate() },
+    {
+      year: day.getUTCFullYear(),
+      month: day.getUTCMonth() + 1,
+      day: day.getUTCDate(),
+      hour: OPENS_HOUR,
+    },
     timeZone,
   )
 }
 
 const DAY_MS = 86_400_000
 
-/** The Thursday noon that closes the cycle this Tuesday opened. */
+/** The Thursday noon that closes the cycle this Wednesday opened. */
 function closesFor(opens, timeZone) {
   const thursday = zonedParts(new Date(opens.getTime() + (CLOSES_WEEKDAY - OPENS_WEEKDAY) * DAY_MS), timeZone)
   return fromZoned({ ...thursday, hour: CLOSES_HOUR, minute: 0 }, timeZone)
 }
 
-/** The Tuesday after this one. */
+/** The Wednesday after this one. */
 function nextCycle(opens, timeZone) {
-  const tuesday = zonedParts(new Date(opens.getTime() + 7 * DAY_MS), timeZone)
-  return fromZoned({ ...tuesday, hour: 0, minute: 0 }, timeZone)
+  const wednesday = zonedParts(new Date(opens.getTime() + 7 * DAY_MS), timeZone)
+  return fromZoned({ ...wednesday, hour: OPENS_HOUR, minute: 0 }, timeZone)
 }
 
 /**
@@ -109,9 +119,10 @@ export function preseasonWindow(now = new Date(), timeZone = DEFAULT_TIMEZONE) {
   if (now.getTime() < closes.getTime()) return { phase: 'open', isOpen: true, ...span }
 
   // Shut. What comes next is not another preseason poll but the first weekly
-  // one, which opens the Tuesday after week 1 has been played — and since the
-  // preseason closes on the Wednesday before kickoff, that is exactly the
-  // Tuesday after the one it closed in.
+  // one, which opens the Wednesday after week 1 has been played — and since the
+  // preseason closes at noon on the Wednesday before kickoff, after the hour a
+  // weekly window would have opened at, that is exactly the Wednesday after the
+  // one it closed in.
   const nextOpens = nextCycle(cycleStart(closes, timeZone), timeZone)
   return {
     phase: 'closed',

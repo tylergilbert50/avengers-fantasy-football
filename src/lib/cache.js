@@ -27,6 +27,40 @@ const MAX_CHARS = 512 * 1024
 
 const memory = new Map()
 const inflight = new Map()
+const session = new Map()
+
+/**
+ * How long a session entry is worth drawing. Long enough to cover the walk
+ * from the cover to a panel, short enough that a tab left open all morning
+ * doesn't paint yesterday's poll before correcting itself.
+ */
+const SESSION_MAX_AGE_MS = 60 * 1000
+
+/**
+ * The other cache: memory only, and only for a minute.
+ *
+ * For a payload that can't be filed on disk — one that turns over on a
+ * deadline, or that knows who this browser is — but that still shouldn't be
+ * fetched twice in the same breath. The poll is the case: the copy warmed
+ * while the cover was turning is seconds old by the time the panel is
+ * clicked, and fetching it again is the wait that this saves. It is never
+ * written to localStorage, so the next visit always asks the server.
+ */
+export function readSession(key) {
+  const entry = session.get(key)
+  if (!entry) return null
+
+  if (Date.now() - entry.at > SESSION_MAX_AGE_MS) {
+    session.delete(key)
+    return null
+  }
+  return entry.data
+}
+
+/** Keeps `data` for the next minute of this visit, and no longer. */
+export function writeSession(key, data) {
+  session.set(key, { at: Date.now(), data })
+}
 
 /** localStorage, or null where reaching for it throws (private mode, policy). */
 function disk() {

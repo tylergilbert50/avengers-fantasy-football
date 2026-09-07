@@ -16,7 +16,7 @@ on the record precisely because nothing has happened to justify it.
 | **Opens** | The morning after the draft — before that there are no rosters to rank, only names |
 | **Closes** | 12:00 PM the Wednesday before the season's first kickoff |
 | **Filed as** | Week 1 |
-| **Then** | The table stands until the first weekly poll opens, the Tuesday after week 1 is played |
+| **Then** | The table stands until the first weekly poll opens, the Wednesday after week 1 is played |
 
 Both dates are league fixtures, so they live with the draft and the trade
 deadline in `src/lib/schedule/calendar.js` as `PRESEASON_POLL`. **They have to
@@ -35,7 +35,7 @@ behind it to have moved from, and filling that in would be inventing the data.
 
 | | |
 | --- | --- |
-| **Opens** | Tuesday 12:00 AM, league time |
+| **Opens** | Wednesday 10:00 AM, league time |
 | **Closes** | Thursday 12:00 PM, league time |
 | **League time** | `America/Chicago` unless `POLL_TIMEZONE` says otherwise |
 | **Weeks** | The week 2 poll through the last regular season week |
@@ -44,14 +44,22 @@ behind it to have moved from, and filling that in would be inventing the data.
 | **Scoring** | A first-place vote is worth 10 points, a last-place vote 1 |
 | **Ties** | Broken on first-place votes, then on name |
 | **While open** | You see the ballot, or your own ballot back if you've voted |
-| **Once closed** | You see the table, until the next poll opens on Tuesday |
+| **Once closed** | You see the table, until the next poll opens on Wednesday |
 | **The table** | Rank, manager, and poll points — plus Trend, places moved since last week's poll. Records are the standings' job; `recordLabel` is still on every row of the response, just not drawn |
 
 The week a ballot counts for is decided by the server from ESPN's current
 matchup period, stepping past it when that week's games are all final — which
-is exactly the state Tuesday morning opens into. A submitted ballot carries
+is exactly the state Wednesday morning opens into. A submitted ballot carries
 rankings and nothing else, so a doctored request can't aim a vote at a week
 that has already been settled.
+
+**On the page it is held for a minute.** The poll is fetched as the site boots,
+while the cover is still being turned, and kept in memory for sixty seconds —
+never on disk, since it turns over on a deadline and knows whether this browser
+has voted. Clicking the panel therefore opens on the tally rather than on a
+wait, with a fresh copy landing behind it. Casting a ballot files the reply the
+same way, so the receipt is what you come back to. The two stores are
+`readSession`/`writeSession` in `src/lib/cache.js`.
 
 ## Setting it up
 
@@ -120,7 +128,7 @@ reached exclusively through `/api/poll*`. Don't import either from a component.
 
 | Variable | Default | What it does |
 | --- | --- | --- |
-| `POLL_TIMEZONE` | `America/Chicago` | The zone the Tuesday–Thursday window is measured in |
+| `POLL_TIMEZONE` | `America/Chicago` | The zone the Wednesday–Thursday window is measured in |
 | `POLL_MAX_VOTES_PER_IP` | `1` | Ballots allowed from one network per week; `0` turns the address check off |
 
 ## What stops a second vote — and what doesn't
@@ -159,7 +167,7 @@ browser's, and nothing else changes.
   // The season's opening ballot rather than a weekly one. The page drops the
   // Trend column on it, and names it "Preseason" instead of "Week 1".
   "isPreseason": false,
-  "opensAt": "2026-09-15T05:00:00.000Z",   // next Tuesday, when closed
+  "opensAt": "2026-09-16T15:00:00.000Z",   // next Wednesday, when closed
   "closesAt": "2026-09-17T17:00:00.000Z",
   "timezone": "CDT",
   // The week the table below belongs to. The same as `week`, except once the

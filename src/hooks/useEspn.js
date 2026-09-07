@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   fetchChampions,
   fetchDraft,
@@ -10,15 +10,20 @@ import {
   fetchTrades,
   fetchWaivers,
 } from '../lib/api.js'
-import { readCache, shared, writeCache } from '../lib/cache.js'
+import { readCache, readSession, shared, writeCache, writeSession } from '../lib/cache.js'
 
 /** How a resource treats its key. See useResource. */
 const CACHED = 'cached'
-const FRESH = 'fresh'
+const SESSION = 'session'
+
+const STORES = {
+  [CACHED]: { read: readCache, write: writeCache },
+  [SESSION]: { read: readSession, write: writeSession },
+}
 
 /**
  * Generic async-resource hook.
- * Returns { data, error, isLoading, refresh }.
+ * Returns { data, error, isLoading, refresh, replace }.
  *
  * `key` names the payload, and two things follow from having one. Requests
  * under the same key are shared, so a page joins a prefetch already in the air
@@ -27,11 +32,14 @@ const FRESH = 'fresh'
  * fetch behind it quietly replaces it, so a page that has been opened before
  * never goes back to a loading line.
  *
- * FRESH keeps the sharing and drops the cache, for a payload that would be
- * wrong to draw from memory. Pass no key at all and it is a plain fetch.
+ * SESSION is the same bargain on a shorter lease and in memory only, for a
+ * payload that would be wrong to draw from disk tomorrow but is perfectly
+ * good seconds after it was fetched. Pass no key at all and it is a plain
+ * fetch.
  */
 function useResource(loader, deps, key = null, store = CACHED) {
-  const cached = () => (key && store === CACHED ? readCache(key) : null)
+  const { read, write } = STORES[store]
+  const cached = () => (key ? read(key) : null)
 
   const [state, setState] = useState(() => {
     const hit = cached()
@@ -40,12 +48,17 @@ function useResource(loader, deps, key = null, store = CACHED) {
       : { data: null, error: null, isLoading: true }
   })
   const [nonce, setNonce] = useState(0)
+  // Set by `replace`. A payload handed to us is newer than the request that
+  // was already in the air when it arrived, so that request must not land on
+  // top of it.
+  const replaced = useRef(false)
 
   const refresh = useCallback(() => setNonce((n) => n + 1), [])
 
   useEffect(() => {
     const controller = new AbortController()
     let active = true
+    replaced.current = false
 
     // Read again rather than trusting the initial state: the key changes when
     // the season does, and a sibling page may have filled it since.
@@ -64,7 +77,12 @@ function useResource(loader, deps, key = null, store = CACHED) {
 
     request
       .then((data) => {
-        if (key && store === CACHED) writeCache(key, data)
+        // Superseded by `replace` while it was in the air: older than what we
+        // already hold, so it neither draws nor files.
+        if (replaced.current) return
+        if (key) write(key, data)
+        // Filed even if the page has been left — an unmount is not a reason to
+        // throw away a payload the next page will want.
         if (active) setState({ data, error: null, isLoading: false })
       })
       .catch((error) => {
@@ -83,7 +101,21 @@ function useResource(loader, deps, key = null, store = CACHED) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce, key, store])
 
-  return { ...state, refresh }
+  /**
+   * Puts a payload the page already has straight in, and files it — the reply
+   * to a POST that hands back the new state. Without this the page would draw
+   * what it just did, then draw the older GET behind it a moment later.
+   */
+  const replace = useCallback(
+    (data) => {
+      replaced.current = true
+      if (key) write(key, data)
+      setState({ data, error: null, isLoading: false })
+    },
+    [key, write],
+  )
+
+  return { ...state, refresh, replace }
 }
 
 /** Cache keys. One per distinct payload, so a season change is its own entry. */
@@ -110,11 +142,12 @@ const POLL_KEY = 'poll'
  * Failures are swallowed on purpose: the page that needs the data asks for it
  * itself and reports the failure properly.
  */
-function warm(key, load) {
-  if (readCache(key)) return
+function warm(key, load, store = CACHED) {
+  const { read, write } = STORES[store]
+  if (read(key)) return
 
   shared(key, load)
-    .then((data) => writeCache(key, data))
+    .then((data) => write(key, data))
     .catch(() => {})
 }
 
@@ -140,18 +173,18 @@ function whenIdle(task) {
  * shelf. Then, once the browser has a moment, the five pages that are a panel
  * click further off. Reading a panel takes far longer than fetching one.
  *
- * The poll is started with the first tier but never filed: it turns over on a
- * deadline and knows whether this browser has voted, so it is the one payload
- * that has to be read when it is asked for rather than remembered.
+ * The poll is warmed with the first tier, into the session store rather than
+ * the cache: it turns over on a deadline and knows whether this browser has
+ * voted, so it is the one payload that must never be drawn from disk a day
+ * later — but held for a minute in memory it is what makes the panel open on
+ * a tally instead of on a wait.
  */
 export function prefetchAll({ season } = {}) {
   warm(leagueKey(season), () => fetchLeague({ season }))
   warm(historyKey(season), () => fetchHistory({ season }))
   warm(championsKey(season), () => fetchChampions({ season }))
 
-  // Uncached, so this is the in-flight request the poll page joins rather than
-  // an entry it reads. Nothing is kept and nothing goes stale.
-  shared(POLL_KEY, () => fetchPoll()).catch(() => {})
+  warm(POLL_KEY, () => fetchPoll(), SESSION)
 
   whenIdle(() => {
     warm(recordsKey(season), () => fetchRecords({ season }))
@@ -215,12 +248,13 @@ export function useTrades({ season } = {}) {
 /**
  * This week's managers' poll.
  *
- * Never cached anywhere: it turns over on a deadline, and the payload depends
- * on whether this browser has already voted — a ballot drawn from yesterday
- * would show the wrong week, or offer a vote that has already been cast. It
- * still joins the request the arrival started, which is what makes the page
- * open on a tally rather than on a wait.
+ * Never filed on disk: it turns over on a deadline, and the payload depends on
+ * whether this browser has already voted — a ballot drawn from yesterday would
+ * show the wrong week, or offer a vote that has already been cast. A minute in
+ * memory is a different matter, and it is what the arrival's warm-up fills: the
+ * panel opens on the tally it fetched while the cover was turning, and a fresh
+ * copy lands behind it.
  */
 export function usePoll() {
-  return useResource((signal) => fetchPoll({ signal }), [], POLL_KEY, FRESH)
+  return useResource((signal) => fetchPoll({ signal }), [], POLL_KEY, SESSION)
 }

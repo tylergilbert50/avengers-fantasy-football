@@ -214,8 +214,8 @@ export async function handlePollVote({ env, params, method, body, headers = {}, 
   if (state.phase !== 'open') {
     throw badRequest(
       state.isPreseason
-        ? 'The preseason poll has closed. The weekly poll opens Tuesday at midnight.'
-        : 'Voting is closed. The poll reopens Tuesday at midnight.',
+        ? 'The preseason poll has closed. The weekly poll opens Wednesday at 10:00 AM.'
+        : 'Voting is closed. The poll reopens Wednesday at 10:00 AM.',
       409,
     )
   }

@@ -32,11 +32,11 @@ function central(text) {
 
 // ---------- the window ----------
 
-test('the poll is open from Tuesday midnight', () => {
-  // Tue 2 Sep 2025, 00:00 CDT
-  assert.equal(pollWindow(central('2025-09-02T05:00:00Z'), CT).isOpen, true)
+test('the poll is open from Wednesday at 10am', () => {
+  // Wed 3 Sep 2025, 10:00 CDT
+  assert.equal(pollWindow(central('2025-09-03T15:00:00Z'), CT).isOpen, true)
   // ...and not a minute before it
-  assert.equal(pollWindow(central('2025-09-02T04:59:00Z'), CT).isOpen, false)
+  assert.equal(pollWindow(central('2025-09-03T14:59:00Z'), CT).isOpen, false)
 })
 
 test('the poll closes at Thursday noon', () => {
@@ -46,17 +46,23 @@ test('the poll closes at Thursday noon', () => {
   assert.equal(pollWindow(central('2025-09-04T17:00:00Z'), CT).isOpen, false)
 })
 
-test('the weekend and Monday are closed', () => {
-  for (const moment of ['2025-09-05T18:00:00Z', '2025-09-07T18:00:00Z', '2025-09-08T18:00:00Z']) {
+test('Friday through Tuesday is closed', () => {
+  // Fri, Sun, Mon — and the Tuesday, which is now the last day shut.
+  for (const moment of [
+    '2025-09-05T18:00:00Z',
+    '2025-09-07T18:00:00Z',
+    '2025-09-08T18:00:00Z',
+    '2025-09-09T18:00:00Z',
+  ]) {
     assert.equal(pollWindow(central(moment), CT).isOpen, false, moment)
   }
 })
 
 test('an open window says when it shuts', () => {
-  const window = pollWindow(central('2025-09-03T15:00:00Z'), CT) // Wednesday
+  const window = pollWindow(central('2025-09-03T20:00:00Z'), CT) // Wednesday afternoon
   assert.equal(window.isOpen, true)
   assert.deepEqual(zonedParts(new Date(window.opensAt), CT), {
-    year: 2025, month: 9, day: 2, hour: 0, minute: 0, second: 0, weekday: 2,
+    year: 2025, month: 9, day: 3, hour: 10, minute: 0, second: 0, weekday: 3,
   })
   assert.deepEqual(zonedParts(new Date(window.closesAt), CT), {
     year: 2025, month: 9, day: 4, hour: 12, minute: 0, second: 0, weekday: 4,
@@ -67,32 +73,32 @@ test('a closed window points at the next one, not the one just gone', () => {
   const window = pollWindow(central('2025-09-06T18:00:00Z'), CT) // Saturday
   assert.equal(window.isOpen, false)
   const opens = zonedParts(new Date(window.opensAt), CT)
-  assert.equal(opens.weekday, 2, 'Tuesday')
-  assert.equal(opens.day, 9, 'the Tuesday after, not the one before')
-  assert.equal(opens.hour, 0)
+  assert.equal(opens.weekday, 3, 'Wednesday')
+  assert.equal(opens.day, 10, 'the Wednesday after, not the one before')
+  assert.equal(opens.hour, 10)
 })
 
 test('the window holds its hours across a daylight saving change', () => {
   // The Sunday between these two is when the US clocks go back.
-  const before = pollWindow(central('2025-10-29T15:00:00Z'), CT)
-  const after = pollWindow(central('2025-11-05T15:00:00Z'), CT)
+  const before = pollWindow(central('2025-10-29T16:00:00Z'), CT)
+  const after = pollWindow(central('2025-11-05T17:00:00Z'), CT)
 
   for (const window of [before, after]) {
     assert.equal(window.isOpen, true)
-    assert.equal(zonedParts(new Date(window.opensAt), CT).hour, 0)
+    assert.equal(zonedParts(new Date(window.opensAt), CT).hour, 10)
     assert.equal(zonedParts(new Date(window.closesAt), CT).hour, 12)
   }
-  // The clocks going back means the same local midnight is a different instant:
-  // 05:00 UTC while it is CDT, 06:00 UTC once it is CST. A fixed offset would
+  // The clocks going back means the same local 10am is a different instant:
+  // 15:00 UTC while it is CDT, 16:00 UTC once it is CST. A fixed offset would
   // have given the same hour twice.
-  assert.equal(new Date(before.opensAt).getUTCHours(), 5)
-  assert.equal(new Date(after.opensAt).getUTCHours(), 6)
+  assert.equal(new Date(before.opensAt).getUTCHours(), 15)
+  assert.equal(new Date(after.opensAt).getUTCHours(), 16)
 })
 
-test('a week is 24 hours of Tuesday, 24 of Wednesday and 12 of Thursday', () => {
-  const window = pollWindow(central('2025-09-02T06:00:00Z'), CT)
+test('a window is 14 hours of Wednesday and 12 of Thursday', () => {
+  const window = pollWindow(central('2025-09-03T16:00:00Z'), CT)
   const hours = (new Date(window.closesAt) - new Date(window.opensAt)) / 3_600_000
-  assert.equal(hours, 60)
+  assert.equal(hours, 26)
 })
 
 // ---------- the preseason poll ----------
@@ -137,10 +143,10 @@ test('a shut preseason poll points at the first weekly one, not another preseaso
   const after = preseasonWindow(new Date(PRESEASON_CLOSES.getTime() + 3_600_000), CT)
   const opens = zonedParts(new Date(after.opensAt), CT)
 
-  assert.equal(opens.weekday, 2, 'Tuesday')
-  assert.equal(opens.hour, 0)
-  // The Tuesday after the one the deadline fell in — the Tuesday that follows
-  // week 1's Monday night game, not the one two days after the poll shut.
+  assert.equal(opens.weekday, 3, 'Wednesday')
+  assert.equal(opens.hour, 10)
+  // The Wednesday after the one the deadline fell in — the Wednesday that
+  // follows week 1's Monday night game, not the one the poll shut on.
   assert.ok(new Date(after.opensAt) > leagueMoment(WEEK_1, '00:00', CT), 'after week 1 is played')
   assert.equal(zonedParts(new Date(after.closesAt), CT).weekday, 4, 'shutting Thursday')
   assert.equal(zonedParts(new Date(after.closesAt), CT).hour, 12)
