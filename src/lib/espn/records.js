@@ -257,10 +257,47 @@ export function streaks(games, outcome) {
     }))
 }
 
-/** Season-long totals, from ESPN's own regular-season record. */
+/**
+ * Has this season's regular season been played out?
+ *
+ * A season-long total is only a record once the season it describes is over.
+ * The year in progress has every team on a fraction of a year's points, which
+ * would take both "Lowest Seasonal" tables outright in week 1, hold them until
+ * December, and move every Monday in between — a record book that rewrites
+ * itself weekly isn't one. The "Highest" tables are no better off: a live
+ * season sits near the bottom of them all year and then jumps.
+ *
+ * ESPN publishes the whole schedule the moment a season is created — all 70 of
+ * this year's games were there in week 1 — so an unplayed regular-season
+ * matchup is a dependable sign that the year is still running.
+ *
+ * Byes are skipped the way `collectGames` skips them: a matchup with nobody on
+ * the other side never completes, and would keep every season out forever. A
+ * season with no matchups at all is let through rather than held out — that is
+ * ESPN having dropped the schedule for an old year, not a year in progress, and
+ * its team records are as final as they will ever be. A season nobody has
+ * played yet can't sneak in that way: `seasonTotals` wants games played.
+ */
+function regularSeasonComplete(entry) {
+  for (const matchup of entry.matchups ?? []) {
+    if (matchup.isBye) continue
+    if (!isRegularSeason(matchup, entry.regularSeasonWeeks)) continue
+    if (!matchup.isComplete) return false
+  }
+  return true
+}
+
+/**
+ * Season-long totals, from ESPN's own regular-season record.
+ *
+ * Finished seasons only — see `regularSeasonComplete`. Single-week and
+ * single-game records are final the moment the game ends, so they keep taking
+ * the live season; these four don't.
+ */
 function seasonTotals(seasons, labels) {
   const rows = []
   for (const entry of seasons) {
+    if (!regularSeasonComplete(entry)) continue
     const index = teamLabelIndex(entry, labels)
     for (const team of entry.teams ?? []) {
       const record = team.record ?? {}

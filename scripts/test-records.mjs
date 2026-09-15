@@ -270,3 +270,58 @@ test('an empty league produces empty groups rather than throwing', () => {
   assert.equal(groups.length, 12)
   assert.ok(groups.every((g) => g.rows.length === 0))
 })
+
+// ---------- season-long totals wait for the season to finish ----------
+
+test('a season still being played is kept out of the season-long tables', () => {
+  // Week 1 of a 14-week year: one game each, so every team is on a tenth of a
+  // season's points and would own both "Lowest Seasonal" tables until December.
+  const live = [
+    {
+      season: 2025, leagueId: 42, regularSeasonWeeks: 2,
+      teams: [team(1, ANN, { pf: 200, pa: 180, games: 2 }), team(2, BOB, { pf: 190, pa: 210, games: 2 })],
+      matchups: [game(1, 1, 120, 2, 90), game(2, 1, 80, 2, 100)],
+    },
+    {
+      season: 2026, leagueId: 42, regularSeasonWeeks: 2,
+      teams: [team(1, ANN, { pf: 20, pa: 15, games: 1 }), team(2, BOB, { pf: 15, pa: 20, games: 1 })],
+      matchups: [game(1, 1, 20, 2, 15), { ...game(2, 1, 0, 2, 0), isComplete: false }],
+    },
+  ]
+
+  for (const id of ['highest-season-pf', 'lowest-season-pf', 'highest-season-pa', 'lowest-season-pa']) {
+    const rows = buildRecords(live).find((group) => group.id === id).rows
+    assert.ok(rows.length > 0, `${id} still has the finished season`)
+    assert.ok(
+      rows.every((row) => row.cells.at(-1) === '2025'),
+      `${id} let the unfinished season in`,
+    )
+  }
+})
+
+test('the live season still counts for single-week and single-game records', () => {
+  // Those are settled the moment the whistle goes, so they don't wait.
+  const live = [{
+    season: 2026, leagueId: 42, regularSeasonWeeks: 2,
+    teams: [team(1, ANN, { games: 1 }), team(2, BOB, { games: 1 })],
+    matchups: [game(1, 1, 200, 2, 15), { ...game(2, 1, 0, 2, 0), isComplete: false }],
+  }]
+  const groups = buildRecords(live)
+
+  assert.equal(groups.find((g) => g.id === 'highest-week').rows[0].cells[0], '200.00')
+  assert.equal(groups.find((g) => g.id === 'highest-season-pf').rows.length, 0)
+})
+
+test('a season ESPN no longer serves a schedule for still counts', () => {
+  // Old years get pruned to bare team records. Those are final, so holding them
+  // out would quietly delete real history from the record book.
+  const pruned = [{
+    season: 2015, leagueId: 42,
+    teams: [team(1, ANN, { pf: 1500, pa: 1400, games: 13 })],
+    matchups: [],
+  }]
+  const rows = buildRecords(pruned).find((g) => g.id === 'highest-season-pf').rows
+
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].cells.at(-1), '2015')
+})
