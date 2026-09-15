@@ -19,6 +19,7 @@ import {
   zonedParts,
 } from '../src/lib/poll/schedule.js'
 import { ballotManagers, tally, validateBallot, withTrend } from '../src/lib/poll/ballot.js'
+import { buildResults } from '../src/lib/poll/handlers.js'
 import { KEY_DATES, PRESEASON_POLL, WEEK_1 } from '../src/lib/schedule/calendar.js'
 import { leagueMoment } from '../src/lib/time.js'
 
@@ -290,4 +291,81 @@ test('trend is movement against last week, and null with nothing to compare', ()
     [['ann', 2], ['brett', 0], ['tyler', -2]],
   )
   assert.ok(withTrend(current, []).every((row) => row.trend === null))
+})
+
+// ---------- which result is on show ----------
+
+/** A store holding the ballots given, keyed by week. */
+function storeOf(byWeek) {
+  return ({ week }) => Promise.resolve((byWeek[week] ?? []).map((ballot) => ({ ballot })))
+}
+
+const shown = (byWeek, week) =>
+  buildResults({ config: {}, season: 2026, week, managers: MANAGERS, votesFor: storeOf(byWeek) })
+
+test('the result on show is the poll that ran, not the one that hasn’t', async () => {
+  // Tuesday: ESPN has marked week 1 complete, so the ballot week is already 2 —
+  // but week 2's poll doesn't open until Wednesday at 10:00. The page used to
+  // answer "Week 2, nobody voted" and drop the preseason table it should still
+  // have been showing.
+  const preseason = [['ann', 'brett', 'tyler'], ['brett', 'ann', 'tyler']]
+  const result = await shown({ [PRESEASON_WEEK]: preseason }, FIRST_POLL_WEEK)
+
+  assert.equal(result.week, PRESEASON_WEEK)
+  assert.equal(result.voteCount, 2)
+  assert.equal(result.rows[0].id, 'ann')
+  // Nothing before the preseason poll to have moved against.
+  assert.ok(result.rows.every((row) => row.trend === null))
+})
+
+test('a week that has ballots is shown as itself, and trends against the week before', async () => {
+  const result = await shown(
+    { 2: [['tyler', 'brett', 'ann']], 3: [['ann', 'brett', 'tyler']] },
+    3,
+  )
+
+  assert.equal(result.week, 3)
+  assert.equal(result.voteCount, 1)
+  assert.deepEqual(result.rows.map((row) => [row.id, row.trend]), [['ann', 2], ['brett', 0], ['tyler', -2]])
+})
+
+test('with no poll ever run there is nothing to fall back to', async () => {
+  const result = await shown({}, FIRST_POLL_WEEK)
+
+  assert.equal(result.week, FIRST_POLL_WEEK)
+  assert.equal(result.voteCount, 0)
+})
+
+test('falling back changes which ballots are counted, and nothing else', async () => {
+  // The fallback is a different *query*, not a different tally. Reached through
+  // it, a week has to come out exactly as it would have if it had been asked
+  // for outright — same order, same points, same trend. Anything else and the
+  // table would quietly reshuffle itself on the Tuesday.
+  const byWeek = {
+    2: [['tyler', 'brett', 'ann'], ['tyler', 'ann', 'brett']],
+    3: [['brett', 'tyler', 'ann'], ['tyler', 'brett', 'ann']],
+  }
+
+  const viaFallback = await shown(byWeek, 4) // week 4 has no ballots yet
+  const direct = await shown(byWeek, 3)
+
+  assert.equal(viaFallback.week, 3)
+  assert.deepEqual(viaFallback.rows, direct.rows)
+  assert.equal(viaFallback.voteCount, direct.voteCount)
+})
+
+test('the fallback table is ranked on points, not on the alphabet', async () => {
+  // `tally` seeds itself from the managers A to Z, so a fallback that rebuilt
+  // the table instead of re-querying it would come out in that order. Tyler
+  // wins this poll outright and Ann comes last, which is the reverse.
+  const result = await shown(
+    { [PRESEASON_WEEK]: [['tyler', 'brett', 'ann'], ['tyler', 'brett', 'ann']] },
+    FIRST_POLL_WEEK,
+  )
+
+  assert.equal(result.week, PRESEASON_WEEK)
+  assert.deepEqual(result.rows.map((row) => row.id), ['tyler', 'brett', 'ann'])
+  assert.deepEqual(result.rows.map((row) => row.rank), [1, 2, 3])
+  assert.deepEqual(result.rows.map((row) => row.points), [6, 4, 2])
+  assert.equal(result.rows[0].firstPlaceVotes, 2)
 })

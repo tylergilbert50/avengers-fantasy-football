@@ -65,7 +65,25 @@ export function PollResults({ rows, week, voteCount, isPreseason = false }) {
                   <span className="sr-only">{ordinal(row.rank)}</span>
                 </td>
                 <td className="col-name">
-                  <span className="pp-name">{row.name}</span>
+                  <span className="pp-name">
+                    {row.name}
+                    {/* First-place votes, the way every press poll prints them:
+                        in brackets after the name, and only when there are any
+                        — a column of "(0)" is noise. Read aloud in full, since
+                        a bare number after a name means nothing spoken. */}
+                    {row.firstPlaceVotes > 0 && (
+                      <>
+                        {' '}
+                        <span className="pp-firsts" aria-hidden="true">
+                          ({row.firstPlaceVotes})
+                        </span>
+                        <span className="sr-only">
+                          , {row.firstPlaceVotes} first-place{' '}
+                          {row.firstPlaceVotes === 1 ? 'vote' : 'votes'}
+                        </span>
+                      </>
+                    )}
+                  </span>
                   <span className="pp-team">{row.teamName}</span>
                 </td>
                 {!isPreseason && (
@@ -84,6 +102,10 @@ export function PollResults({ rows, week, voteCount, isPreseason = false }) {
         {voteCount === 0
           ? `Nobody voted${isPreseason ? '' : ' this week'}`
           : `${voteCount} ${voteCount === 1 ? 'vote' : 'votes'} submitted`}
+        {/* Says what the brackets are, and only when some are on the page. */}
+        {rows.some((row) => row.firstPlaceVotes > 0) && (
+          <> · first-place votes in brackets</>
+        )}
       </p>
     </>
   )
@@ -327,7 +349,10 @@ export default function PollPage() {
             rows={poll.results}
             week={poll.resultsWeek}
             voteCount={poll.voteCount}
-            isPreseason={isPreseason}
+            /* The table names the poll it is showing, which in the day between
+               a slate finishing and the next poll opening is the one before
+               the week in the eyebrow above. */
+            isPreseason={Boolean(poll.resultsArePreseason)}
           />
         )}
 

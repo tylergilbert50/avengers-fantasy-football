@@ -156,6 +156,16 @@
   overflow-wrap: anywhere;
 }
 
+/* First-place votes. Lighter than the name it trails so the column still
+   reads as a list of names, and tabular figures so the brackets line up. */
+.pp-firsts {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .pp-team {
   display: block;
   margin-top: 0.1rem;

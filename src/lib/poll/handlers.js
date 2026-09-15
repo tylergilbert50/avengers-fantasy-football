@@ -103,7 +103,11 @@ async function pollState({ env, params }) {
   }
 }
 
-/** The week whose result is on show. */
+/**
+ * The week whose result is on show — the candidate, at least; `buildResults`
+ * gets the last word, because this is the week the *next* ballot is for and
+ * that is not always the week of the poll that last ran.
+ */
 function resultsWeek({ week, phase, lastRegularWeek }) {
   // Nothing has been voted on yet, so there is nothing to show.
   if (phase === 'not-started') return null
@@ -120,12 +124,39 @@ function resultsWeek({ week, phase, lastRegularWeek }) {
  *
  * Records come from the standings as they stand, which during the poll's own
  * week is the record each manager is carrying into it.
+ *
+ * The week asked for is the week the *next* ballot is for, which for a day
+ * every week is not the week of the poll that last ran: ESPN marks a slate
+ * complete on Tuesday, once Monday night is in the books, but the poll for the
+ * new week doesn't open until Wednesday at 10:00. In the hours between, the
+ * page was asking for a poll that hadn't happened yet and being handed a table
+ * of zeroes — "Week 2, nobody voted", the day before week 2's poll opened, with
+ * the preseason result it should have been showing gone from the page.
+ *
+ * So a week with no ballots in it is a poll that has not run, and the result on
+ * show is the one before it. At the top of the season that is week 1, the
+ * preseason ballot, which is exactly the right drawer to fall back into.
+ *
+ * The fallback moves the *query* and nothing else: the same `tally` ranks the
+ * ballots it comes back with, against the same week-before, so a week reached
+ * this way comes out identical to one asked for outright — ordered on points,
+ * first-place votes, then name, never on the A-to-Z list `tally` seeds from.
+ *
+ * `votesFor` is the seam the tests read the rule through; everything else calls
+ * it with the real store.
  */
-async function buildResults({ config, season, week, managers }) {
-  const [votes, previousVotes] = await Promise.all([
-    fetchVotes({ config, season, week }),
-    week > 1 ? fetchVotes({ config, season, week: week - 1 }) : Promise.resolve([]),
-  ])
+export async function buildResults({ config, season, week, managers, votesFor = fetchVotes }) {
+  const read = (which) =>
+    which >= PRESEASON_WEEK ? votesFor({ config, season, week: which }) : Promise.resolve([])
+
+  let shown = week
+  let [votes, previousVotes] = await Promise.all([read(week), read(week - 1)])
+
+  if (votes.length === 0 && previousVotes.length > 0) {
+    shown = week - 1
+    votes = previousVotes
+    previousVotes = await read(shown - 1)
+  }
 
   // A week nobody voted in tallies to a full table of zeroes in alphabetical
   // order, which is a ranking as far as `withTrend` can tell — and every
@@ -134,7 +165,7 @@ async function buildResults({ config, season, week, managers }) {
   const previous = previousVotes.length > 0 ? tally(previousVotes, managers) : []
 
   const rows = withTrend(tally(votes, managers), previous)
-  return { rows, voteCount: votes.length }
+  return { week: shown, rows, voteCount: votes.length }
 }
 
 function payload({ state, hasVoted, yourBallot, results, shownWeek = null }) {
@@ -142,8 +173,13 @@ function payload({ state, hasVoted, yourBallot, results, shownWeek = null }) {
     season: state.season,
     week: state.week,
     // Usually the same week; different once the season is over and the last
-    // poll of the year is what's still on the page.
+    // poll of the year is what's still on the page, and in the day between a
+    // slate finishing and the next poll opening.
     resultsWeek: results ? shownWeek : null,
+    // Week 1 is only ever the preseason ballot — the weekly poll starts at
+    // week 2 — so a result filed there is the preseason one however the page
+    // arrived at it, and gets its name and its missing trend column.
+    resultsArePreseason: Boolean(results) && shownWeek === PRESEASON_WEEK,
     leagueName: state.league.settings?.name ?? null,
     isOpen: state.phase === 'open',
     // 'open' | 'closed' | 'not-started' | 'season-over'
@@ -170,10 +206,9 @@ export async function handlePoll({ env, params, headers = {} }) {
   const state = await pollState({ env, params })
   const voterId = readCookie(headers, VOTER_COOKIE)
 
-  const shownWeek = resultsWeek(state)
-  const results = shownWeek == null
-    ? null
-    : await buildResults({ ...state, week: shownWeek })
+  const candidate = resultsWeek(state)
+  const results = candidate == null ? null : await buildResults({ ...state, week: candidate })
+  const shownWeek = results?.week ?? null
 
   // Only asked while it matters: mid-week the answer decides whether the page
   // shows a ballot or a receipt.

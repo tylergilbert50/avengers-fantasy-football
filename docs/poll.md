@@ -170,9 +170,16 @@ browser's, and nothing else changes.
   "opensAt": "2026-09-16T15:00:00.000Z",   // next Wednesday, when closed
   "closesAt": "2026-09-17T17:00:00.000Z",
   "timezone": "CDT",
-  // The week the table below belongs to. The same as `week`, except once the
-  // season is over and the year's last poll is what's still on the page.
-  "resultsWeek": 2,
+  // The week the table below belongs to — the poll that actually ran, which is
+  // not always `week`. ESPN marks a slate complete on Tuesday but the new
+  // week's poll doesn't open until Wednesday at 10:00, so in between, `week` is
+  // already the next one and the table is still the last one's. Also differs
+  // once the season is over and the year's last poll is what's still on show.
+  "resultsWeek": 1,
+  // Whether that table is the preseason ballot — week 1 always is, since the
+  // weekly poll starts at week 2. Drives the table's name and its Trend column,
+  // independently of `isPreseason` above, which is about the ballot.
+  "resultsArePreseason": true,
   "managers": [ { "id": "{SWID}", "name": "Andrew Casazza", "teamName": "Punisher's Arsenal",
                   "teamId": 4, "recordLabel": "0-0" } ],
   "hasVoted": false,
