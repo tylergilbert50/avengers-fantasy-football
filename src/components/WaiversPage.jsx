@@ -425,13 +425,13 @@ export default function WaiversPage() {
 
               {shown.length > 0 ? (
                 <PickupTable pickups={shown} sort={pickupSort} onSort={togglePickupSort} />
-              ) : (
+              ) : manager ? (
+                // Only the filtered case says anything: "you have filtered this
+                // empty" is worth writing, an empty season is not.
                 <p className="state">
-                  {manager
-                    ? `${manager} started nothing off the wire${season === 'all' ? '' : ` in ${season}`}.`
-                    : 'Nothing started off the wire that season.'}
+                  {`${manager} started nothing off the wire${season === 'all' ? '' : ` in ${season}`}.`}
                 </p>
-              )}
+              ) : null}
             </section>
           </>
         )}
