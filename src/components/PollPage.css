@@ -166,6 +166,25 @@
   white-space: nowrap;
 }
 
+/* Average points for: a number column pinned to the right of each row, headed
+   in the ballot's black bar so it reads as a table without being one. */
+.pp-col-label {
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pp-avg {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .pp-team {
   display: block;
   margin-top: 0.1rem;

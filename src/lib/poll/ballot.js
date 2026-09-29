@@ -26,6 +26,10 @@ export function ballotManagers(league) {
       teamName: manager.teamName,
       teamId: manager.teamId,
       recordLabel: manager.recordLabel ?? '0-0',
+      // Null until a game has been played, so the preseason ballot shows a dash
+      // rather than a column of zeroes.
+      pointsForPerGame:
+        manager.record?.gamesPlayed > 0 ? manager.record.pointsForPerGame : null,
     }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }

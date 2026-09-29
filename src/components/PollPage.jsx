@@ -102,10 +102,6 @@ export function PollResults({ rows, week, voteCount, isPreseason = false }) {
         {voteCount === 0
           ? `Nobody voted${isPreseason ? '' : ' this week'}`
           : `${voteCount} ${voteCount === 1 ? 'vote' : 'votes'} submitted`}
-        {/* Says what the brackets are, and only when some are on the page. */}
-        {rows.some((row) => row.firstPlaceVotes > 0) && (
-          <> · first-place votes in brackets</>
-        )}
       </p>
     </>
   )
@@ -164,6 +160,7 @@ export function Ballot({ managers, onSubmit, isSending, error }) {
             ? 'All ranked. Lock it in.'
             : `${order.length} of ${managers.length} ranked`}
         </p>
+        <span className="pp-col-label" aria-hidden="true">Avg PF</span>
       </div>
 
       <ol className="pp-choices">
@@ -185,6 +182,18 @@ export function Ballot({ managers, onSubmit, isSending, error }) {
                 <span className="pp-choice-text">
                   <span className="pp-name">{manager.name}</span>
                   <span className="pp-team">{manager.teamName}</span>
+                </span>
+                <span className="pp-avg">
+                  {Number.isFinite(manager.pointsForPerGame) ? (
+                    <>
+                      <span aria-hidden="true">{manager.pointsForPerGame.toFixed(1)}</span>
+                      <span className="sr-only">
+                        , averaging {manager.pointsForPerGame.toFixed(1)} points a game,
+                      </span>
+                    </>
+                  ) : (
+                    <span aria-hidden="true">—</span>
+                  )}
                 </span>
                 <span className="sr-only">
                   {ranked ? `ranked ${ordinal(position + 1)}, tap to remove` : 'tap to rank next'}
