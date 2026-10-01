@@ -68,7 +68,9 @@ function Trade({ trade }) {
   const winning = trade.scoreable && trade.winner != null
   const verdict = trade.isFaabDeal
     ? 'FAAB deal'
-    : !trade.scoreable
+    : trade.pending
+      ? 'Too early'
+      : !trade.scoreable
       ? 'Not scored'
       : trade.winner == null
         ? 'Dead even'
@@ -90,7 +92,7 @@ function Trade({ trade }) {
           <TradeSide
             key={side.teamId}
             side={side}
-            showPoints={!trade.isFaabDeal}
+            showPoints={!trade.isFaabDeal && !trade.pending}
             outcome={
               !winning ? 'none' : side.teamId === trade.winner ? 'won' : 'lost'
             }

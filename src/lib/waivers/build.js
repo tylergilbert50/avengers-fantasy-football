@@ -81,7 +81,7 @@ export function seasonCounters({ raw, season, teams = [] }) {
  * from the pickup week onward, only while the player stayed on that roster, and
  * only in weeks he was actually started.
  */
-export function buildSeasonPickups({ season, weeks = [], teams = [] }) {
+export function buildSeasonPickups({ season, weeks = [], teams = [], scoredThrough = Infinity }) {
   const timeline = buildTimeline(weeks)
   const byTeam = new Map(teams.map((team) => [team.id, team]))
 
@@ -111,7 +111,7 @@ export function buildSeasonPickups({ season, weeks = [], teams = [] }) {
     let heldWeeks = 0
 
     for (const week of timeline.weeks) {
-      if (week < pickup.week) continue
+      if (week < pickup.week || week > scoredThrough) continue
       const at = timeline.at(week, pickup.playerId)
       if (!at || at.teamId !== pickup.teamId) continue
       heldWeeks += 1

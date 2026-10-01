@@ -19,6 +19,7 @@ import {
   buildTradeStats,
   buildTimeline,
   isStarterSlot,
+  mergeTradeLog,
   sortTrades,
   tradeAcquisitions,
   tradeHighlights,
@@ -385,4 +386,84 @@ test('highlights need a real sample before naming a best or worst', () => {
 test('trades sort newest first', () => {
   const sorted = sortTrades(STAT_TRADES)
   assert.deepEqual(sorted.map((trade) => trade.season), [2025, 2025, 2024])
+})
+
+// ---------- the live season and ESPN's trade log ----------
+
+test('unfinished weeks decide ownership but score nothing', () => {
+  const [trade] = buildSeasonTrades({
+    season: 2026,
+    teams: TEAMS,
+    scoredThrough: 2,
+    acquisitions: [
+      { timestamp: 1000, teamId: 1, playerId: 20 },
+      { timestamp: 1000, teamId: 2, playerId: 21 },
+    ],
+    weeks: weeksOf(
+      [on(20, 2), on(21, 1)],
+      [on(20, 1, { score: 30 }), on(21, 2, { score: 5 })],
+      // ESPN serves future weeks as today's rosters with nothing scored.
+      [on(20, 1), on(21, 2)],
+      [on(20, 1), on(21, 2)],
+    ),
+  })
+  const ann = trade.sides.find((side) => side.teamId === 1)
+  assert.equal(ann.players[0].started, 1, 'only the finished week counts as a start')
+  assert.equal(trade.pending, false)
+})
+
+test('a trade made in the week being played is too early to judge', () => {
+  const [trade] = buildSeasonTrades({
+    season: 2026,
+    teams: TEAMS,
+    scoredThrough: 1,
+    acquisitions: [
+      { timestamp: 1000, teamId: 1, playerId: 20 },
+      { timestamp: 1000, teamId: 2, playerId: 21 },
+    ],
+    weeks: weeksOf([on(20, 2), on(21, 1)], [on(20, 1), on(21, 2)]),
+  })
+  assert.equal(trade.pending, true)
+  assert.equal(trade.scoreable, false, 'not a tie, just not played yet')
+})
+
+test('the trade log restores a trade whose player was traded again', () => {
+  // Player 20 went 2 -> 1 in week 2, then 1 -> 3 in week 3. The roster only
+  // remembers the second trade.
+  const acquisitions = mergeTradeLog(
+    [{ timestamp: 900_000_000, teamId: 3, playerId: 20, player: 'Twice Traded' }],
+    [
+      { id: 'a', processDate: 5000, teamId: 2, items: [{ type: 'TRADE', playerId: 20, fromTeamId: 2, toTeamId: 1 }] },
+      { id: 'b', processDate: 899_999_990, teamId: 1, items: [] },
+    ],
+  )
+  const trades = buildSeasonTrades({
+    season: 2026,
+    teams: TEAMS,
+    acquisitions,
+    weeks: weeksOf([on(20, 2)], [on(20, 1)], [on(20, 3)]),
+  })
+  assert.equal(trades.length, 2)
+  const first = trades.find((trade) => trade.week === 2)
+  assert.deepEqual(first.sides.map((side) => side.teamId).sort(), [1, 2])
+  const second = trades.find((trade) => trade.week === 3)
+  assert.deepEqual(second.sides.map((side) => side.teamId).sort(), [1, 3], 'the accepting team is a party')
+})
+
+test('the trade log names the other side of a one-sided trade', () => {
+  // Player 20 was picked up and traded inside the same week, so no earlier
+  // roster can say where he came from.
+  const acquisitions = mergeTradeLog(
+    [{ timestamp: 1000, teamId: 1, playerId: 20 }],
+    [{ id: 'a', processDate: 990, teamId: 2, items: [] }],
+  )
+  const [trade] = buildSeasonTrades({
+    season: 2026,
+    teams: TEAMS,
+    acquisitions,
+    weeks: weeksOf([on(99, 3)], [on(20, 1)]),
+  })
+  assert.equal(trade.counterpartyUnknown, false)
+  assert.equal(trade.isFaabDeal, true)
+  assert.deepEqual(trade.sides.map((side) => side.teamId).sort(), [1, 2])
 })

@@ -12,9 +12,9 @@
  * so a season can't be shaped differently depending on how old it is.
  */
 
-import { fetchLeagueRaw, fetchRosterWeek, fetchWeekStarts } from '../espn/fetchLeague.js'
+import { fetchLeagueRaw, fetchRosterWeek, fetchTradeLog, fetchWeekStarts } from '../espn/fetchLeague.js'
 import { normalizeLeague } from '../espn/normalize.js'
-import { buildSeasonTrades, tradeAcquisitions } from '../trades/build.js'
+import { buildSeasonTrades, mergeTradeLog, tradeAcquisitions } from '../trades/build.js'
 import { buildSeasonPickups, seasonCounters } from '../waivers/build.js'
 
 /**
@@ -70,9 +70,13 @@ const WEEK_CONCURRENCY = 6
  * period. Both readings want the whole season: a trade is judged from its week
  * onward, and a pickup is only visible as the difference between one week's
  * rosters and the last.
+ *
+ * Mid-season, `current` stops it at the week being played. ESPN answers for
+ * every week after that too, but with today's rosters and no points, which
+ * would read as weeks of zero-point starts.
  */
-export function weeksToRead({ weekStarts = [], limit = 17 }) {
-  const last = Math.min(limit, weekStarts.length ? Math.max(...weekStarts.map((w) => w.week)) : limit)
+export function weeksToRead({ weekStarts = [], limit = 17, current = Infinity }) {
+  const last = Math.min(limit, current, weekStarts.length ? Math.max(...weekStarts.map((w) => w.week)) : limit)
   const weeks = []
   for (let week = 1; week <= last; week += 1) weeks.push(week)
   return weeks
@@ -106,13 +110,18 @@ export async function loadSeasonActivity({ config, season, memoize = (_key, prod
     name: team.name,
   }))
 
-  const acquisitions = tradeAcquisitions(raw)
+  // ESPN's latest scoring period is the week being played; once the season is
+  // over it runs past the last week, so everything counts.
+  const current = Number(raw?.status?.latestScoringPeriod ?? raw?.scoringPeriodId) || Infinity
+  const scoredThrough = current - 1
+
+  const rosterAcquisitions = tradeAcquisitions(raw)
   const counters = seasonCounters({ raw, season, teams })
 
   // ESPN's own tallies are the cheap half and are already in hand. If nothing
   // has happened yet there is nothing for the weekly rosters to show either,
   // which is the ordinary state of a season that has only just started.
-  const anyActivity = acquisitions.length > 0 || counters.some((entry) => entry.adds > 0)
+  const anyActivity = rosterAcquisitions.length > 0 || counters.some((entry) => entry.adds > 0)
   if (!anyActivity) {
     return { season, teams, trades: [], pickups: [], counters, weeksRead: 0, dropCount: 0 }
   }
@@ -123,8 +132,17 @@ export async function loadSeasonActivity({ config, season, memoize = (_key, prod
     swid: config.swid,
   })
 
-  const wanted = weeksToRead({ weekStarts })
+  const wanted = weeksToRead({ weekStarts, current })
   const weeks = []
+
+  const tradeLog = await fetchTradeLog({
+    leagueId: config.leagueId,
+    season,
+    periods: wanted,
+    espnS2: config.espnS2,
+    swid: config.swid,
+  })
+  const acquisitions = mergeTradeLog(rosterAcquisitions, tradeLog)
 
   for (let i = 0; i < wanted.length; i += WEEK_CONCURRENCY) {
     const batch = wanted.slice(i, i + WEEK_CONCURRENCY)
@@ -150,8 +168,8 @@ export async function loadSeasonActivity({ config, season, memoize = (_key, prod
 
   weeks.sort((a, b) => a.week - b.week)
 
-  const trades = buildSeasonTrades({ season, acquisitions, weeks, teams, weekStarts })
-  const { pickups, dropCount } = buildSeasonPickups({ season, weeks, teams })
+  const trades = buildSeasonTrades({ season, acquisitions, weeks, teams, weekStarts, scoredThrough })
+  const { pickups, dropCount } = buildSeasonPickups({ season, weeks, teams, scoredThrough })
 
   return { season, teams, trades, pickups, counters, weeksRead: weeks.length, dropCount }
 }

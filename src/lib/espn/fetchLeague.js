@@ -199,6 +199,43 @@ export async function fetchRosterWeek({ leagueId, season, week, espnS2, swid, si
 }
 
 /**
+ * Every executed trade in ESPN's transaction log, for the given scoring periods.
+ *
+ * The log answers anonymously, but only one scoring period at a time, and only
+ * partially: proposals are withheld, and an accepted trade often lists no
+ * players at all. What it reliably gives is *that* a trade happened, when, and
+ * which team accepted it — and sometimes the players, which is exactly what
+ * the end-of-season rosters lose once a player has moved again. See
+ * `mergeTradeLog` in src/lib/trades/build.js for how the two are combined.
+ *
+ * A period that won't load costs that period, not the season.
+ */
+export async function fetchTradeLog({ leagueId, season, periods = [], espnS2, swid, signal }) {
+  const cookie = buildCookieHeader({ espnS2, swid })
+  const filter = { transactions: { filterType: { value: ['TRADE_ACCEPT'] } } }
+
+  const pages = await Promise.all(
+    periods.map((scoringPeriodId) =>
+      requestJson(leagueUrl({ leagueId, season, views: ['mTransactions2'], scoringPeriodId }), {
+        cookie,
+        signal,
+        filter,
+      }).catch(() => null),
+    ),
+  )
+
+  // A trade near a period boundary is listed under both.
+  const byId = new Map()
+  for (const page of pages) {
+    for (const transaction of page?.transactions ?? []) {
+      if (transaction?.type !== 'TRADE_ACCEPT' || transaction.status !== 'EXECUTED') continue
+      byId.set(transaction.id, transaction)
+    }
+  }
+  return [...byId.values()]
+}
+
+/**
  * When each scoring period started, from the season's pro football schedule.
  *
  * Only ever a tie-breaker — see `tradeWeekFor` in src/lib/trades/build.js for

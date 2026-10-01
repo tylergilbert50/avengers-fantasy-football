@@ -18,8 +18,10 @@
  *
  * (1) alone is not enough, because it only sees players who were still on a
  * roster when the season ended — a third of this league's trades look
- * one-sided through it. (2) fills those in, and is also what makes the trade
- * scoreable at all.
+ * one-sided through it, and a player traded twice erases his first trade
+ * entirely. (2) fills those in, and is also what makes the trade scoreable at
+ * all. ESPN's transaction log has since started answering anonymously for
+ * executed trades, partially — see `mergeTradeLog` — and patches what's left.
  *
  * Pure functions over already-fetched pieces: no network here, so the shaping
  * is testable without one.
@@ -96,6 +98,63 @@ export function tradeAcquisitions(raw) {
     }
   }
   return acquisitions
+}
+
+/** How far apart ESPN's log and roster timestamps for one trade can sit. */
+const SAME_TRADE_MS = 60_000
+
+/**
+ * Fold ESPN's trade log into the roster acquisitions.
+ *
+ * The roster records only describe a player's *latest* arrival, so a player
+ * traded twice in a season erases his first trade, and one later dropped
+ * erases his only one. The log keeps those. It also names the team that
+ * accepted, which settles the counterparty when only one side survived.
+ *
+ * A log entry is the same trade as an acquisition group when their timestamps
+ * sit within a few milliseconds of each other (ESPN stamps them separately).
+ * Matched, it adds any players the group lost and its parties; unmatched, its
+ * own players become a new group.
+ *
+ * @param {Array<object>} acquisitions  from `tradeAcquisitions`
+ * @param {Array<object>} transactions  executed TRADE_ACCEPT entries from `fetchTradeLog`
+ */
+export function mergeTradeLog(acquisitions = [], transactions = []) {
+  const merged = acquisitions.map((acquisition) => ({ ...acquisition }))
+
+  for (const transaction of transactions) {
+    const timestamp = transaction?.processDate ?? transaction?.proposedDate
+    if (timestamp == null) continue
+
+    const moves = (transaction.items ?? []).filter((item) => item?.type === 'TRADE' && item.playerId != null)
+    const parties = new Set()
+    if (transaction.teamId > 0) parties.add(transaction.teamId)
+    for (const move of moves) {
+      if (move.fromTeamId > 0) parties.add(move.fromTeamId)
+      if (move.toTeamId > 0) parties.add(move.toTeamId)
+    }
+
+    let match = null
+    for (const acquisition of merged) {
+      const gap = Math.abs(acquisition.timestamp - timestamp)
+      if (gap <= SAME_TRADE_MS && (!match || gap < Math.abs(match.timestamp - timestamp))) match = acquisition
+    }
+    const groupTimestamp = match?.timestamp ?? timestamp
+    const group = merged.filter((acquisition) => acquisition.timestamp === groupTimestamp)
+
+    for (const move of moves) {
+      if (!(move.toTeamId > 0) || group.some((acquisition) => acquisition.playerId === move.playerId)) continue
+      const added = { timestamp: groupTimestamp, teamId: move.toTeamId, playerId: move.playerId, player: null }
+      merged.push(added)
+      group.push(added)
+    }
+
+    for (const acquisition of group) {
+      acquisition.parties = [...new Set([...(acquisition.parties ?? []), ...parties])]
+    }
+  }
+
+  return merged
 }
 
 /**
@@ -180,13 +239,13 @@ function lastTeamBefore({ timeline, playerId, week }) {
  * who arrives and then sits on the bench did nothing for the team that wanted
  * him, and that is the thing being measured.
  */
-function scorePlayer({ playerId, teamId, fromWeek, timeline }) {
+function scorePlayer({ playerId, teamId, fromWeek, timeline, scoredThrough = Infinity }) {
   let points = 0
   let started = 0
   let heldWeeks = 0
 
   for (const week of timeline.weeks) {
-    if (week < fromWeek) continue
+    if (week < fromWeek || week > scoredThrough) continue
     const at = timeline.at(week, playerId)
     if (!at || at.teamId !== teamId) continue
     heldWeeks += 1
@@ -208,8 +267,18 @@ function scorePlayer({ playerId, teamId, fromWeek, timeline }) {
  * @param {Array<{week: number, entries: Array<object>}>} input.weeks  weekly rosters
  * @param {Array<{id: number, manager: string, name?: string}>} input.teams
  * @param {Array<{week: number, startsAt: number}>} input.weekStarts
+ * @param {number}   [input.scoredThrough]  the last finished week. Later weeks
+ *   still say who owns whom, but their lineups aren't final and their points
+ *   haven't happened, so they count for nothing.
  */
-export function buildSeasonTrades({ season, acquisitions = [], weeks = [], teams = [], weekStarts = [] }) {
+export function buildSeasonTrades({
+  season,
+  acquisitions = [],
+  weeks = [],
+  teams = [],
+  weekStarts = [],
+  scoredThrough = Infinity,
+}) {
   const timeline = buildTimeline(weeks)
   const byTeam = new Map(teams.map((team) => [team.id, team]))
   const describe = (teamId) => ({
@@ -259,6 +328,8 @@ export function buildSeasonTrades({ season, acquisitions = [], weeks = [], teams
     // traded players the week before is the counterparty, and the busiest such
     // team wins if the players somehow came from more than one.
     const parties = new Set(received.keys())
+    // Teams ESPN's trade log names outright — see `mergeTradeLog`.
+    for (const move of moves) for (const teamId of move.parties ?? []) if (byTeam.has(teamId)) parties.add(teamId)
     if (parties.size === 1 && previousWeek != null) {
       const sources = new Map()
       for (const move of moves) {
@@ -302,7 +373,7 @@ export function buildSeasonTrades({ season, acquisitions = [], weeks = [], teams
       const players = [...(received.get(teamId) ?? new Map()).entries()].map(([playerId, player]) => ({
         playerId,
         player,
-        ...scorePlayer({ playerId, teamId, fromWeek: week, timeline }),
+        ...scorePlayer({ playerId, teamId, fromWeek: week, timeline, scoredThrough }),
       }))
       players.sort((a, b) => b.points - a.points)
       return {
@@ -324,7 +395,10 @@ export function buildSeasonTrades({ season, acquisitions = [], weeks = [], teams
     // earlier roster to name the other party from.
     const counterpartyUnknown = sides.length < 2
 
-    const scoreable = !isFaabDeal && !counterpartyUnknown && sides.length === 2
+    // Made in a week that hasn't finished yet: nothing to judge it on.
+    const pending = week > scoredThrough
+
+    const scoreable = !isFaabDeal && !counterpartyUnknown && !pending && sides.length === 2
 
     sides.sort((a, b) => b.points - a.points)
 
@@ -344,6 +418,7 @@ export function buildSeasonTrades({ season, acquisitions = [], weeks = [], teams
       sides,
       isFaabDeal,
       counterpartyUnknown,
+      pending,
       scoreable,
       winner,
       margin,
